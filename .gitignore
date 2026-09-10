@@ -1,0 +1,48 @@
+# ── Dependencies ────────────────────────────────────────────────
+/vendor
+/node_modules
+
+# ── Build artifacts ─────────────────────────────────────────────
+/public/build
+/public/hot
+
+# ── Environment ─────────────────────────────────────────────────
+# Never commit real environment files or encryption keys.
+# Commit `.env.example` / `.env.docker.example` instead.
+/.env
+/.env.backup
+/.env.production
+/.env.local
+/.env.*.local
+/.env.docker
+
+# ── Laravel runtime ─────────────────────────────────────────────
+/storage/*.key
+/storage/pail
+/.phpunit.cache
+/.phpunit.result.cache
+/coverage
+
+# ── Databases ───────────────────────────────────────────────────
+# SQLite files (tests use :memory:, dev DB lives in Docker).
+/database/*.sqlite
+/database/*.sqlite-journal
+
+# ── Logs ────────────────────────────────────────────────────────
+/logs
+*.log
+
+# ── Docker ──────────────────────────────────────────────────────
+/docker-compose.override.yml
+
+# ── macOS ───────────────────────────────────────────────────────
+.DS_Store
+
+# ── IDE / editor ────────────────────────────────────────────────
+/.idea
+/.vscode
+*.swp
+*.swo
+
+# ── Misc ────────────────────────────────────────────────────────
+opencode.jsonc
