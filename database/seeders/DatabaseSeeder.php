@@ -18,6 +18,9 @@ class DatabaseSeeder extends Seeder
             CurrencySeeder::class,
             FiscalYearSeeder::class,
             SystemSettingSeeder::class,
+            ChartOfAccountsSeeder::class,
+            TaxSeeder::class,
+            AccountingSettingSeeder::class,
         ]);
     }
 }

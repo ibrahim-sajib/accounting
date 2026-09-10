@@ -1,6 +1,8 @@
 <?php
 
 use App\Domain\Accounting\Http\Controllers\AccountingPeriodController;
+use App\Domain\Accounting\Http\Controllers\AccountingSettingController;
+use App\Domain\Accounting\Http\Controllers\AccountController;
 use App\Domain\Accounting\Http\Controllers\FiscalYearController;
 use App\Domain\Company\Http\Controllers\BranchController;
 use App\Domain\Company\Http\Controllers\CompanyController;
@@ -8,6 +10,7 @@ use App\Domain\Currency\Http\Controllers\CurrencyController;
 use App\Domain\Rbac\Http\Controllers\RoleController;
 use App\Domain\Rbac\Http\Controllers\UserController;
 use App\Domain\Settings\Http\Controllers\SystemSettingController;
+use App\Domain\Tax\Http\Controllers\TaxTypeController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\ProfileController;
 use Illuminate\Support\Facades\Route;
@@ -130,6 +133,42 @@ Route::middleware(['auth', 'verified'])->group(function () {
         ->name('settings.index');
     Route::middleware('permission:settings.update')->put('/settings', [SystemSettingController::class, 'update'])
         ->name('settings.update');
+
+    // ── Chart of Accounts ──
+    Route::middleware('permission:account.view')->get('/accounts', [AccountController::class, 'index'])
+        ->name('accounts.index');
+    Route::middleware('permission:account.create')->get('/accounts/create', [AccountController::class, 'create'])
+        ->name('accounts.create');
+    Route::middleware('permission:account.create')->post('/accounts', [AccountController::class, 'store'])
+        ->name('accounts.store');
+    Route::middleware('permission:account.update')->get('/accounts/{account}/edit', [AccountController::class, 'edit'])
+        ->name('accounts.edit');
+    Route::middleware('permission:account.update')->put('/accounts/{account}', [AccountController::class, 'update'])
+        ->name('accounts.update');
+    Route::middleware('permission:account.delete')->delete('/accounts/{account}', [AccountController::class, 'destroy'])
+        ->name('accounts.destroy');
+
+    // ── Tax / VAT ──
+    Route::middleware('permission:tax.view')->get('/tax', [TaxTypeController::class, 'index'])
+        ->name('tax.index');
+    Route::middleware('permission:tax.create')->post('/tax', [TaxTypeController::class, 'store'])
+        ->name('tax.store');
+    Route::middleware('permission:tax.update')->put('/tax/{taxType}', [TaxTypeController::class, 'update'])
+        ->name('tax.update');
+    Route::middleware('permission:tax.delete')->delete('/tax/{taxType}', [TaxTypeController::class, 'destroy'])
+        ->name('tax.destroy');
+    Route::middleware('permission:tax.create')->post('/tax/{taxType}/rates', [TaxTypeController::class, 'storeRate'])
+        ->name('tax.rates.store');
+    Route::middleware('permission:tax.update')->put('/tax/rates/{rate}', [TaxTypeController::class, 'updateRate'])
+        ->name('tax.rates.update');
+    Route::middleware('permission:tax.delete')->delete('/tax/rates/{rate}', [TaxTypeController::class, 'destroyRate'])
+        ->name('tax.rates.destroy');
+
+    // ── Accounting Configuration ──
+    Route::middleware('permission:accounting_config.view')->get('/accounting-settings', [AccountingSettingController::class, 'index'])
+        ->name('accounting-settings.index');
+    Route::middleware('permission:accounting_config.update')->put('/accounting-settings', [AccountingSettingController::class, 'update'])
+        ->name('accounting-settings.update');
 
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');

@@ -41,6 +41,9 @@ const navGroups = computed(() => [
     {
         label: 'Accounting Setup',
         items: [
+            { label: 'Chart of Accounts', routeName: 'accounts.index', icon: 'account', permission: 'account.view' },
+            { label: 'Tax & VAT', routeName: 'tax.index', icon: 'tax', permission: 'tax.view' },
+            { label: 'Accounting Settings', routeName: 'accounting-settings.index', icon: 'settings', permission: 'accounting_config.view' },
             { label: 'Fiscal Years', routeName: 'fiscal-years.index', icon: 'calendar', permission: 'fiscal_year.view' },
             { label: 'Accounting Periods', routeName: 'accounting-periods.index', icon: 'period', permission: 'period.view' },
             { label: 'Currencies', routeName: 'currencies.index', icon: 'currency', permission: 'currency.view' },
@@ -115,7 +118,7 @@ const switchCompany = (id: number) => {
             <!-- Sidebar footer -->
             <div class="border-t border-gray-200 p-3 dark:border-gray-800">
                 <div class="rounded-lg bg-gray-50 px-3 py-2 text-xs text-gray-500 dark:bg-gray-800/60 dark:text-gray-400">
-                    Phase 1 · Core foundation
+                    Phase 2 · Accounting configuration
                 </div>
             </div>
         </aside>

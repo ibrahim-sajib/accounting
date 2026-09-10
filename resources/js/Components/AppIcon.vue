@@ -22,6 +22,8 @@ const paths: Record<string, string> = {
     chevronLeft: 'M15 19l-7-7 7-7',
     chevronRight: 'M9 5l7 7-7 7',
     lock: 'M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z',
+    account: 'M4 7V4h16v3M9 20h6M12 4v16M7 4h10',
+    tax: 'M7 7l5-5 5 5M7 17l5 5 5-5M12 2v20M2 7h2M2 17h2M20 7h2M20 17h2',
     unlock: 'M13.5 10.5V6.75a4.5 4.5 0 10-9 0v3.75M3.75 21h7.5l2-3-2-3h-7.5l-2 3 2 3zm5.25-9H3.75l-2 3 2 3h7.5l2-3-2-3z',
     check: 'M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z',
     arrowLeft: 'M7 16l-4-4m0 0l4-4m-4 4h18',
