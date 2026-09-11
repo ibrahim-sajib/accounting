@@ -19,6 +19,7 @@ defineProps<{
         purchase_account_id: number | null;
         cogs_account_id: number | null;
         track_inventory: boolean;
+        low_stock_threshold: number | null;
         is_active: boolean;
     };
     defaults: { inventory: number | null; sales: number | null; purchase: number | null; cogs: number | null };

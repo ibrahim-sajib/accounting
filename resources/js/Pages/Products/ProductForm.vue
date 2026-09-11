@@ -23,6 +23,7 @@ const props = defineProps<{
         purchase_account_id: number | null;
         cogs_account_id: number | null;
         track_inventory: boolean;
+        low_stock_threshold: number | null;
         is_active: boolean;
     };
     defaults: { inventory: number | null; sales: number | null; purchase: number | null; cogs: number | null };
@@ -47,6 +48,7 @@ const form = useForm({
     purchase_account_id: props.product?.purchase_account_id ?? props.defaults.purchase ?? '',
     cogs_account_id: props.product?.cogs_account_id ?? props.defaults.cogs ?? '',
     track_inventory: props.product?.track_inventory ?? false,
+    low_stock_threshold: props.product?.low_stock_threshold ? String(props.product.low_stock_threshold) : '',
     is_active: props.product?.is_active ?? true,
 });
 
@@ -131,10 +133,17 @@ const submit = () => {
                     <TextInput id="sales_price" v-model="form.sales_price" type="number" step="0.01" min="0" class="mt-1 block w-full" />
                     <InputError :message="form.errors.sales_price" class="mt-1" />
                 </div>
-                <label class="flex items-center gap-2 pt-5 text-sm text-gray-600 dark:text-gray-300">
-                    <input type="checkbox" v-model="form.track_inventory" class="rounded border-gray-300 text-indigo-600 focus:ring-indigo-500 dark:border-gray-700 dark:bg-gray-800" />
-                    Track inventory for this item
-                </label>
+                <div class="flex items-end gap-4">
+                    <label class="flex items-center gap-2 pt-5 text-sm text-gray-600 dark:text-gray-300">
+                        <input type="checkbox" v-model="form.track_inventory" class="rounded border-gray-300 text-indigo-600 focus:ring-indigo-500 dark:border-gray-700 dark:bg-gray-800" />
+                        Track inventory for this item
+                    </label>
+                    <div v-if="form.track_inventory && !isService" class="w-40">
+                        <InputLabel for="low_stock_threshold" value="Low stock alert at" />
+                        <TextInput id="low_stock_threshold" v-model="form.low_stock_threshold" type="number" step="0.0001" min="0" class="mt-1 block w-full" placeholder="e.g. 5" />
+                        <InputError :message="form.errors.low_stock_threshold" class="mt-1" />
+                    </div>
+                </div>
             </div>
         </div>
 

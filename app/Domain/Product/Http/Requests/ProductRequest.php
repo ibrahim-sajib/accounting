@@ -43,6 +43,7 @@ class ProductRequest extends FormRequest
             'purchase_account_id' => ['nullable', 'integer', 'exists:accounts,id'],
             'cogs_account_id' => ['nullable', 'integer', 'exists:accounts,id'],
             'track_inventory' => ['boolean'],
+            'low_stock_threshold' => ['nullable', 'numeric', 'min:0'],
             'is_active' => ['boolean'],
         ];
     }

@@ -21,13 +21,14 @@ class Product extends Model
         'company_id', 'sku', 'name', 'type', 'category_id', 'unit_id',
         'purchase_price', 'sales_price', 'tax_rate_id',
         'inventory_account_id', 'sales_account_id', 'purchase_account_id', 'cogs_account_id',
-        'track_inventory', 'is_active', 'created_by', 'updated_by',
+        'track_inventory', 'low_stock_threshold', 'is_active', 'created_by', 'updated_by',
     ];
 
     protected $casts = [
         'purchase_price' => 'decimal:4',
         'sales_price' => 'decimal:4',
         'track_inventory' => 'boolean',
+        'low_stock_threshold' => 'decimal:4',
         'is_active' => 'boolean',
     ];
 

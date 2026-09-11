@@ -8,6 +8,7 @@ use App\Domain\Accounting\Models\AccountingSetting;
 use App\Domain\Accounting\Models\Journal;
 use App\Domain\Accounting\Models\JournalLine;
 use App\Domain\Accounting\Services\JournalPostingService;
+use App\Domain\Inventory\Services\StockService;
 use App\Domain\Party\Models\Customer;
 use App\Domain\Sales\Exceptions\SalesPostingException;
 use App\Domain\Sales\Models\Receipt;
@@ -22,7 +23,8 @@ use Illuminate\Support\Facades\DB;
 class SalesInvoiceService
 {
     public function __construct(
-        protected JournalPostingService $postingService
+        protected JournalPostingService $postingService,
+        protected StockService $stockService
     ) {}
 
     /**
@@ -86,6 +88,8 @@ class SalesInvoiceService
                 'posted_by' => Auth::id(),
                 'updated_by' => Auth::id(),
             ]);
+
+            $this->stockService->issueSalesInvoice($invoice);
 
             return $invoice->fresh()->load('lines');
         });
@@ -254,7 +258,7 @@ class SalesInvoiceService
             }
 
             if ($product->type === 'product') {
-                $cost = round($quantity * (float) $product->purchase_price, 4);
+                $cost = round($quantity * $this->stockService->costFor($invoice->company_id, $line->product_id, $product), 4);
 
                 $cogsAccount = $product->cogs_account_id
                     ?? Account::query()->where('company_id', $invoice->company_id)->where('code', '5221')->value('id')

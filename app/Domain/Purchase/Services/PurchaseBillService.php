@@ -7,6 +7,7 @@ use App\Domain\Accounting\Models\Account;
 use App\Domain\Accounting\Models\AccountingSetting;
 use App\Domain\Accounting\Models\Journal;
 use App\Domain\Accounting\Services\JournalPostingService;
+use App\Domain\Inventory\Services\StockService;
 use App\Domain\Party\Models\Supplier;
 use App\Domain\Purchase\Exceptions\PurchasePostingException;
 use App\Domain\Purchase\Models\PurchaseBill;
@@ -21,7 +22,8 @@ use Illuminate\Support\Facades\DB;
 class PurchaseBillService
 {
     public function __construct(
-        protected JournalPostingService $postingService
+        protected JournalPostingService $postingService,
+        protected StockService $stockService
     ) {}
 
     /**
@@ -85,6 +87,8 @@ class PurchaseBillService
                 'posted_by' => Auth::id(),
                 'updated_by' => Auth::id(),
             ]);
+
+            $this->stockService->receivePurchaseBill($bill);
 
             return $bill->fresh()->load('lines');
         });

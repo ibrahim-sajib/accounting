@@ -10,6 +10,7 @@ enum JournalSourceType: string
     case PurchaseBill = 'purchase_bill';
     case Receipt = 'receipt';
     case Payment = 'payment';
+    case StockAdjustment = 'stock_adjustment';
     case Inventory = 'inventory';
     case Bank = 'bank';
     case Expense = 'expense';
@@ -26,6 +27,7 @@ enum JournalSourceType: string
             self::PurchaseBill => 'Purchase Bill',
             self::Receipt => 'Customer Receipt',
             self::Payment => 'Supplier Payment',
+            self::StockAdjustment => 'Stock Adjustment',
             self::Inventory => 'Inventory',
             self::Bank => 'Bank',
             self::Expense => 'Expense',
@@ -43,6 +45,7 @@ enum JournalSourceType: string
             self::PurchaseBill => 'PUR',
             self::Receipt => 'RCT',
             self::Payment => 'PMT',
+            self::StockAdjustment => 'ADJ',
             default => 'GJ',
         };
     }

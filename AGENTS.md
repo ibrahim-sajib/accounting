@@ -321,6 +321,59 @@ Safe to rename a migration's column BEFORE it has run in MySQL (SQLite runs from
     (balance-due default). Sidebar "Purchase" group; breadcrumbs `purchase` module labels
     (3-segment `purchase.bills.create`); `AppIcon` gained `bill`/`payment`; `Journals/Show`
     links to the source bill for `purchase_bill` journals ("View Bill").
+- **Phase 7 domains added (Inventory — stock ledger)**: `app/Domain/Inventory/` holds
+  `StockMovement` (append-only ledger, no soft deletes), `StockAdjustment` (+`StockAdjustmentLine`),
+  `StockTransfer` (+`StockTransferLine`), `StockService`,
+  `StockController`/`StockAdjustmentController`/`StockTransferController`,
+  `StockAdjustmentRequest`/`StockTransferRequest`, `StockPostingException`. Scope: a
+  weighted-average stock ledger, the Stock page, stock adjustments (draft → posted `ADJ` journal),
+  stock transfers (no journal), plus stock-in/out wired into posted Purchase Bills / Sales
+  Invoices. No batch/serial/expiry, FIFO vs weighted-average per product, reservations
+  (Reserved Qty is 0 and unused), dedicated Opening Stock doc, sales returns/debit-note stock
+  reversal, or GRN as a separate doc yet.
+  - **Ledger**: `stock_movements` is append-only — one signed `quantity` row per event
+    (`opening|purchase_received|sales_issued|adjustment|transfer_out|transfer_in`). `onHandQty()`
+    = `SUM(quantity)` (optionally scoped to a warehouse); **weighted-average cost** =
+    Σ(`line_value`) ÷ Σ(`quantity`); `costFor()` falls back to `product.purchase_price` when
+    nothing is in stock (keeps the pre-stock Phase 5 COGS behaviour when receipts never happened).
+    Purchases cost receipts at `net line total ÷ quantity` so the ledger value mirrors the PUR
+    journal's Inventory Dr exactly; sales issues at the current avg cost — the SAME value the
+    SINV journal books as COGS — so Stock value always reconciles to the GL Inventory balance.
+  - **Default warehouse**: purchase bills and sales invoices carry NO `warehouse_id` column
+    (deliberate scope cut) — their movements attach to the company's first active warehouse via
+    `StockService::warehouseFor()` (`where is_active orderBy id value('id')`).
+  - **Adjustments**: draft → posted; posting RECOMPUTES each line's `system_qty`/`quantity_delta`
+    from the ledger at post time (`counted − system`, deltas of 0 are skipped and zeroed), and
+    values at the current avg cost (cost ≤ 0 → `StockPostingException` — the product needs a
+    purchase price or a receipt). Posting creates an `ADJ` journal (grouped per inventory account
+    from product `inventory_account_id` → setting default; expense = account code **5182**
+    "Inventory Adjustment Expense" seeded under 5180, fallback setting default purchase account;
+    positive delta → Inventory Dr / Expense Cr, negative reverses both), requires postable-leafs
+    and balanced lines (both verified server-side), then `numbering at posting`: `ADJ-{year}-%04d`,
+    sets `total_value` = Σ abs(line_value), status `posted`, and records the movement(s).
+  - **Transfers**: `from_warehouse_id ≠ to_warehouse_id` (request-level `Rule::notIn`),
+    insufficient source on-hand → `StockPostingException`; posting records `transfer_out`
+    (-qty, source wh) + `transfer_in` (+qty, dest wh) at current cost, and `TR-{year}-%04d`.
+    NO journal — asset value is unchanged; posters simply verify the balance moved warehouses.
+  - **Draft-only mutations**: edits/delete 422 on posted adjustments/transfers; re-post on a
+    posted doc is a no-op redirect. Permissions (new `inventory` module already existed in
+    `PermissionSeeder`): `inventory.view/create/update/delete/adjust/transfer`; RoleSeeder:
+    accountant gained `inventory.*` (was view), `inventory-manager` already had `inventory.*`,
+    viewer keeps `inventory.view`. Route bases chosen as `stock`, `stock-adjustments`,
+    `stock-transfers` so the sidebar `isActive` base-match highlights exactly one item per area.
+  - **Low-stock alerting**: `products.low_stock_threshold` (nullable decimal, form input hidden
+    until "Track inventory" is checked) → `is_low_stock` = track_inventory && threshold !== null
+    && on-hand ≤ threshold; Stock page red-highlights rows + shows a `≤ {threshold}` badge and a
+    summary `low_stock_count`. **Testing gotcha**: the threshold input is `v-if`-gated on the
+    track_inventory checkbox — a driver/evaluator must tick the checkbox BEFORE writing the input.
+  - **UI**: `Pages/Inventory/Stock/Index.vue` (3 summary cards, warehouse filter merges search via
+    `router.get(route('stock.index'), ...)`, links rows to `products.edit` — **there is no
+    `products.show` route**, calling `route('products.show', id)` throws a Ziggy error at render),
+    `Adjustments/{Index,Create,Edit,Show,AdjustmentForm}` (live system-vs-counted delta column;
+    Show links to its `ADJ` journal), `Transfers/{Index,Create,Edit,Show,TransferForm}`.
+    Sidebar "Inventory" group; breadcrumb labels `stock`/`stock-adjustments`/`stock-transfers`;
+    `AppIcon` gained `stock`/`alert`/`adjust`/`transfer`; `Journals/Show` gained the
+    `stock_adjustment` label + "View Adjustment" source link.
 - **Aliases in `bootstrap/app.php`**: `'permission' => EnsurePermission::class`; Inertia header
   middleware appended to the `web` group.
 - **Vue page patterns**:

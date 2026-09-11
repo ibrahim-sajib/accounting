@@ -9,6 +9,9 @@ use App\Domain\Accounting\Http\Controllers\OpeningBalanceController;
 use App\Domain\Company\Http\Controllers\BranchController;
 use App\Domain\Company\Http\Controllers\CompanyController;
 use App\Domain\Currency\Http\Controllers\CurrencyController;
+use App\Domain\Inventory\Http\Controllers\StockAdjustmentController;
+use App\Domain\Inventory\Http\Controllers\StockController;
+use App\Domain\Inventory\Http\Controllers\StockTransferController;
 use App\Domain\Party\Http\Controllers\CustomerController;
 use App\Domain\Party\Http\Controllers\SupplierController;
 use App\Domain\Product\Http\Controllers\ProductController;
@@ -317,6 +320,46 @@ Route::middleware(['auth', 'verified'])->group(function () {
         ->name('purchase.bills.pay');
     Route::middleware('permission:purchase.delete')->delete('/purchase/bills/{bill}', [PurchaseBillController::class, 'destroy'])
         ->name('purchase.bills.destroy');
+
+    // ── Inventory: Stock view ──
+    Route::middleware('permission:inventory.view')->get('/inventory/stock', [StockController::class, 'index'])
+        ->name('stock.index');
+
+    // ── Inventory: Stock Adjustments ──
+    Route::middleware('permission:inventory.view')->get('/inventory/adjustments', [StockAdjustmentController::class, 'index'])
+        ->name('stock-adjustments.index');
+    Route::middleware('permission:inventory.create')->get('/inventory/adjustments/create', [StockAdjustmentController::class, 'create'])
+        ->name('stock-adjustments.create');
+    Route::middleware('permission:inventory.create')->post('/inventory/adjustments', [StockAdjustmentController::class, 'store'])
+        ->name('stock-adjustments.store');
+    Route::middleware('permission:inventory.view')->get('/inventory/adjustments/{adjustment}', [StockAdjustmentController::class, 'show'])
+        ->name('stock-adjustments.show');
+    Route::middleware('permission:inventory.update')->get('/inventory/adjustments/{adjustment}/edit', [StockAdjustmentController::class, 'edit'])
+        ->name('stock-adjustments.edit');
+    Route::middleware('permission:inventory.update')->put('/inventory/adjustments/{adjustment}', [StockAdjustmentController::class, 'update'])
+        ->name('stock-adjustments.update');
+    Route::middleware('permission:inventory.adjust')->post('/inventory/adjustments/{adjustment}/post', [StockAdjustmentController::class, 'post'])
+        ->name('stock-adjustments.post');
+    Route::middleware('permission:inventory.delete')->delete('/inventory/adjustments/{adjustment}', [StockAdjustmentController::class, 'destroy'])
+        ->name('stock-adjustments.destroy');
+
+    // ── Inventory: Stock Transfers ──
+    Route::middleware('permission:inventory.view')->get('/inventory/transfers', [StockTransferController::class, 'index'])
+        ->name('stock-transfers.index');
+    Route::middleware('permission:inventory.create')->get('/inventory/transfers/create', [StockTransferController::class, 'create'])
+        ->name('stock-transfers.create');
+    Route::middleware('permission:inventory.create')->post('/inventory/transfers', [StockTransferController::class, 'store'])
+        ->name('stock-transfers.store');
+    Route::middleware('permission:inventory.view')->get('/inventory/transfers/{transfer}', [StockTransferController::class, 'show'])
+        ->name('stock-transfers.show');
+    Route::middleware('permission:inventory.update')->get('/inventory/transfers/{transfer}/edit', [StockTransferController::class, 'edit'])
+        ->name('stock-transfers.edit');
+    Route::middleware('permission:inventory.update')->put('/inventory/transfers/{transfer}', [StockTransferController::class, 'update'])
+        ->name('stock-transfers.update');
+    Route::middleware('permission:inventory.transfer')->post('/inventory/transfers/{transfer}/post', [StockTransferController::class, 'post'])
+        ->name('stock-transfers.post');
+    Route::middleware('permission:inventory.delete')->delete('/inventory/transfers/{transfer}', [StockTransferController::class, 'destroy'])
+        ->name('stock-transfers.destroy');
 
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');

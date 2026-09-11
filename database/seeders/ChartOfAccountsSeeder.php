@@ -149,6 +149,7 @@ class ChartOfAccountsSeeder extends Seeder
                     ]],
                     ['code' => '5180', 'name' => 'Bank Charges & Interest', 'children' => [
                         ['code' => '5181', 'name' => 'Bank Charges & Interest'],
+                        ['code' => '5182', 'name' => 'Inventory Adjustment Expense'],
                     ]],
                 ]],
                 ['code' => '5200', 'name' => 'Cost of Goods Sold', 'children' => [

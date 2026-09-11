@@ -81,6 +81,10 @@ const sourceLink = computed(() => {
         return { label: 'View Bill', href: route('purchase.bills.show', j.value.source_id) };
     }
 
+    if (j.value.source_type === 'stock_adjustment' && j.value.source_id) {
+        return { label: 'View Adjustment', href: route('stock-adjustments.show', j.value.source_id) };
+    }
+
     return null;
 });
 
@@ -91,6 +95,7 @@ const sourceTypeLabel: Record<string, string> = {
     receipt: 'Receipt',
     purchase_bill: 'Purchase Bill',
     payment: 'Supplier Payment',
+    stock_adjustment: 'Stock Adjustment',
 };
 </script>
 
