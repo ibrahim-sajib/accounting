@@ -109,6 +109,25 @@ All commands run from the project root (`/Users/mdibrahim/sajib/project/accounti
 - In an SPA nav test, don't hardcode row identifiers (e.g. account code `9001`) — rerunning
   against a persistent DB collides with the unique constraint. Generate unique values per run.
 
+### 1.15 Date formatting on frontend
+- Laravel's `'date'` cast serializes as ISO-8601 (`2026-01-01T00:00:00.000000Z`). Vue templates
+  must never render raw dates — use the shared `resources/js/utils/formatDate.ts` utility
+  (`Intl.DateTimeFormat`, en-US, UTC, "MMM DD, YYYY" → "Jan 1, 2026").
+- Applied to: FiscalYears, Periods, Tax rate effective_date columns. Any future date column
+  must use `formatDate()`.
+
+### 1.16 Empty form numbers → null → NOT NULL 500 (MySQL strict)
+- `ConvertEmptyStringsToNull` turns a cleared/blank number input into `null`. Inserting that
+  `null` into a NOT NULL `decimal`/`integer` column (even one with a `default`) blows up in
+  MySQL strict mode: e.g. `SQLSTATE 1048 Column 'payment_terms_days' cannot be null`.
+- Fix at the request boundary, NOT in migrations (already-run migrations must not be edited —
+  the container tracks them by filename): `prepareForValidation()` replaces `null` with `0`
+  per numeric field (`Customer/Supplier/ProductRequest`).
+- PHP tests only catch this if they post the *empty string*, not a concrete number — every
+  optional numeric is a regression risk. Unit tests + `Index`/`Create` forms use
+  `String(props.x ?? '0')` so the initial submit is never empty; the server guard covers the
+  user-clears-the-field case.
+
 ---
 
 ## 2. Engineering conventions (senior baseline)
@@ -137,6 +156,27 @@ All commands run from the project root (`/Users/mdibrahim/sajib/project/accounti
   Default COA/tax/accounting-settings live in `database/seeders/ChartOfAccountsSeeder.php`,
   `TaxSeeder.php`, `AccountingSettingSeeder.php` (all idempotent, wired into
   `DatabaseSeeder` + `provisionDefaults`).
+- **Phase 3 domains added (Master Data)**: `app/Domain/Party/` (Customer + Supplier),
+  `app/Domain/Product/` (Product + ProductCategory + Unit), `app/Domain/Warehouse/`.
+  - Permission modules `customer|supplier|product|warehouse` (view/create/update/delete)
+    were already in `PermissionSeeder`/`RoleSeeder` from the skeleton — no permission
+    migration needed; company-admin gets `*`, accountant/inventory-manager/viewer get
+    view (product gets create too for inventory-manager).
+  - Customers/Suppliers carry optional `ar_account_id`/`ap_account_id` that default to
+    `accounting_settings.default_ar/ap_account_id` (passed as a `defaultArAccountId`
+    prop; form posts `''` when "Use company default" is chosen, but the controller
+    persists the *setting* default via the seeded prop since DB stores nullable FK).
+    Option lists are `[{value, label}]` (`code — name`) filtered to postable accounts.
+  - Products resolve default posting accounts from `accounting_settings` (inventory,
+    sales, purchase) + hardcoded COGS = account code `5221` (there is **no**
+    `default_cogs_account_id` in settings) — see `ProductController::defaultAccounts()`.
+    Product types use `ProductType` enum (`product|service`); service products hide
+    unit/inventory/COGS fields on the form.
+  - Products page embeds category + unit sub-resource management as modals (same
+    pattern as Tax rates), routes `/product-categories` and `/units`. Delete guards:
+    category in use by a product → refused with `error`; unit in use → refused.
+  - `MasterDataSeeder` seeds default categories (Goods/Services/Raw Materials) and units
+    (pc/kg/L/bx/hr), wired into `DatabaseSeeder` + `provisionDefaults` for new companies.
 - **Aliases in `bootstrap/app.php`**: `'permission' => EnsurePermission::class`; Inertia header
   middleware appended to the `web` group.
 - **Vue page patterns**:

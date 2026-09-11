@@ -27,6 +27,10 @@ const paths: Record<string, string> = {
     unlock: 'M13.5 10.5V6.75a4.5 4.5 0 10-9 0v3.75M3.75 21h7.5l2-3-2-3h-7.5l-2 3 2 3zm5.25-9H3.75l-2 3 2 3h7.5l2-3-2-3z',
     check: 'M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z',
     arrowLeft: 'M7 16l-4-4m0 0l4-4m-4 4h18',
+    customer: 'M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z',
+    supplier: 'M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4',
+    product: 'M20 4H4a2 2 0 00-2 2v12a2 2 0 002 2h16a2 2 0 002-2V6a2 2 0 00-2-2zm-8 3a2 2 0 110 4 2 2 0 010-4zm2 10h2m-8-3v2m-2-6h2',
+    warehouse: 'M3 21h18M5 21V7l7-4 7 4v14M9 21v-6h6v6M9 11h.01M15 11h.01M9 14h.01M15 14h.01',
 };
 
 const d = computed(() => paths[props.name] ?? '');

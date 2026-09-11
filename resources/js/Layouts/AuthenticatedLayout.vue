@@ -50,6 +50,15 @@ const navGroups = computed(() => [
             { label: 'System Settings', routeName: 'settings.index', icon: 'settings', permission: 'settings.view' },
         ],
     },
+    {
+        label: 'Master Data',
+        items: [
+            { label: 'Customers', routeName: 'customers.index', icon: 'customer', permission: 'customer.view' },
+            { label: 'Suppliers', routeName: 'suppliers.index', icon: 'supplier', permission: 'supplier.view' },
+            { label: 'Products & Services', routeName: 'products.index', icon: 'product', permission: 'product.view' },
+            { label: 'Warehouses', routeName: 'warehouses.index', icon: 'warehouse', permission: 'warehouse.view' },
+        ],
+    },
 ]);
 
 const switchCompany = (id: number) => {
@@ -118,7 +127,7 @@ const switchCompany = (id: number) => {
             <!-- Sidebar footer -->
             <div class="border-t border-gray-200 p-3 dark:border-gray-800">
                 <div class="rounded-lg bg-gray-50 px-3 py-2 text-xs text-gray-500 dark:bg-gray-800/60 dark:text-gray-400">
-                    Phase 2 · Accounting configuration
+                    Phase 3 · Master data
                 </div>
             </div>
         </aside>

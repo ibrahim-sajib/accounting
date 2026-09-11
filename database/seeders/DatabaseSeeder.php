@@ -21,6 +21,7 @@ class DatabaseSeeder extends Seeder
             ChartOfAccountsSeeder::class,
             TaxSeeder::class,
             AccountingSettingSeeder::class,
+            MasterDataSeeder::class,
         ]);
     }
 }

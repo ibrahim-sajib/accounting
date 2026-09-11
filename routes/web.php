@@ -7,10 +7,14 @@ use App\Domain\Accounting\Http\Controllers\FiscalYearController;
 use App\Domain\Company\Http\Controllers\BranchController;
 use App\Domain\Company\Http\Controllers\CompanyController;
 use App\Domain\Currency\Http\Controllers\CurrencyController;
+use App\Domain\Party\Http\Controllers\CustomerController;
+use App\Domain\Party\Http\Controllers\SupplierController;
+use App\Domain\Product\Http\Controllers\ProductController;
 use App\Domain\Rbac\Http\Controllers\RoleController;
 use App\Domain\Rbac\Http\Controllers\UserController;
 use App\Domain\Settings\Http\Controllers\SystemSettingController;
 use App\Domain\Tax\Http\Controllers\TaxTypeController;
+use App\Domain\Warehouse\Http\Controllers\WarehouseController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\ProfileController;
 use Illuminate\Support\Facades\Route;
@@ -169,6 +173,76 @@ Route::middleware(['auth', 'verified'])->group(function () {
         ->name('accounting-settings.index');
     Route::middleware('permission:accounting_config.update')->put('/accounting-settings', [AccountingSettingController::class, 'update'])
         ->name('accounting-settings.update');
+
+    // ── Customers ──
+    Route::middleware('permission:customer.view')->get('/customers', [CustomerController::class, 'index'])
+        ->name('customers.index');
+    Route::middleware('permission:customer.create')->get('/customers/create', [CustomerController::class, 'create'])
+        ->name('customers.create');
+    Route::middleware('permission:customer.create')->post('/customers', [CustomerController::class, 'store'])
+        ->name('customers.store');
+    Route::middleware('permission:customer.update')->get('/customers/{customer}/edit', [CustomerController::class, 'edit'])
+        ->name('customers.edit');
+    Route::middleware('permission:customer.update')->put('/customers/{customer}', [CustomerController::class, 'update'])
+        ->name('customers.update');
+    Route::middleware('permission:customer.delete')->delete('/customers/{customer}', [CustomerController::class, 'destroy'])
+        ->name('customers.destroy');
+
+    // ── Suppliers ──
+    Route::middleware('permission:supplier.view')->get('/suppliers', [SupplierController::class, 'index'])
+        ->name('suppliers.index');
+    Route::middleware('permission:supplier.create')->get('/suppliers/create', [SupplierController::class, 'create'])
+        ->name('suppliers.create');
+    Route::middleware('permission:supplier.create')->post('/suppliers', [SupplierController::class, 'store'])
+        ->name('suppliers.store');
+    Route::middleware('permission:supplier.update')->get('/suppliers/{supplier}/edit', [SupplierController::class, 'edit'])
+        ->name('suppliers.edit');
+    Route::middleware('permission:supplier.update')->put('/suppliers/{supplier}', [SupplierController::class, 'update'])
+        ->name('suppliers.update');
+    Route::middleware('permission:supplier.delete')->delete('/suppliers/{supplier}', [SupplierController::class, 'destroy'])
+        ->name('suppliers.destroy');
+
+    // ── Products / Services ──
+    Route::middleware('permission:product.view')->get('/products', [ProductController::class, 'index'])
+        ->name('products.index');
+    Route::middleware('permission:product.create')->get('/products/create', [ProductController::class, 'create'])
+        ->name('products.create');
+    Route::middleware('permission:product.create')->post('/products', [ProductController::class, 'store'])
+        ->name('products.store');
+    Route::middleware('permission:product.update')->get('/products/{product}/edit', [ProductController::class, 'edit'])
+        ->name('products.edit');
+    Route::middleware('permission:product.update')->put('/products/{product}', [ProductController::class, 'update'])
+        ->name('products.update');
+    Route::middleware('permission:product.delete')->delete('/products/{product}', [ProductController::class, 'destroy'])
+        ->name('products.destroy');
+    // Categories
+    Route::middleware('permission:product.create')->post('/product-categories', [ProductController::class, 'storeCategory'])
+        ->name('product-categories.store');
+    Route::middleware('permission:product.update')->put('/product-categories/{category}', [ProductController::class, 'updateCategory'])
+        ->name('product-categories.update');
+    Route::middleware('permission:product.delete')->delete('/product-categories/{category}', [ProductController::class, 'destroyCategory'])
+        ->name('product-categories.destroy');
+    // Units
+    Route::middleware('permission:product.create')->post('/units', [ProductController::class, 'storeUnit'])
+        ->name('units.store');
+    Route::middleware('permission:product.update')->put('/units/{unit}', [ProductController::class, 'updateUnit'])
+        ->name('units.update');
+    Route::middleware('permission:product.delete')->delete('/units/{unit}', [ProductController::class, 'destroyUnit'])
+        ->name('units.destroy');
+
+    // ── Warehouses ──
+    Route::middleware('permission:warehouse.view')->get('/warehouses', [WarehouseController::class, 'index'])
+        ->name('warehouses.index');
+    Route::middleware('permission:warehouse.create')->get('/warehouses/create', [WarehouseController::class, 'create'])
+        ->name('warehouses.create');
+    Route::middleware('permission:warehouse.create')->post('/warehouses', [WarehouseController::class, 'store'])
+        ->name('warehouses.store');
+    Route::middleware('permission:warehouse.update')->get('/warehouses/{warehouse}/edit', [WarehouseController::class, 'edit'])
+        ->name('warehouses.edit');
+    Route::middleware('permission:warehouse.update')->put('/warehouses/{warehouse}', [WarehouseController::class, 'update'])
+        ->name('warehouses.update');
+    Route::middleware('permission:warehouse.delete')->delete('/warehouses/{warehouse}', [WarehouseController::class, 'destroy'])
+        ->name('warehouses.destroy');
 
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
