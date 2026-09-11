@@ -34,6 +34,7 @@ class PermissionSeeder extends Seeder
         'sales' => ['view', 'create', 'update', 'delete', 'approve', 'post', 'void', 'return'],
         'purchase' => ['view', 'create', 'update', 'delete', 'approve', 'post', 'void', 'return'],
         'receipt' => ['view', 'create', 'update', 'delete', 'approve', 'post', 'void'],
+        'receivables' => ['view', 'advance', 'write_off'],
         'payment' => ['view', 'create', 'update', 'delete', 'approve', 'post', 'void'],
         'bank' => ['view', 'create', 'update', 'delete', 'reconcile'],
         'expense' => ['view', 'create', 'update', 'delete', 'approve', 'post'],

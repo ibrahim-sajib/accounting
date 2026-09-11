@@ -31,6 +31,11 @@ const MODULE_LABELS: Record<string, string> = {
     stock: 'Stock',
     'stock-adjustments': 'Inventory Adjustments',
     'stock-transfers': 'Inventory Transfers',
+    receivables: 'Receivables',
+    outstanding: 'Receivables',
+    aging: 'Receivables',
+    payment: 'Record Payment',
+    advances: 'Customer Advances',
     profile: 'Profile',
 };
 

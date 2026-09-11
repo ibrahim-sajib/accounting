@@ -85,6 +85,10 @@ const sourceLink = computed(() => {
         return { label: 'View Adjustment', href: route('stock-adjustments.show', j.value.source_id) };
     }
 
+    if (j.value.source_type === 'write_off' && j.value.source_id) {
+        return { label: 'View Invoice', href: route('sales.invoices.show', j.value.source_id) };
+    }
+
     return null;
 });
 
@@ -93,9 +97,11 @@ const sourceTypeLabel: Record<string, string> = {
     opening: 'Opening Balance',
     sales_invoice: 'Sales Invoice',
     receipt: 'Receipt',
+    receipt_application: 'Advance Applied',
     purchase_bill: 'Purchase Bill',
     payment: 'Supplier Payment',
     stock_adjustment: 'Stock Adjustment',
+    write_off: 'Receivable Write-off',
 };
 </script>
 

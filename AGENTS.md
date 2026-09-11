@@ -374,6 +374,62 @@ Safe to rename a migration's column BEFORE it has run in MySQL (SQLite runs from
     Sidebar "Inventory" group; breadcrumb labels `stock`/`stock-adjustments`/`stock-transfers`;
     `AppIcon` gained `stock`/`alert`/`adjust`/`transfer`; `Journals/Show` gained the
     `stock_adjustment` label + "View Adjustment" source link.
+- **Phase 8 domains added (Receivables — AR workflow)**: `app/Domain/Receivables/` holds
+  `ReceivableService`, `ReceivableController`, `ReceivablePaymentRequest`/`AdvanceReceiptRequest`/
+  `AdvanceApplicationRequest`/`WriteOffRequest`, `ReceivablePostingException`. Scope: multi-invoice
+  receipt allocations, advance receipts (Cash Dr | Customer Advances Cr) applied to invoices later
+  (`RCA` journal), outstanding list, aging report (Current/1-30/31-60/61-90/90+), write-offs
+  (Bad Debt Dr | AR Cr), and an AR dashboard. No credit notes/returns yet. Phase 9 (AP) mirrors it.
+  - **Multi-alloc receipts**: one receipt row may allocate across N posted invoices of the same
+    customer; journal = Cash/Bank Dr (total) | AR Cr (total), per-invoice `amount_paid`
+    incremented. `RC-{year}-%04d` numbering shares the SAME sequence as Phase 5's single-payment
+    `SalesInvoiceService::nextReceiptNumber` (both scan `receipts.receipt_no` — no collision).
+    Server re-checks each allocation ≤ that invoice's live `balanceDue()`, posted status, and
+    customer ownership; over-allocation/foreign-invoice → `ReceivablePostingException` → redirect.
+  - **Advances**: a receipt with `type='advance'` (`ReceiptType` enum `receipt|advance`, new
+    `receipts.type` column) books Cash Dr | **Customer Advances** Cr. The liability account is NOT a
+    settings column — it's COA leaf code **2161** (seeded under 2160) via
+    `ReceivableService::advanceAccountFor()`. Applying an advance posts a `receipt_application`
+    journal (Customer Advances Dr | AR Cr) that reuses the `receipt_allocations` pivot, so BOTH the
+    advance and its applications point at the same source_id; `Receipt::journal()` must match
+    `whereIn('source_type', ['receipt','receipt_application'])`. `advanceBalance() = amount −
+    Σ(allocation)`, and application is refused above it. New `JournalSourceType` cases were added:
+    `ReceiptApplication` (label 'Advance Applied', prefix **RCA**) and `WriteOff` (label
+    'Receivable Write-off', prefix **WOF**) — required because `nextJournalNumber()` calls
+    `JournalSourceType::from($sourceType)` (§1.18).
+  - **Write-offs**: `sales_invoices` gained `write_off_amount`/`write_off_reason`/`written_off_at`/
+    `written_off_by`; `balanceDue()` = total − amount_paid − write_off_amount (min 0) and
+    `paidState()` treats full write-off as 'paid'. Journal = **Bad Debt Expense (code 5191, seeded
+    under 5190)** Dr | AR Cr, `source_type='write_off'` with `source_id` = the invoice, so
+    `Journals/Show` links "View Invoice". Gated by `receivables.write_off` (approval-by-permission
+    since the Phase 16 approval engine doesn't exist).
+  - **Route-base naming** (sidebar §1.17 lesson): each Receivables sidebar item has a DISTINCT
+    base — `receivables.index` (/receivables), `outstanding.index`, `aging.index`,
+    `payment.index|store`, `advances.index|store|show|apply`, `receivable-write-off.store`
+    (POST /receivables/invoices/{invoice}/write-off) — so `isActive` highlights exactly one item.
+  - **Permissions**: new module `receivables` = `view|advance|write_off`; accountant gets
+    `receivables.*`, sales-executive `receivables.view`+`receivables.advance`, viewer
+    `receivables.view`. `receipt.post` is reused for multi-alloc payments + advance application.
+    **Open item fixed**: `CompanyController::provisionDefaults()` did NOT actually grant roles to
+    new companies (AGENTS claimed it did) — it now calls `(new RoleSeeder())->run($company->id)`
+    so new-company role mappings exist; the DB seeder must be re-run (idempotent) for existing
+    companies after adding role grants.
+  - **UI**: `Pages/Receivables/{Index,Outstanding,Aging,RecordPayment}.vue` + `Advances/{Index,
+    Show}.vue`. New advances are recorded via a modal on Advances/Index posting to `advances.store`
+    (no GET create route — avoid a ghost page/breadcrumb). Record Payment has allocate-all/clear
+    and per-invoice amount inputs; a Write Off modal lives on `Sales/Invoices/Show` (`#wo_amount`/
+    `#wo_reason` — reason is a **textarea**, so a CDP driver must set the value with
+    `HTMLTextAreaElement.prototype` setter, not `HTMLInputElement.prototype`). Sidebar "Receivables"
+    group; breadcrumb labels `receivables`/`outstanding`/`aging`/`payment: 'Record Payment'`/
+    `advances: 'Customer Advances'`; `Journals/Show` gained the RCA/WOF labels + "View Invoice".
+  - **Gotcha — Collection indirect modification**: `agingRows()` must NOT do
+    `$customers[$key][$bucket] = round(...)` — Collection's ArrayAccess returns a copy, PHP emits
+    "Indirect modification of overloaded element has no effect", the write is silently dropped, and
+    aging columns stay 0. Copy the row out, mutate the copy, and write `$customers[$key]` back.
+  - **AR dashboard**: `total_receivable`, `overdue` (balance on invoices with `days_overdue > 0`),
+    `collected_this_month` (receipt_allocations joined to receipts where `receipt_date >= first of
+    month`, all receipt types), `advance_balance` (Σ unapplied), `top_customers` (top 5 by balance),
+    `recent_receipts` (latest 8).
 - **Aliases in `bootstrap/app.php`**: `'permission' => EnsurePermission::class`; Inertia header
   middleware appended to the `web` group.
 - **Vue page patterns**:

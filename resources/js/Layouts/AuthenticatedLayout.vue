@@ -81,6 +81,16 @@ const navGroups = computed(() => [
         ],
     },
     {
+        label: 'Receivables',
+        items: [
+            { label: 'Overview', routeName: 'receivables.index', icon: 'receipt', permission: 'receivables.view' },
+            { label: 'Outstanding', routeName: 'outstanding.index', icon: 'invoice', permission: 'receivables.view' },
+            { label: 'Aging Report', routeName: 'aging.index', icon: 'alert', permission: 'receivables.view' },
+            { label: 'Record Payment', routeName: 'payment.index', icon: 'payment', permission: 'receipt.post' },
+            { label: 'Customer Advances', routeName: 'advances.index', icon: 'currency', permission: 'receivables.view' },
+        ],
+    },
+    {
         label: 'Transactions',
         items: [
             { label: 'Journals', routeName: 'journals.index', icon: 'journal', permission: 'journal.view' },
@@ -165,7 +175,7 @@ const isActive = (routeName: string) => {
             <!-- Sidebar footer -->
             <div class="border-t border-gray-200 p-3 dark:border-gray-800">
                 <div class="rounded-lg bg-gray-50 px-3 py-2 text-xs text-gray-500 dark:bg-gray-800/60 dark:text-gray-400">
-                    Phase 7 · Inventory workflow
+                    Phase 8 · Receivables workflow
                 </div>
             </div>
         </aside>

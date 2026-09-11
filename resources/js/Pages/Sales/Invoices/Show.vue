@@ -95,8 +95,31 @@ const canPost = computed(() => page.props.auth.permissions.includes('sales.post'
 const canUpdate = computed(() => page.props.auth.permissions.includes('sales.update') || page.props.auth.user.is_super_admin);
 const canDelete = computed(() => page.props.auth.permissions.includes('sales.delete') || page.props.auth.user.is_super_admin);
 const canRecordPayment = computed(() => page.props.auth.permissions.includes('receipt.create') || page.props.auth.user.is_super_admin);
+const canWriteOff = computed(() => page.props.auth.permissions.includes('receivables.write_off') || page.props.auth.user.is_super_admin);
 
 const showPayment = ref(false);
+const showWriteOff = ref(false);
+
+const writeOffForm = useForm({
+    amount: String(balanceDue.value),
+    reason: '',
+});
+
+const openWriteOff = () => {
+    writeOffForm.clearErrors();
+    writeOffForm.amount = String(balanceDue.value);
+    writeOffForm.reason = '';
+    showWriteOff.value = true;
+};
+
+const writeOff = () => {
+    writeOffForm.post(route('receivable-write-off.store', props.invoice.id), {
+        preserveScroll: true,
+        onSuccess: () => {
+            showWriteOff.value = false;
+        },
+    });
+};
 
 const paymentForm = useForm({
     receipt_date: props.today ?? new Date().toISOString().slice(0, 10),
@@ -180,6 +203,15 @@ const paymentState = computed(() => {
                     >
                         <AppIcon name="receipt" class="h-4 w-4" />
                         Record Payment
+                    </button>
+                    <button
+                        v-if="isPosted && canWriteOff && balanceDue > 0"
+                        type="button"
+                        class="inline-flex items-center gap-2 rounded-lg border border-amber-300 bg-white px-4 py-2 text-sm font-medium text-amber-700 shadow-sm hover:bg-amber-50 dark:border-amber-900 dark:bg-gray-900 dark:text-amber-400"
+                        @click="openWriteOff"
+                    >
+                        <AppIcon name="alert" class="h-4 w-4" />
+                        Write Off
                     </button>
                 </template>
             </PageHeader>
@@ -396,6 +428,62 @@ const paymentState = computed(() => {
                     </SecondaryButton>
                     <PrimaryButton :disabled="paymentForm.processing">
                         Record Payment
+                    </PrimaryButton>
+                </div>
+            </form>
+        </Modal>
+
+        <Modal :show="showWriteOff" max-width="md" @close="showWriteOff = false">
+            <form class="p-6" @submit.prevent="writeOff">
+                <h2 class="text-lg font-semibold text-gray-900 dark:text-white">Write Off Balance</h2>
+                <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
+                    Bad debt expense against invoice {{ invoice.invoice_no ?? '' }}. Balance due {{ formatMoney(balanceDue) }}
+                    (journal: Bad Debt Expense | AR). Requires the receivables.write_off permission.
+                </p>
+
+                <div class="mt-5 space-y-4">
+                    <div>
+                        <InputLabel for="wo_amount" value="Amount to write off" />
+                        <div class="flex items-center gap-2">
+                            <TextInput
+                                id="wo_amount"
+                                v-model="writeOffForm.amount"
+                                type="number"
+                                step="0.0001"
+                                min="0"
+                                :max="String(balanceDue)"
+                                class="mt-1 block w-full"
+                                required
+                            />
+                            <button
+                                type="button"
+                                class="mt-1 shrink-0 rounded-md bg-gray-100 px-3 py-2 text-xs font-semibold text-gray-700 hover:bg-gray-200 dark:bg-gray-800 dark:text-gray-200"
+                                @click="writeOffForm.amount = String(balanceDue)"
+                            >
+                                Full
+                            </button>
+                        </div>
+                        <InputError class="mt-2" :message="writeOffForm.errors.amount" />
+                    </div>
+                    <div>
+                        <InputLabel for="wo_reason" value="Reason (required)" />
+                        <textarea
+                            id="wo_reason"
+                            v-model="writeOffForm.reason"
+                            rows="2"
+                            class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-700 dark:bg-gray-900"
+                            required
+                        />
+                        <InputError class="mt-2" :message="writeOffForm.errors.reason" />
+                    </div>
+                </div>
+
+                <div class="mt-6 flex justify-end gap-3">
+                    <SecondaryButton type="button" @click="showWriteOff = false">
+                        Cancel
+                    </SecondaryButton>
+                    <PrimaryButton :disabled="writeOffForm.processing">
+                        Write Off
                     </PrimaryButton>
                 </div>
             </form>

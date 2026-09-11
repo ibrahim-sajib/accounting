@@ -79,6 +79,9 @@ class ChartOfAccountsSeeder extends Seeder
                     ['code' => '2150', 'name' => 'Short-Term Debt', 'children' => [
                         ['code' => '2151', 'name' => 'Short-Term Loans'],
                     ]],
+                    ['code' => '2160', 'name' => 'Customer Advances', 'children' => [
+                        ['code' => '2161', 'name' => 'Customer Advances'],
+                    ]],
                 ]],
                 ['code' => '2200', 'name' => 'Long-Term Liabilities', 'children' => [
                     ['code' => '2210', 'name' => 'Long-Term Debt', 'children' => [
@@ -150,6 +153,9 @@ class ChartOfAccountsSeeder extends Seeder
                     ['code' => '5180', 'name' => 'Bank Charges & Interest', 'children' => [
                         ['code' => '5181', 'name' => 'Bank Charges & Interest'],
                         ['code' => '5182', 'name' => 'Inventory Adjustment Expense'],
+                    ]],
+                    ['code' => '5190', 'name' => 'Bad Debt Expense', 'children' => [
+                        ['code' => '5191', 'name' => 'Bad Debt Expense'],
                     ]],
                 ]],
                 ['code' => '5200', 'name' => 'Cost of Goods Sold', 'children' => [

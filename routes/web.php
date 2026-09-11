@@ -17,6 +17,7 @@ use App\Domain\Party\Http\Controllers\SupplierController;
 use App\Domain\Product\Http\Controllers\ProductController;
 use App\Domain\Rbac\Http\Controllers\RoleController;
 use App\Domain\Rbac\Http\Controllers\UserController;
+use App\Domain\Receivables\Http\Controllers\ReceivableController;
 use App\Domain\Sales\Http\Controllers\SalesInvoiceController;
 use App\Domain\Purchase\Http\Controllers\PurchaseBillController;
 use App\Domain\Settings\Http\Controllers\SystemSettingController;
@@ -300,6 +301,30 @@ Route::middleware(['auth', 'verified'])->group(function () {
         ->name('sales.invoices.pay');
     Route::middleware('permission:sales.delete')->delete('/sales/invoices/{invoice}', [SalesInvoiceController::class, 'destroy'])
         ->name('sales.invoices.destroy');
+
+    Route::middleware('permission:receivables.view')->get('/receivables', [ReceivableController::class, 'index'])
+        ->name('receivables.index');
+    Route::middleware('permission:receivables.view')->get('/receivables/outstanding', [ReceivableController::class, 'outstanding'])
+        ->name('outstanding.index');
+    Route::middleware('permission:receivables.view')->get('/receivables/aging', [ReceivableController::class, 'aging'])
+        ->name('aging.index');
+
+    Route::middleware('permission:receipt.post')->get('/receivables/record-payment', [ReceivableController::class, 'createPayment'])
+        ->name('payment.index');
+    Route::middleware('permission:receipt.post')->post('/receivables/record-payment', [ReceivableController::class, 'storePayment'])
+        ->name('payment.store');
+
+    Route::middleware('permission:receivables.view')->get('/receivables/advances', [ReceivableController::class, 'advances'])
+        ->name('advances.index');
+    Route::middleware('permission:receivables.advance')->post('/receivables/advances', [ReceivableController::class, 'storeAdvance'])
+        ->name('advances.store');
+    Route::middleware('permission:receivables.view')->get('/receivables/advances/{receipt}', [ReceivableController::class, 'showAdvance'])
+        ->name('advances.show');
+    Route::middleware('permission:receipt.post')->post('/receivables/advances/{receipt}/apply', [ReceivableController::class, 'storeAdvanceApplication'])
+        ->name('advances.apply');
+
+    Route::middleware('permission:receivables.write_off')->post('/receivables/invoices/{invoice}/write-off', [ReceivableController::class, 'writeOff'])
+        ->name('receivable-write-off.store');
 
     // ── Purchase Bills ──
     Route::middleware('permission:purchase.view')->get('/purchase/bills', [PurchaseBillController::class, 'index'])

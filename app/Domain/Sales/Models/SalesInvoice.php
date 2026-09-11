@@ -20,7 +20,8 @@ class SalesInvoice extends Model
     protected $fillable = [
         'company_id', 'branch_id', 'customer_id', 'invoice_no', 'invoice_date',
         'due_date', 'reference', 'subtotal', 'discount_amount', 'tax_amount',
-        'total', 'amount_paid', 'notes', 'status', 'posted_at', 'posted_by',
+        'total', 'amount_paid', 'write_off_amount', 'write_off_reason',
+        'written_off_at', 'written_off_by', 'notes', 'status', 'posted_at', 'posted_by',
         'created_by', 'updated_by',
     ];
 
@@ -32,6 +33,8 @@ class SalesInvoice extends Model
         'tax_amount' => 'decimal:4',
         'total' => 'decimal:4',
         'amount_paid' => 'decimal:4',
+        'write_off_amount' => 'decimal:4',
+        'written_off_at' => 'datetime',
         'posted_at' => 'datetime',
     ];
 
@@ -96,12 +99,13 @@ class SalesInvoice extends Model
 
         $total = (float) $this->total;
         $paid = (float) $this->amount_paid;
+        $writtenOff = (float) $this->write_off_amount;
 
-        if ($paid <= 0) {
+        if ($paid <= 0 && $writtenOff <= 0) {
             return 'unpaid';
         }
 
-        if ($paid >= $total - 0.0001) {
+        if ($paid + $writtenOff >= $total - 0.0001) {
             return 'paid';
         }
 
@@ -119,6 +123,11 @@ class SalesInvoice extends Model
 
     public function balanceDue(): float
     {
-        return max((float) $this->total - (float) $this->amount_paid, 0);
+        return max((float) $this->total - (float) $this->amount_paid - (float) $this->write_off_amount, 0);
+    }
+
+    public function isWrittenOff(): bool
+    {
+        return (float) $this->write_off_amount > 0;
     }
 }
