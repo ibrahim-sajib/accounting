@@ -9,6 +9,7 @@ import InputError from '@/Components/InputError.vue';
 import AppIcon from '@/Components/AppIcon.vue';
 import { useForm, router, usePage } from '@inertiajs/vue3';
 import { computed, ref } from 'vue';
+import { formatDate } from '@/utils/formatDate';
 
 interface TaxRate {
     id: number;
@@ -214,7 +215,7 @@ const deleteRate = (rate: TaxRate) => {
                                 <td class="px-4 py-2.5 text-gray-600 dark:text-gray-300">{{ rate.is_inclusive ? 'Yes' : 'No' }}</td>
                                 <td class="px-4 py-2.5 text-xs text-gray-600 dark:text-gray-300">{{ accountLabel(rate.input_account_id) }}</td>
                                 <td class="px-4 py-2.5 text-xs text-gray-600 dark:text-gray-300">{{ accountLabel(rate.output_account_id) }}</td>
-                                <td class="px-4 py-2.5 text-gray-600 dark:text-gray-300">{{ rate.effective_date }}</td>
+                                <td class="px-4 py-2.5 text-gray-600 dark:text-gray-300">{{ formatDate(rate.effective_date) }}</td>
                                 <td class="px-4 py-2.5 text-right">
                                     <div class="flex justify-end gap-2">
                                         <button

@@ -5,6 +5,7 @@ import StatusBadge from '@/Components/StatusBadge.vue';
 import AppIcon from '@/Components/AppIcon.vue';
 import { Link, router, usePage } from '@inertiajs/vue3';
 import { computed } from 'vue';
+import { formatDate } from '@/utils/formatDate';
 
 interface Period {
     id: number;
@@ -108,8 +109,8 @@ const doSetActive = (period: Period) => {
                                     </span>
                                 </div>
                             </td>
-                            <td class="px-4 py-3 text-gray-600 dark:text-gray-300">{{ period.start_date }}</td>
-                            <td class="px-4 py-3 text-gray-600 dark:text-gray-300">{{ period.end_date }}</td>
+                            <td class="px-4 py-3 text-gray-600 dark:text-gray-300">{{ formatDate(period.start_date) }}</td>
+                            <td class="px-4 py-3 text-gray-600 dark:text-gray-300">{{ formatDate(period.end_date) }}</td>
                             <td class="px-4 py-3"><StatusBadge :status="period.status" /></td>
                             <td class="px-4 py-3">
                                 <div class="flex justify-end gap-2 text-xs font-medium">

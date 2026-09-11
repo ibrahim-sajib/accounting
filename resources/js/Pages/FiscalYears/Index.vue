@@ -6,6 +6,7 @@ import StatusBadge from '@/Components/StatusBadge.vue';
 import AppIcon from '@/Components/AppIcon.vue';
 import { Link, router, usePage } from '@inertiajs/vue3';
 import { computed } from 'vue';
+import { formatDate } from '@/utils/formatDate';
 
 interface FiscalYear {
     id: number;
@@ -83,8 +84,8 @@ const closeYear = (fiscalYear: FiscalYear) => {
                                     </span>
                                 </div>
                             </td>
-                            <td class="px-4 py-3 text-gray-600 dark:text-gray-300">{{ fiscalYear.start_date }}</td>
-                            <td class="px-4 py-3 text-gray-600 dark:text-gray-300">{{ fiscalYear.end_date }}</td>
+                            <td class="px-4 py-3 text-gray-600 dark:text-gray-300">{{ formatDate(fiscalYear.start_date) }}</td>
+                            <td class="px-4 py-3 text-gray-600 dark:text-gray-300">{{ formatDate(fiscalYear.end_date) }}</td>
                             <td class="px-4 py-3 text-gray-600 dark:text-gray-300">{{ fiscalYear.periods_count }}</td>
                             <td class="px-4 py-3"><StatusBadge :status="fiscalYear.status" /></td>
                             <td class="px-4 py-3">
