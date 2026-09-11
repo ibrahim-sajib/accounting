@@ -14,6 +14,7 @@ use App\Domain\Party\Http\Controllers\SupplierController;
 use App\Domain\Product\Http\Controllers\ProductController;
 use App\Domain\Rbac\Http\Controllers\RoleController;
 use App\Domain\Rbac\Http\Controllers\UserController;
+use App\Domain\Sales\Http\Controllers\SalesInvoiceController;
 use App\Domain\Settings\Http\Controllers\SystemSettingController;
 use App\Domain\Tax\Http\Controllers\TaxTypeController;
 use App\Domain\Warehouse\Http\Controllers\WarehouseController;
@@ -275,6 +276,26 @@ Route::middleware(['auth', 'verified'])->group(function () {
         ->name('warehouses.update');
     Route::middleware('permission:warehouse.delete')->delete('/warehouses/{warehouse}', [WarehouseController::class, 'destroy'])
         ->name('warehouses.destroy');
+
+    // ── Sales Invoices ──
+    Route::middleware('permission:sales.view')->get('/sales/invoices', [SalesInvoiceController::class, 'index'])
+        ->name('sales.invoices.index');
+    Route::middleware('permission:sales.create')->get('/sales/invoices/create', [SalesInvoiceController::class, 'create'])
+        ->name('sales.invoices.create');
+    Route::middleware('permission:sales.create')->post('/sales/invoices', [SalesInvoiceController::class, 'store'])
+        ->name('sales.invoices.store');
+    Route::middleware('permission:sales.view')->get('/sales/invoices/{invoice}', [SalesInvoiceController::class, 'show'])
+        ->name('sales.invoices.show');
+    Route::middleware('permission:sales.update')->get('/sales/invoices/{invoice}/edit', [SalesInvoiceController::class, 'edit'])
+        ->name('sales.invoices.edit');
+    Route::middleware('permission:sales.update')->put('/sales/invoices/{invoice}', [SalesInvoiceController::class, 'update'])
+        ->name('sales.invoices.update');
+    Route::middleware('permission:sales.post')->post('/sales/invoices/{invoice}/post', [SalesInvoiceController::class, 'post'])
+        ->name('sales.invoices.post');
+    Route::middleware('permission:receipt.post')->post('/sales/invoices/{invoice}/pay', [SalesInvoiceController::class, 'pay'])
+        ->name('sales.invoices.pay');
+    Route::middleware('permission:sales.delete')->delete('/sales/invoices/{invoice}', [SalesInvoiceController::class, 'destroy'])
+        ->name('sales.invoices.destroy');
 
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');

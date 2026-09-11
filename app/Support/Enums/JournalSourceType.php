@@ -39,6 +39,8 @@ enum JournalSourceType: string
     {
         return match ($this) {
             self::Opening => 'OB',
+            self::SalesInvoice => 'SINV',
+            self::Receipt => 'RCT',
             default => 'GJ',
         };
     }

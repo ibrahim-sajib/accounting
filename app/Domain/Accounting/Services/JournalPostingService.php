@@ -321,7 +321,7 @@ class JournalPostingService
         return sprintf('%s-%s-%04d', $prefix, $year, $sequence);
     }
 
-    private function assertBalanced(array $lines): void
+    public function assertBalanced(array $lines): void
     {
         $debit = array_sum(array_map(fn ($l) => (float) $l['debit'], $lines));
         $credit = array_sum(array_map(fn ($l) => (float) $l['credit'], $lines));

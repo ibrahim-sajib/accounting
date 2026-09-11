@@ -24,6 +24,7 @@ const MODULE_LABELS: Record<string, string> = {
     suppliers: 'Suppliers',
     products: 'Products & Services',
     warehouses: 'Warehouses',
+    sales: 'Sales',
     journals: 'Journals',
     'opening-balances': 'Opening Balances',
     profile: 'Profile',
@@ -40,12 +41,14 @@ const SINGULAR_LABELS: Record<string, string> = {
     suppliers: 'Supplier',
     products: 'Product / Service',
     warehouses: 'Warehouse',
+    sales: 'Sales Invoice',
     journals: 'Journal',
 };
 
 const CREATE_LABELS: Record<string, string> = {
     accounts: 'New Account',
     journals: 'New Journal',
+    sales: 'New Sales Invoice',
 };
 
 const crumbs = computed<Crumb[]>(() => {
@@ -72,21 +75,26 @@ const crumbs = computed<Crumb[]>(() => {
         return [...trail, { label: 'Profile' }];
     }
 
-    const segment = routeName.split('.')[1];
+    const parts = routeName.split('.');
+    const segment = parts[1];
+    const subSegment = parts[2];
 
-    if (segment === 'create' || segment === 'edit') {
+    const isCreateEdit =
+        segment === 'create' || segment === 'edit' || subSegment === 'create' || subSegment === 'edit';
+
+    if (isCreateEdit) {
         trail.push({
             label: moduleLabel,
             href: route().has(base + '.index') ? route(base + '.index') : undefined,
         });
 
-        if (segment === 'create' && CREATE_LABELS[base]) {
+        const verb = (subSegment === 'create' || subSegment === 'edit' ? subSegment : segment) as 'create' | 'edit';
+
+        if (verb === 'create' && CREATE_LABELS[base]) {
             trail.push({ label: CREATE_LABELS[base] });
         } else {
-            const verb = segment === 'create' ? 'Create' : 'Edit';
             const subject = SINGULAR_LABELS[base] ?? moduleLabel;
-
-            trail.push({ label: `${verb} ${subject}` });
+            trail.push({ label: `${verb === 'create' ? 'Create' : 'Edit'} ${subject}` });
         }
 
         return trail;

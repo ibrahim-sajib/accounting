@@ -153,6 +153,17 @@ All commands run from the project root (`/Users/mdibrahim/sajib/project/accounti
   `draft`. `JournalController::reverse` uses permission `journal.post` (no separate `void` flow
   yet).
 
+### 1.20 Eloquent createMany/belongsToMany need the FK named after the RELATION, not the table
+- `$invoice->lines()->createMany($rows)` inserts `sales_invoice_id` (from the relation's
+  singular model name + `_id`) regardless of the table name. Naming the column `invoice_id` blew
+  up in SQLite tests before the migration ever ran in MySQL (`table sales_invoice_lines has no
+  column named sales_invoice_id`).
+- Rule: match Eloquent defaults AND be explicit — line tables use `<model>_id`
+  (`sales_invoice_id`), pivot many-to-many FKs passed as explicit args:
+  `belongsToMany(Receipt::class, 'receipt_allocations', 'sales_invoice_id', 'receipt_id')`.
+  Safe to rename a migration's column BEFORE it has run in MySQL (SQLite runs from scratch per
+  test); never rename one that Docker has already applied (§1.16).
+
 ---
 
 ## 2. Engineering conventions (senior baseline)
@@ -230,6 +241,43 @@ All commands run from the project root (`/Users/mdibrahim/sajib/project/accounti
     entries. Journal numbers/quotes show `formatMoney()` (`resources/js/utils/formatMoney.ts`);
     `StatusBadge` gained the `reversed` color. Opening balance entry rows keep amounts as
     strings client-side and are normalized by the request's `prepareForValidation()` (§1.16).
+- **Phase 5 domains added (Sales — accounting core)**: `app/Domain/Sales/` holds `SalesInvoice`
+  (+`SalesInvoiceLine`), `Receipt` (+`ReceiptAllocation`), `SalesInvoiceService`,
+  `SalesInvoiceController`, `SalesInvoiceRequest`/`ReceiptRequest`, `SalesPostingException`.
+  Scope: invoices (draft → posted `SINV` journal) + customer receipts ("Record Payment" →
+  `RCT` journal). No quotation/order/delivery/credit-note yet.
+  - **Numbering is assigned at posting** (mirrors §1.18): `invoice_no = SL-{year}-%04d`,
+    `receipt_no = RC-{year}-%04d`, journal numbers via `JournalSourceType::prefix()`
+    (`sales_invoice → SINV`, `receipt → RCT`), all inside the posting transaction, unique
+    per company. `sales_invoices.invoice_no` is nullable; drafts carry a `draft` status.
+  - **Posting recomputes every amount server-side** from the persisted lines
+    (`SalesInvoiceService::buildJournalLines`) — never trusts client math. Invoice journal:
+    AR Dr | Sales Revenue Cr | Output Tax Cr, plus COGS Dr | Inventory Cr for each
+    product-type line (COGS fallback = account code `5221`; inventory/sales/AR fall back to
+    `accounting_settings` defaults; output tax via `tax_rate.output_account_id` → default).
+    All GL accounts must be postable leaves, else `SalesPostingException`.
+  - **Tax is treated as EXCLUSIVE** in the journal regardless of the rate's `is_inclusive`
+    flag (seeded VAT is inclusive — a future refinement should extract VAT inside inclusive
+    prices; the current UI + journal treat `total + tax%` consistently).
+  - **Payments**: single-invoice allocation only (multi-alloc deferred to Phase 8 AR); require a
+    **posted** invoice and `amount ≤ balanceDue()` (overpayment rejected); receipt row is created
+    already `posted` and `invoice.amount_paid` is incremented. `paid_state` is derived
+    (`unpaid|partial|paid`); `overdue` = posted && amount_paid < total && due_date < today.
+    Index list status filters (unpaid/partial/paid/overdue) are derived in
+    `SalesInvoiceController::applyStatusFilter()`.
+  - **Account resolution order**: customer `ar_account_id` → settings `default_ar_account_id`;
+    product `sales_account_id` → default; line's explicit `tax_rate_id` → made-inline when blank
+    from the product. The controller (`paymentAccountOptions()`) offers only default
+    cash/bank (+ codes `1111`/`1112`/`1113`) postable leaves for payment accounts.
+  - **Draft-only mutations**: edit/update/delete 422 on posted invoices; `sales.invoices.pay`
+    route is gated by `receipt.post`; posting gated by `sales.post`. RoleSeeder: accountant
+    gained `sales.create/update/delete` (was view+post), viewer gained `receipt.view`.
+  - **UI**: `Pages/Sales/Invoices/{Index,Create,Edit,Show,InvoiceForm}.vue` with a line editor
+    (product select prefills price + default tax, live client totals) + a "Record Payment"
+    `Modal` on Show. Sidebar has a "Sales" group; breadcrumbs map `sales` module labels
+    (supports 3-segment names like `sales.invoices.create`); `AppIcon` gained `invoice`/`receipt`;
+    `StatusBadge` gained `paid|partial|unpaid|overdue`; `Journals/Show` links to the source
+    invoice for `sales_invoice` journals (uses `journal.source_id`).
 - **Aliases in `bootstrap/app.php`**: `'permission' => EnsurePermission::class`; Inertia header
   middleware appended to the `web` group.
 - **Vue page patterns**:

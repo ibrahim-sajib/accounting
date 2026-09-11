@@ -13,6 +13,7 @@ interface Journal {
     journal_no: string | null;
     journal_date: string;
     source_type: string;
+    source_id: number | null;
     reference: string | null;
     description: string | null;
     status: string;
@@ -71,10 +72,19 @@ const deleteJournal = () => {
     router.delete(route('journals.destroy', j.value.id), { preserveScroll: true });
 };
 
+const sourceLink = computed(() => {
+    if (j.value.source_type === 'sales_invoice' && j.value.source_id) {
+        return { label: 'View Invoice', href: route('sales.invoices.show', j.value.source_id) };
+    }
+
+    return null;
+});
+
 const sourceTypeLabel: Record<string, string> = {
     manual: 'Manual',
     opening: 'Opening Balance',
     sales_invoice: 'Sales Invoice',
+    receipt: 'Receipt',
     purchase_bill: 'Purchase Bill',
 };
 </script>
@@ -218,7 +228,16 @@ const sourceTypeLabel: Record<string, string> = {
                             </div>
                             <div class="flex justify-between">
                                 <dt class="text-gray-500 dark:text-gray-400">Source</dt>
-                                <dd class="text-gray-800 dark:text-gray-100">{{ sourceTypeLabel[j.source_type] ?? j.source_type }}</dd>
+                                <dd class="flex items-center gap-2 text-gray-800 dark:text-gray-100">
+                                    <span>{{ sourceTypeLabel[j.source_type] ?? j.source_type }}</span>
+                                    <Link
+                                        v-if="sourceLink"
+                                        :href="sourceLink.href"
+                                        class="text-xs font-medium text-indigo-600 hover:text-indigo-800 dark:text-indigo-400"
+                                    >
+                                        {{ sourceLink.label }}
+                                    </Link>
+                                </dd>
                             </div>
                             <div v-if="j.reference" class="flex justify-between">
                                 <dt class="text-gray-500 dark:text-gray-400">Reference</dt>

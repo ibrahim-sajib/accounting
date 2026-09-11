@@ -33,6 +33,8 @@ const paths: Record<string, string> = {
     warehouse: 'M3 21h18M5 21V7l7-4 7 4v14M9 21v-6h6v6M9 11h.01M15 11h.01M9 14h.01M15 14h.01',
     journal: 'M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10l5 5v11a2 2 0 01-2 2zm-3-16v5h5M8 13h8M8 17h5',
     opening: 'M4 4v16h16M8 16l4-6 3 4 3-5M19 4h4',
+    invoice: 'M9 3a2 2 0 00-2 2v14a2 2 0 002 2h6a2 2 0 002-2V5a2 2 0 00-2-2H9zm0 4h6v2H9V7zm0 4h6v2H9v-2zm0 4h4v2H9v-2z',
+    receipt: 'M7 3h10a1 1 0 011 1v17l-3-2-2 2-2-2-2 2-2-2-3 2V4a1 1 0 011-1zm2 6h6M9 13h6',
 };
 
 const d = computed(() => paths[props.name] ?? '');
