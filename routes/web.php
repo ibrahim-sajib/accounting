@@ -15,6 +15,7 @@ use App\Domain\Product\Http\Controllers\ProductController;
 use App\Domain\Rbac\Http\Controllers\RoleController;
 use App\Domain\Rbac\Http\Controllers\UserController;
 use App\Domain\Sales\Http\Controllers\SalesInvoiceController;
+use App\Domain\Purchase\Http\Controllers\PurchaseBillController;
 use App\Domain\Settings\Http\Controllers\SystemSettingController;
 use App\Domain\Tax\Http\Controllers\TaxTypeController;
 use App\Domain\Warehouse\Http\Controllers\WarehouseController;
@@ -296,6 +297,26 @@ Route::middleware(['auth', 'verified'])->group(function () {
         ->name('sales.invoices.pay');
     Route::middleware('permission:sales.delete')->delete('/sales/invoices/{invoice}', [SalesInvoiceController::class, 'destroy'])
         ->name('sales.invoices.destroy');
+
+    // ── Purchase Bills ──
+    Route::middleware('permission:purchase.view')->get('/purchase/bills', [PurchaseBillController::class, 'index'])
+        ->name('purchase.bills.index');
+    Route::middleware('permission:purchase.create')->get('/purchase/bills/create', [PurchaseBillController::class, 'create'])
+        ->name('purchase.bills.create');
+    Route::middleware('permission:purchase.create')->post('/purchase/bills', [PurchaseBillController::class, 'store'])
+        ->name('purchase.bills.store');
+    Route::middleware('permission:purchase.view')->get('/purchase/bills/{bill}', [PurchaseBillController::class, 'show'])
+        ->name('purchase.bills.show');
+    Route::middleware('permission:purchase.update')->get('/purchase/bills/{bill}/edit', [PurchaseBillController::class, 'edit'])
+        ->name('purchase.bills.edit');
+    Route::middleware('permission:purchase.update')->put('/purchase/bills/{bill}', [PurchaseBillController::class, 'update'])
+        ->name('purchase.bills.update');
+    Route::middleware('permission:purchase.post')->post('/purchase/bills/{bill}/post', [PurchaseBillController::class, 'post'])
+        ->name('purchase.bills.post');
+    Route::middleware('permission:payment.post')->post('/purchase/bills/{bill}/pay', [PurchaseBillController::class, 'pay'])
+        ->name('purchase.bills.pay');
+    Route::middleware('permission:purchase.delete')->delete('/purchase/bills/{bill}', [PurchaseBillController::class, 'destroy'])
+        ->name('purchase.bills.destroy');
 
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');

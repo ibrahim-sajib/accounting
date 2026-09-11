@@ -67,6 +67,12 @@ const navGroups = computed(() => [
         ],
     },
     {
+        label: 'Purchase',
+        items: [
+            { label: 'Purchase Bills', routeName: 'purchase.bills.index', icon: 'bill', permission: 'purchase.view' },
+        ],
+    },
+    {
         label: 'Transactions',
         items: [
             { label: 'Journals', routeName: 'journals.index', icon: 'journal', permission: 'journal.view' },
@@ -151,7 +157,7 @@ const isActive = (routeName: string) => {
             <!-- Sidebar footer -->
             <div class="border-t border-gray-200 p-3 dark:border-gray-800">
                 <div class="rounded-lg bg-gray-50 px-3 py-2 text-xs text-gray-500 dark:bg-gray-800/60 dark:text-gray-400">
-                    Phase 5 · Sales workflow
+                    Phase 6 · Purchase workflow
                 </div>
             </div>
         </aside>

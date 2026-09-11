@@ -161,8 +161,22 @@ All commands run from the project root (`/Users/mdibrahim/sajib/project/accounti
 - Rule: match Eloquent defaults AND be explicit — line tables use `<model>_id`
   (`sales_invoice_id`), pivot many-to-many FKs passed as explicit args:
   `belongsToMany(Receipt::class, 'receipt_allocations', 'sales_invoice_id', 'receipt_id')`.
-  Safe to rename a migration's column BEFORE it has run in MySQL (SQLite runs from scratch per
-  test); never rename one that Docker has already applied (§1.16).
+Safe to rename a migration's column BEFORE it has run in MySQL (SQLite runs from scratch per
+   test); never rename one that Docker has already applied (§1.16).
+
+### 1.21 Never wrap `wherePivot` in a `when()` closure on a belongsToMany (SQL corruption → 500)
+- `$user->roles()->when($companyId, fn ($q) => $q->wherePivot('company_id', $companyId))`
+  corrupts the where clause into `and \`pivot\` = company_id` → `SQLSTATE[42S22] Unknown column
+  'pivot'`. The closure receives the BASE Query\Builder (via the relation's `when` proxy), where
+  `wherePivot` resolves to nothing sensible, and the clause is applied twice.
+- Branch instead: `$q = $this->roles(); if ($companyId) { $q = $q->wherePivot('company_id', $companyId); }`.
+  Calling `->wherePivot()` directly on the relation (no `when`/`clone` wrapper) works fine, even
+  followed by `->pluck()`/`->get()` — but `clone()` of the relation builder also reproduces the
+  corruption.
+- This was a latent RBAC bug: for ANY non-super-admin with an active company context,
+  `User::hasPermission()` 500'd on every `permission:`-gated route; only verified now that
+  Phase 6 added a positive non-super-admin test (accountant CRUD). Always add a positive
+  permission test per module, not just the negative 403 case.
 
 ---
 
@@ -278,6 +292,35 @@ All commands run from the project root (`/Users/mdibrahim/sajib/project/accounti
     (supports 3-segment names like `sales.invoices.create`); `AppIcon` gained `invoice`/`receipt`;
     `StatusBadge` gained `paid|partial|unpaid|overdue`; `Journals/Show` links to the source
     invoice for `sales_invoice` journals (uses `journal.source_id`).
+- **Phase 6 domains added (Purchase — accounting core)**: `app/Domain/Purchase/` holds
+  `PurchaseBill` (+`PurchaseBillLine`), `SupplierPayment` (+`SupplierPaymentAllocation`),
+  `PurchaseBillService`, `PurchaseBillController`,
+  `PurchaseBillRequest`/`SupplierPaymentRequest`, `PurchasePostingException`. Scope: purchase
+  bills (draft → posted `PUR` journal) + supplier payments ("Record Payment" → `PMT` journal).
+  No requisition/PO/GRN/debit-notes yet (GRN→stock lands with Phase 7 Inventory).
+  - **Numbering is assigned at posting** (mirrors §1.18): `bill_no = PB-{year}-%04d`,
+    `payment_no = PY-{year}-%04d`, journal numbers via `JournalSourceType::prefix()`
+    (`purchase_bill → PUR`, `payment → PMT`), inside the posting transaction, unique per
+    company; `bill_no` nullable on drafts.
+  - **Posting recomputes every amount server-side** (`PurchaseBillService::buildJournalLines`)
+    — never trusts client math. Bill journal: Inventory/Expense Dr | Input Tax Dr | AP Cr.
+    Account resolution: product `purchase_account_id` → setting `default_purchase_account_id`;
+    AP = supplier `ap_account_id` → setting `default_ap_account_id`; input tax via
+    `tax_rate.input_account_id` → setting `default_tax_input_account_id`. Postable-leaf
+    requirement enforced (`PurchasePostingException`). Supplier tagged as `party_type=supplier`.
+  - **Payments**: single-bill allocation only; require a **posted** bill and `amount ≤
+    balanceDue()` (overpayment rejected); payment row created already `posted`; `amount_paid`
+    incremented. `paid_state` derived (`unpaid|partial|paid`); `overdue` = posted && not paid &&
+    due_date < today. Index filters in `PurchaseBillController::applyStatusFilter()`.
+  - **Draft-only mutations**: edit/update/delete 422 on posted bills; `purchase.bills.pay`
+    route gated by `payment.post`; posting gated by `purchase.post`. RoleSeeder: accountant
+    gained `purchase.create/update/delete`, viewer gained `payment.view` (purchase/payment
+    permission modules already existed).
+  - **UI**: `Pages/Purchase/Bills/{Index,Create,Edit,Show,BillForm}.vue` — line editor prefills
+    `unit_cost` from product `purchase_price` + default tax; Show has a "Record Payment" `Modal`
+    (balance-due default). Sidebar "Purchase" group; breadcrumbs `purchase` module labels
+    (3-segment `purchase.bills.create`); `AppIcon` gained `bill`/`payment`; `Journals/Show`
+    links to the source bill for `purchase_bill` journals ("View Bill").
 - **Aliases in `bootstrap/app.php`**: `'permission' => EnsurePermission::class`; Inertia header
   middleware appended to the `web` group.
 - **Vue page patterns**:

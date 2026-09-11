@@ -77,6 +77,10 @@ const sourceLink = computed(() => {
         return { label: 'View Invoice', href: route('sales.invoices.show', j.value.source_id) };
     }
 
+    if (j.value.source_type === 'purchase_bill' && j.value.source_id) {
+        return { label: 'View Bill', href: route('purchase.bills.show', j.value.source_id) };
+    }
+
     return null;
 });
 
@@ -86,6 +90,7 @@ const sourceTypeLabel: Record<string, string> = {
     sales_invoice: 'Sales Invoice',
     receipt: 'Receipt',
     purchase_bill: 'Purchase Bill',
+    payment: 'Supplier Payment',
 };
 </script>
 

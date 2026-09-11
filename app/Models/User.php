@@ -104,9 +104,13 @@ class User extends Authenticatable
             return true;
         }
 
-        $roleIds = $this->roles()
-            ->when($companyId, fn ($q) => $q->wherePivot('company_id', $companyId))
-            ->pluck('roles.id');
+        $query = $this->roles();
+
+        if ($companyId) {
+            $query = $query->wherePivot('company_id', $companyId);
+        }
+
+        $roleIds = $query->pluck('roles.id');
 
         if ($roleIds->isEmpty()) {
             return false;
