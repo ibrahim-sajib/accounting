@@ -31,6 +31,8 @@ const paths: Record<string, string> = {
     supplier: 'M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4',
     product: 'M20 4H4a2 2 0 00-2 2v12a2 2 0 002 2h16a2 2 0 002-2V6a2 2 0 00-2-2zm-8 3a2 2 0 110 4 2 2 0 010-4zm2 10h2m-8-3v2m-2-6h2',
     warehouse: 'M3 21h18M5 21V7l7-4 7 4v14M9 21v-6h6v6M9 11h.01M15 11h.01M9 14h.01M15 14h.01',
+    journal: 'M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10l5 5v11a2 2 0 01-2 2zm-3-16v5h5M8 13h8M8 17h5',
+    opening: 'M4 4v16h16M8 16l4-6 3 4 3-5M19 4h4',
 };
 
 const d = computed(() => paths[props.name] ?? '');

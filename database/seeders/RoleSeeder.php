@@ -21,7 +21,7 @@ class RoleSeeder extends Seeder
         'accountant' => [
             'name' => 'Accountant',
             'permissions' => [
-                'account.*', 'journal.*', 'report.*', 'dashboard.view',
+                'account.*', 'journal.*', 'opening_balance.*', 'report.*', 'dashboard.view',
                 'sales.view', 'sales.post', 'purchase.view', 'purchase.post',
                 'receipt.*', 'payment.*', 'bank.*', 'expense.*',
                 'fiscal_year.view', 'period.view', 'currency.view', 'tax.view',
@@ -65,7 +65,7 @@ class RoleSeeder extends Seeder
                 'supplier.view', 'product.view', 'warehouse.view', 'inventory.view',
                 'bank.view', 'expense.view', 'payroll.view', 'budget.view',
                 'fiscal_year.view', 'period.view', 'currency.view', 'tax.view',
-                'journal.view', 'audit.view', 'accounting_config.view',
+                'journal.view', 'opening_balance.view', 'audit.view', 'accounting_config.view',
             ],
         ],
     ];

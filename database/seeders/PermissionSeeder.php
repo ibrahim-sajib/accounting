@@ -30,6 +30,7 @@ class PermissionSeeder extends Seeder
         'warehouse' => ['view', 'create', 'update', 'delete'],
         'inventory' => ['view', 'create', 'update', 'delete', 'adjust', 'transfer'],
         'journal' => ['view', 'create', 'update', 'delete', 'approve', 'post', 'void'],
+        'opening_balance' => ['view', 'create', 'post'],
         'sales' => ['view', 'create', 'update', 'delete', 'approve', 'post', 'void', 'return'],
         'purchase' => ['view', 'create', 'update', 'delete', 'approve', 'post', 'void', 'return'],
         'receipt' => ['view', 'create', 'update', 'delete', 'approve', 'post', 'void'],

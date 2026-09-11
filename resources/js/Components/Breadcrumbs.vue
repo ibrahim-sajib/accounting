@@ -24,6 +24,8 @@ const MODULE_LABELS: Record<string, string> = {
     suppliers: 'Suppliers',
     products: 'Products & Services',
     warehouses: 'Warehouses',
+    journals: 'Journals',
+    'opening-balances': 'Opening Balances',
     profile: 'Profile',
 };
 
@@ -38,10 +40,12 @@ const SINGULAR_LABELS: Record<string, string> = {
     suppliers: 'Supplier',
     products: 'Product / Service',
     warehouses: 'Warehouse',
+    journals: 'Journal',
 };
 
 const CREATE_LABELS: Record<string, string> = {
     accounts: 'New Account',
+    journals: 'New Journal',
 };
 
 const crumbs = computed<Crumb[]>(() => {

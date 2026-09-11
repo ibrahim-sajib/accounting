@@ -20,6 +20,7 @@ const colorMap: Record<string, string> = {
     rejected: 'bg-red-100 text-red-700 dark:bg-red-900/50 dark:text-red-300',
     cancelled: 'bg-gray-100 text-gray-500 dark:bg-gray-800 dark:text-gray-400',
     voided: 'bg-red-100 text-red-700 dark:bg-red-900/50 dark:text-red-300',
+    reversed: 'bg-red-100 text-red-700 dark:bg-red-900/50 dark:text-red-300',
 };
 
 const cls = computed(() => {

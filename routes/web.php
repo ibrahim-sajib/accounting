@@ -4,6 +4,8 @@ use App\Domain\Accounting\Http\Controllers\AccountingPeriodController;
 use App\Domain\Accounting\Http\Controllers\AccountingSettingController;
 use App\Domain\Accounting\Http\Controllers\AccountController;
 use App\Domain\Accounting\Http\Controllers\FiscalYearController;
+use App\Domain\Accounting\Http\Controllers\JournalController;
+use App\Domain\Accounting\Http\Controllers\OpeningBalanceController;
 use App\Domain\Company\Http\Controllers\BranchController;
 use App\Domain\Company\Http\Controllers\CompanyController;
 use App\Domain\Currency\Http\Controllers\CurrencyController;
@@ -173,6 +175,36 @@ Route::middleware(['auth', 'verified'])->group(function () {
         ->name('accounting-settings.index');
     Route::middleware('permission:accounting_config.update')->put('/accounting-settings', [AccountingSettingController::class, 'update'])
         ->name('accounting-settings.update');
+
+    // ── Journals (General Journal) ──
+    Route::middleware('permission:journal.view')->get('/journals', [JournalController::class, 'index'])
+        ->name('journals.index');
+    Route::middleware('permission:journal.create')->get('/journals/create', [JournalController::class, 'create'])
+        ->name('journals.create');
+    Route::middleware('permission:journal.create')->post('/journals', [JournalController::class, 'store'])
+        ->name('journals.store');
+    Route::middleware('permission:journal.view')->get('/journals/{journal}', [JournalController::class, 'show'])
+        ->name('journals.show');
+    Route::middleware('permission:journal.update')->get('/journals/{journal}/edit', [JournalController::class, 'edit'])
+        ->name('journals.edit');
+    Route::middleware('permission:journal.update')->put('/journals/{journal}', [JournalController::class, 'update'])
+        ->name('journals.update');
+    Route::middleware('permission:journal.post')->post('/journals/{journal}/post', [JournalController::class, 'post'])
+        ->name('journals.post');
+    Route::middleware('permission:journal.post')->post('/journals/{journal}/reverse', [JournalController::class, 'reverse'])
+        ->name('journals.reverse');
+    Route::middleware('permission:journal.delete')->delete('/journals/{journal}', [JournalController::class, 'destroy'])
+        ->name('journals.destroy');
+
+    // ── Opening Balances ──
+    Route::middleware('permission:opening_balance.view')->get('/opening-balances', [OpeningBalanceController::class, 'index'])
+        ->name('opening-balances.index');
+    Route::middleware('permission:opening_balance.create')->get('/opening-balances/{fiscal_year}/entry', [OpeningBalanceController::class, 'entry'])
+        ->name('opening-balances.entry');
+    Route::middleware('permission:opening_balance.create')->post('/opening-balances/{fiscal_year}/save', [OpeningBalanceController::class, 'save'])
+        ->name('opening-balances.save');
+    Route::middleware('permission:opening_balance.post')->post('/opening-balances/{fiscal_year}/post', [OpeningBalanceController::class, 'post'])
+        ->name('opening-balances.post');
 
     // ── Customers ──
     Route::middleware('permission:customer.view')->get('/customers', [CustomerController::class, 'index'])

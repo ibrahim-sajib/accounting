@@ -60,6 +60,13 @@ const navGroups = computed(() => [
             { label: 'Warehouses', routeName: 'warehouses.index', icon: 'warehouse', permission: 'warehouse.view' },
         ],
     },
+    {
+        label: 'Transactions',
+        items: [
+            { label: 'Journals', routeName: 'journals.index', icon: 'journal', permission: 'journal.view' },
+            { label: 'Opening Balances', routeName: 'opening-balances.index', icon: 'opening', permission: 'opening_balance.view' },
+        ],
+    },
 ]);
 
 const switchCompany = (id: number) => {
@@ -138,7 +145,7 @@ const isActive = (routeName: string) => {
             <!-- Sidebar footer -->
             <div class="border-t border-gray-200 p-3 dark:border-gray-800">
                 <div class="rounded-lg bg-gray-50 px-3 py-2 text-xs text-gray-500 dark:bg-gray-800/60 dark:text-gray-400">
-                    Phase 3 · Master data
+                    Phase 4 · Accounting engine
                 </div>
             </div>
         </aside>
