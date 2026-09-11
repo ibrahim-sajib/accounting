@@ -2,6 +2,7 @@
 import { computed, ref, watch } from 'vue';
 import { Link, router, usePage } from '@inertiajs/vue3';
 import AppIcon from '@/Components/AppIcon.vue';
+import Breadcrumbs from '@/Components/Breadcrumbs.vue';
 import Dropdown from '@/Components/Dropdown.vue';
 import DropdownLink from '@/Components/DropdownLink.vue';
 import FlashMessage from '@/Components/FlashMessage.vue';
@@ -66,6 +67,18 @@ const switchCompany = (id: number) => {
         preserveScroll: true,
     });
 };
+
+const isActive = (routeName: string) => {
+    const current = route().current() ?? null;
+
+    if (current === null) {
+        return routeName === 'dashboard';
+    }
+
+    const base = routeName.split('.')[0];
+
+    return current === base || current.startsWith(base + '.');
+};
 </script>
 
 <template>
@@ -111,9 +124,7 @@ const switchCompany = (id: number) => {
                         <li v-for="item in group.items.filter((i) => !i.permission || can(i.permission))" :key="item.routeName">
                             <Link
                                 :href="route(item.routeName)"
-                                :class="route().current(item.routeName + '*') || (item.routeName === 'dashboard' && route().current() === null)
-                                    ? 'active-nav'
-                                    : 'nav-item'"
+                                :class="isActive(item.routeName) ? 'active-nav' : 'nav-item'"
                                 class="flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors"
                             >
                                 <component :is="AppIcon" :name="item.icon" class="h-4 w-4" />
@@ -232,6 +243,7 @@ const switchCompany = (id: number) => {
 
             <!-- Page content -->
             <main class="ml-4 mr-2 py-6 sm:px-6 lg:max-w-full">
+                <Breadcrumbs />
                 <slot />
             </main>
         </div>

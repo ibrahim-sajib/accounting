@@ -128,6 +128,13 @@ All commands run from the project root (`/Users/mdibrahim/sajib/project/accounti
   `String(props.x ?? '0')` so the initial submit is never empty; the server guard covers the
   user-clears-the-field case.
 
+### 1.17 Sidebar active state must match the route *base*, not the index route
+- `route().current('customers.index*')` only matches `customers.index` — never
+  `customers.create`/`customers.edit`, so sub-pages lose their nav highlight.
+- `AuthenticatedLayout::isActive(routeName)` splits on the first dot and tests
+  `current === base || current.startsWith(base + '.')`, so every page under a module
+  highlights its menu item (Dashboard keeps a null-current fallback).
+
 ---
 
 ## 2. Engineering conventions (senior baseline)
@@ -184,6 +191,10 @@ All commands run from the project root (`/Users/mdibrahim/sajib/project/accounti
     (or modal-based like Currencies).
   - `PageHeader` (title/description + `#actions`), `SearchInput` (must guard `route().current()`),
     `Pagination :links="..."`, `StatusBadge`.
+  - Breadcrumbs are NOT added per page — `Components/Breadcrumbs.vue` renders once in
+    `AuthenticatedLayout`'s `<main>` and derives the chain (`Home > Module > Create/Edit X`)
+    from the current route base + segment (MODULE_LABELS/SINGULAR_LABELS/CREATE_LABELS maps
+    there). New modules only need entries in those maps.
   - Period select-driven lists (e.g. Periods) navigate via `router.get(route(...), { fiscal_year_id })`.
 - **Types**: Vue `defineProps` types must exactly match the Inertia prop shape (see §1.1).
   Shared app types exported from `resources/js/types/index.d.ts`.
