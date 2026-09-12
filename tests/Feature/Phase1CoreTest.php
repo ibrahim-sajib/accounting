@@ -137,17 +137,25 @@ class Phase1CoreTest extends TestCase
 
         $this->assertSame(PeriodStatus::Closed->value, $period->fresh()->status);
 
+        // a closed (not locked) period may be reopened
+        $this->actingAs($this->admin)
+            ->post("/accounting-periods/{$period->id}/reopen")
+            ->assertSessionHasNoErrors();
+
+        $this->assertSame(PeriodStatus::Open->value, $period->fresh()->status);
+
         $this->actingAs($this->admin)
             ->post("/accounting-periods/{$period->id}/lock")
             ->assertSessionHasNoErrors();
 
         $this->assertSame(PeriodStatus::Locked->value, $period->fresh()->status);
 
+        // locked periods are permanent — reopening is refused (flash error)
         $this->actingAs($this->admin)
             ->post("/accounting-periods/{$period->id}/reopen")
-            ->assertSessionHasNoErrors();
+            ->assertSessionHas('error');
 
-        $this->assertSame(PeriodStatus::Open->value, $period->fresh()->status);
+        $this->assertSame(PeriodStatus::Locked->value, $period->fresh()->status);
     }
 
     public function test_company_switch_updates_active_context(): void

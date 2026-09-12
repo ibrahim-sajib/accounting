@@ -16,6 +16,7 @@ class AccountingPeriod extends Model
 
     protected $fillable = [
         'fiscal_year_id', 'name', 'start_date', 'end_date', 'is_active', 'status',
+        'closed_at', 'closed_by',
         'created_by', 'updated_by',
     ];
 
@@ -23,6 +24,7 @@ class AccountingPeriod extends Model
         'start_date' => 'date',
         'end_date' => 'date',
         'is_active' => 'boolean',
+        'closed_at' => 'datetime',
     ];
 
     public function fiscalYear()

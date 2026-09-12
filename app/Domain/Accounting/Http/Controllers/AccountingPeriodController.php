@@ -5,6 +5,8 @@ namespace App\Domain\Accounting\Http\Controllers;
 use App\Domain\Accounting\Http\Requests\AccountingPeriodRequest;
 use App\Domain\Accounting\Models\AccountingPeriod;
 use App\Domain\Accounting\Models\FiscalYear;
+use App\Domain\Accounting\Services\AccountingPeriodService;
+use App\Domain\Audit\Services\AuditLogger;
 use App\Support\Enums\PeriodStatus;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -45,7 +47,7 @@ class AccountingPeriodController
     {
         $period = AccountingPeriod::query()->create($request->validated());
 
-        \App\Domain\Audit\Services\AuditLogger::log('period', 'create', null, $period->id, [], $period->toArray(), current_company_id());
+        AuditLogger::log('period', 'create', null, $period->id, [], $period->toArray(), current_company_id());
 
         return redirect()
             ->route('accounting-periods.index', ['fiscal_year_id' => $period->fiscal_year_id])
@@ -54,81 +56,91 @@ class AccountingPeriodController
 
     public function update(AccountingPeriodRequest $request, AccountingPeriod $period): RedirectResponse
     {
+        AccountingPeriodService::assertCompanyPeriod($period);
+        abort_if(! $period->isOpen(), 422, 'Only open periods can be edited.');
+
         $old = $period->toArray();
         $period->update($request->validated());
 
-        \App\Domain\Audit\Services\AuditLogger::log('period', 'update', null, $period->id, $old, $period->toArray(), current_company_id());
+        AuditLogger::log('period', 'update', null, $period->id, $old, $period->toArray(), current_company_id());
 
         return back()->with('success', 'Accounting period updated.');
     }
 
     /**
-     * Close a period — no normal postings allowed.
+     * Close a period — no further postings allowed (JournalPostingService
+     * refuses closed periods). Earliest-open-first sequence enforced.
      */
     public function close(Request $request, AccountingPeriod $period): RedirectResponse
     {
         abort_unless($request->user()->is_super_admin || $request->user()->hasPermission('period.close', current_company_id()), 403);
 
-        $period->update(['status' => PeriodStatus::Closed->value]);
-
-        \App\Domain\Audit\Services\AuditLogger::log('period', 'close', null, $period->id, [], ['status' => 'closed'], current_company_id());
+        try {
+            AccountingPeriodService::close($period, $request->user(), current_company_id());
+        } catch (\DomainException $e) {
+            return back()->with('error', $e->getMessage());
+        }
 
         return back()->with('success', "Period [{$period->name}] closed.");
     }
 
     /**
-     * Reopen a period (requires permission).
+     * Reopen a closed period (refused when any later period is locked).
      */
     public function reopen(Request $request, AccountingPeriod $period): RedirectResponse
     {
         abort_unless($request->user()->is_super_admin || $request->user()->hasPermission('period.reopen', current_company_id()), 403);
 
-        $period->update(['status' => PeriodStatus::Open->value]);
-
-        \App\Domain\Audit\Services\AuditLogger::log('period', 'reopen', null, $period->id, [], ['status' => 'open'], current_company_id());
+        try {
+            AccountingPeriodService::reopen($period, $request->user(), current_company_id());
+        } catch (\DomainException $e) {
+            return back()->with('error', $e->getMessage());
+        }
 
         return back()->with('success', "Period [{$period->name}] reopened.");
     }
 
     /**
-     * Lock a period — read-only view, no edits/postings/reopenings.
+     * Lock a period — read-only, no edits/postings/reopenings.
      */
     public function lock(Request $request, AccountingPeriod $period): RedirectResponse
     {
         abort_unless($request->user()->is_super_admin || $request->user()->hasPermission('period.lock', current_company_id()), 403);
 
-        $period->update(['status' => PeriodStatus::Locked->value]);
-
-        \App\Domain\Audit\Services\AuditLogger::log('period', 'lock', null, $period->id, [], ['status' => 'locked'], current_company_id());
+        try {
+            AccountingPeriodService::lock($period, $request->user(), current_company_id());
+        } catch (\DomainException $e) {
+            return back()->with('error', $e->getMessage());
+        }
 
         return back()->with('success', "Period [{$period->name}] locked.");
     }
 
     /**
-     * Set as the active working period for the company.
+     * Set as the active working period — only open periods are allowed.
      */
     public function setActive(Request $request, AccountingPeriod $period): RedirectResponse
     {
+        AccountingPeriodService::assertCanBeActive($period);
+
         AccountingPeriod::query()
             ->where('fiscal_year_id', $period->fiscal_year_id)
             ->update(['is_active' => false]);
 
         $period->update(['is_active' => true]);
 
-        \App\Domain\Audit\Services\AuditLogger::log('period', 'set_active', null, $period->id, [], ['is_active' => true], current_company_id());
+        AuditLogger::log('period', 'set_active', null, $period->id, [], ['is_active' => true], current_company_id());
 
         return back()->with('success', "Period [{$period->name}] is now the active period.");
     }
 
     public function destroy(Request $request, AccountingPeriod $period): RedirectResponse
     {
-        if ($period->is_active) {
-            return back()->with('error', 'Cannot delete the active period.');
-        }
+        AccountingPeriodService::assertCanBeDeleted($period);
 
         $period->delete();
 
-        \App\Domain\Audit\Services\AuditLogger::log('period', 'delete', null, $period->id, $period->toArray(), [], current_company_id());
+        AuditLogger::log('period', 'delete', null, $period->id, $period->toArray(), [], current_company_id());
 
         return back()->with('success', 'Accounting period deleted.');
     }

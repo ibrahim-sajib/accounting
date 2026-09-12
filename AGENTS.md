@@ -950,6 +950,32 @@ Safe to rename a migration's column BEFORE it has run in MySQL (SQLite runs from
     inserts to a nonexistent company). Tests (Phase9dCoreTest, 7 tests) cover attach+show-list,
     journal attach+preview, download filename, destroy (row + file), viewer-403, cross-company
     upload 403, cross-company download 403.
+- **Phase 10a domain hardening (Period Closing — module 31)**: the close/reopen/lock routes and
+  Periods/Index.vue buttons existed from Phase 1 as a skeleton; this phase enforces the real
+  invariants via `AccountingPeriodService` (`app/Domain/Accounting/Services/`) so the demo front
+  end can't be bypassed:
+  - **Closing is sequential**: `close()`/`lock()` refuse when any EARLIER period in the same FY is
+    still open ("Close earlier periods first: … in sequence."). `reopen()` is refused when any
+    LATER period is **locked** (locked = permanent, PG-style archive; §"reopen after lock" in the
+    old Phase1 test was wrong and was rewritten to assert the refusal). Closed periods get
+    `closed_at`/`closed_by` stamped (new nullable columns, `accounting_periods`).
+  - **Posting into a closed period is already blocked** by `JournalPostingService`'s
+    `$period->isOpen()` check (§1.10/phase4) — every posting engine flows through it, so closing a
+    period freezes its ledger with zero additional work; the Phase10a test proves a dated journal
+    can't post (flash error 'not open').
+  - **Tenant scoping hole closed**: close/reopen/lock/setActive/update/destroy previously ran on ANY
+    period id from ANY company — now `AccountingPeriodService::assertCompanyPeriod()` 403s unless the
+    period's fiscal year `company_id` matches the active company (an authenticated user could close
+    another company's period via guessed URL). `AccountingPeriodRequest` now also validates the
+    `fiscal_year_id` belongs to the active company on create.
+  - **Integrity guards**: `setActive` and `destroy` refuse closed/locked periods (previously only the
+    active-period delete guard existed); closing/`lock` throws `DomainException` → controller maps to
+    `back()->with('error', …)` so the SPA shows a flash instead of a 500.
+  - **Permissions**: accountant role gained `period.*` (was `period.view` only — accountants now close
+    periods; viewer stays `period.view`). RoleSeeder `sync()`s per role so `db:seed --force` re-grants.
+  - Tests (Phase10aCoreTest, 7 tests): close+posting-block, sequence guard, close→reopen restore,
+    locked-later-blocks-reopen, setActive/delete 422 on closed, cross-company close 403, accountant-
+    vs-viewer close. The old Phase1 test was updated to the new permanent-lock semantics.
 
 - **Aliases in `bootstrap/app.php`**: `'permission' => EnsurePermission::class`; Inertia header
   middleware appended to the `web` group.
