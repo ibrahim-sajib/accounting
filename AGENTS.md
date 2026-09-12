@@ -711,6 +711,44 @@ Safe to rename a migration's column BEFORE it has run in MySQL (SQLite runs from
     medical/travel allowances silently inflates gross by $10k — assertions must sum the full
     structure). The accountant positive test must create the draft run AS ADMIN first (accountant
     lacks `payroll.process`), then switch users to exercise `payroll.post`.
+- **Phase 7c domain added (Budget — module 23)**: `app/Domain/Budget/` holds `Budget`
+  (+table `budgets`) and `BudgetLine` (+table `budget_lines`), `BudgetService`,
+  `BudgetController`, `BudgetRequest`, `BudgetPostingException`, and `app/Support/Enums/BudgetStatus`
+  (`draft|posted`). Scope: one annual operating budget per company+fiscal year, per-account/per-period
+  line amounts, and a budget-vs-actual variance report. **No journals are created by budgeting** — it is
+  a planning record.
+  - **Uniqueness**: `budgets` unique on `(company_id, fiscal_year_id)` — at most ONE budget per FY
+    (`BudgetService::assertNoBudgetForFiscalYear`, raised on store AND update). `budget_lines` unique on
+    `(budget_id, account_id, period_id)`; `BudgetService::assertPayload` also rejects, at service level,
+    a second line for the same (account, period), a period OUTSIDE the budget's FY, and any account that
+    is not a **postable income/expense leaf** (asset/liability/equity accounts are refused; `is_postable`
+    + `type in [income, expense]` via `AccountType`).
+  - **syncLines replaces wholesale on every draft edit**: `$budget->lines()->forceDelete()` then
+    re-insert — plain `delete()` (soft) leaves the `(budget_id, account_id, period_id)` unique rows
+    occupied in BOTH SQLite and MySQL → `UNIQUE constraint failed budget_lines.budget_id...` on the next
+    PUT. `destroyBudget()` also `forceDelete()`s lines before soft-deleting the budget (¶1.16-style; lines
+    are child rows, not auditable records).
+  - **Posting** (`postBudget`) only flips `status=posted` (throws if already posted or zero lines);
+    a posted budget is LOCKED: edit (GET/PUT) and delete are refused (`Only draft budgets can be edited.`).
+    The controller's `edit()` can return `RedirectResponse` — declare `Response|RedirectResponse` or an
+    already-posted budget 500s with a PHP TypeError.
+  - **Variance** (`BudgetService::variance`): `actual` per account = balance of POSTED journal lines in
+    the FY date range (`Journal.status=posted` + `journal_date between FY start/end`), signed by
+    `normal_balance` (income → credit−debit, expense → debit−credit). Draft journals are excluded.
+    Per-period actual reuses the journal's `period_id`. Returns `{periods, rows (per account: budgeted/
+    actual/variance/variance_pct), detail (per budget line: period budgeted + actual)}`.
+  - **Permissions/UI**: `PermissionSeeder` budget module = `view|create|update|delete|approve|post`
+    (`budget.post` added for 7c); RoleSeeder accountant gains `budget.*`, viewer keeps `budget.view`.
+    Route base `budgets`; index status filter; create/edit via `Pages/Budget/BudgetForm.vue` (shared:
+    name + fiscal-year select — DISABLED on edit since FY is immutable — + line editor; the
+    period `<select>` is client-filtered to the chosen FY's periods). Show = 4 summary cards
+    (Status/Budgeted/Actual YTD/Variance) + per-account variance table + per-period detail table,
+    `Post Budget`/`Edit`/`Delete` for drafts. Sidebar label is **"Budgets"** (plural — the §1.17-style
+    nav script must search the exact label); `AppIcon` gained `budget`; breadcrumbs
+    `budgets: 'Budgets'`/singular `Budget`/create `New Budget`. `BudgetRequest` normalizes
+    `lines[].budgeted_amount` null → `'0'` (§1.16).
+  - **Permission note**: budget lines/variance pages render for viewer too (`budget.view`); only
+    mutations are gated.
 - **Aliases in `bootstrap/app.php`**: `'permission' => EnsurePermission::class`; Inertia header
   middleware appended to the `web` group.
 - **Vue page patterns**:

@@ -41,7 +41,7 @@ class PermissionSeeder extends Seeder
         'expense' => ['view', 'create', 'update', 'delete', 'approve', 'post'],
         'fixed_asset' => ['view', 'create', 'update', 'delete', 'depreciate'],
         'payroll' => ['view', 'create', 'update', 'delete', 'process', 'post'],
-        'budget' => ['view', 'create', 'update', 'delete', 'approve'],
+        'budget' => ['view', 'create', 'update', 'delete', 'approve', 'post'],
         'report' => ['view', 'export'],
         'dashboard' => ['view'],
         'audit' => ['view'],

@@ -6,6 +6,7 @@ use App\Domain\Accounting\Http\Controllers\AccountController;
 use App\Domain\Accounting\Http\Controllers\FiscalYearController;
 use App\Domain\Accounting\Http\Controllers\JournalController;
 use App\Domain\Accounting\Http\Controllers\OpeningBalanceController;
+use App\Domain\Budget\Http\Controllers\BudgetController;
 use App\Domain\CashBank\Http\Controllers\BankReconciliationController;
 use App\Domain\CashBank\Http\Controllers\CashBankAccountController;
 use App\Domain\CashBank\Http\Controllers\CashBankController;
@@ -559,6 +560,24 @@ Route::middleware(['auth', 'verified'])->group(function () {
         ->name('payroll.departments.destroy');
     Route::middleware('permission:payroll.create')->post('/payroll/designations', [DesignationController::class, 'store'])
         ->name('payroll.designations.store');
+
+    // Budget (module 23) — annual operating budget vs actual variance.
+    Route::middleware('permission:budget.view')->get('/budgets', [BudgetController::class, 'index'])
+        ->name('budgets.index');
+    Route::middleware('permission:budget.create')->get('/budgets/create', [BudgetController::class, 'create'])
+        ->name('budgets.create');
+    Route::middleware('permission:budget.create')->post('/budgets', [BudgetController::class, 'store'])
+        ->name('budgets.store');
+    Route::middleware('permission:budget.view')->get('/budgets/{budget}', [BudgetController::class, 'show'])
+        ->name('budgets.show');
+    Route::middleware('permission:budget.update')->get('/budgets/{budget}/edit', [BudgetController::class, 'edit'])
+        ->name('budgets.edit');
+    Route::middleware('permission:budget.update')->put('/budgets/{budget}', [BudgetController::class, 'update'])
+        ->name('budgets.update');
+    Route::middleware('permission:budget.post')->post('/budgets/{budget}/post', [BudgetController::class, 'post'])
+        ->name('budgets.post');
+    Route::middleware('permission:budget.delete')->delete('/budgets/{budget}', [BudgetController::class, 'destroy'])
+        ->name('budgets.destroy');
     Route::middleware('permission:payroll.update')->put('/payroll/designations/{designation}', [DesignationController::class, 'update'])
         ->name('payroll.designations.update');
     Route::middleware('permission:payroll.delete')->delete('/payroll/designations/{designation}', [DesignationController::class, 'destroy'])

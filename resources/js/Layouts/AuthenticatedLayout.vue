@@ -125,6 +125,12 @@ const navGroups = computed(() => [
         ],
     },
     {
+        label: 'Budget',
+        items: [
+            { label: 'Budgets', routeName: 'budgets.index', icon: 'budget', permission: 'budget.view' },
+        ],
+    },
+    {
         label: 'Transactions',
         items: [
             { label: 'Journals', routeName: 'journals.index', icon: 'journal', permission: 'journal.view' },

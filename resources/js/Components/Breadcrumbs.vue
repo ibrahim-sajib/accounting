@@ -47,6 +47,7 @@ const MODULE_LABELS: Record<string, string> = {
     'fixed-assets': 'Fixed Assets',
     'asset-categories': 'Asset Categories',
     payroll: 'Payroll',
+    budgets: 'Budgets',
     profile: 'Profile',
 };
 
@@ -71,6 +72,7 @@ const SINGULAR_LABELS: Record<string, string> = {
     'fixed-assets': 'Fixed Asset',
     'asset-categories': 'Asset Category',
     payroll: 'Employee',
+    budgets: 'Budget',
 };
 
 const CREATE_LABELS: Record<string, string> = {
@@ -83,6 +85,7 @@ const CREATE_LABELS: Record<string, string> = {
     expenses: 'New Expense',
     'fixed-assets': 'New Fixed Asset',
     payroll: 'New Employee',
+    budgets: 'New Budget',
 };
 
 const crumbs = computed<Crumb[]>(() => {
