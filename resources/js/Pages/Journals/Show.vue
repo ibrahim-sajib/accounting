@@ -89,6 +89,10 @@ const sourceLink = computed(() => {
         return { label: 'View Invoice', href: route('sales.invoices.show', j.value.source_id) };
     }
 
+    if (j.value.source_type === 'payment_application' && j.value.source_id) {
+        return { label: 'View Advance', href: route('supplier-advances.show', j.value.source_id) };
+    }
+
     return null;
 });
 
@@ -100,6 +104,7 @@ const sourceTypeLabel: Record<string, string> = {
     receipt_application: 'Advance Applied',
     purchase_bill: 'Purchase Bill',
     payment: 'Supplier Payment',
+    payment_application: 'Advance Applied',
     stock_adjustment: 'Stock Adjustment',
     write_off: 'Receivable Write-off',
 };

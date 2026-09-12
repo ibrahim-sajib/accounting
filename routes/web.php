@@ -14,6 +14,7 @@ use App\Domain\Inventory\Http\Controllers\StockController;
 use App\Domain\Inventory\Http\Controllers\StockTransferController;
 use App\Domain\Party\Http\Controllers\CustomerController;
 use App\Domain\Party\Http\Controllers\SupplierController;
+use App\Domain\Payables\Http\Controllers\PayableController;
 use App\Domain\Product\Http\Controllers\ProductController;
 use App\Domain\Rbac\Http\Controllers\RoleController;
 use App\Domain\Rbac\Http\Controllers\UserController;
@@ -345,6 +346,28 @@ Route::middleware(['auth', 'verified'])->group(function () {
         ->name('purchase.bills.pay');
     Route::middleware('permission:purchase.delete')->delete('/purchase/bills/{bill}', [PurchaseBillController::class, 'destroy'])
         ->name('purchase.bills.destroy');
+
+    // ── Payables (AP workflow) ──
+    Route::middleware('permission:payables.view')->get('/payables', [PayableController::class, 'index'])
+        ->name('payables.index');
+    Route::middleware('permission:payables.view')->get('/payables/outstanding', [PayableController::class, 'outstanding'])
+        ->name('payable-outstanding.index');
+    Route::middleware('permission:payables.view')->get('/payables/aging', [PayableController::class, 'aging'])
+        ->name('payable-aging.index');
+
+    Route::middleware('permission:payment.post')->get('/payables/record-payment', [PayableController::class, 'createPayment'])
+        ->name('supplier-payment.index');
+    Route::middleware('permission:payment.post')->post('/payables/record-payment', [PayableController::class, 'storePayment'])
+        ->name('supplier-payment.store');
+
+    Route::middleware('permission:payables.view')->get('/payables/advances', [PayableController::class, 'advances'])
+        ->name('supplier-advances.index');
+    Route::middleware('permission:payables.advance')->post('/payables/advances', [PayableController::class, 'storeAdvance'])
+        ->name('supplier-advances.store');
+    Route::middleware('permission:payables.view')->get('/payables/advances/{payment}', [PayableController::class, 'showAdvance'])
+        ->name('supplier-advances.show');
+    Route::middleware('permission:payment.post')->post('/payables/advances/{payment}/apply', [PayableController::class, 'storeAdvanceApplication'])
+        ->name('supplier-advances.apply');
 
     // ── Inventory: Stock view ──
     Route::middleware('permission:inventory.view')->get('/inventory/stock', [StockController::class, 'index'])

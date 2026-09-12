@@ -11,6 +11,7 @@ enum JournalSourceType: string
     case Receipt = 'receipt';
     case ReceiptApplication = 'receipt_application';
     case Payment = 'payment';
+    case PaymentApplication = 'payment_application';
     case WriteOff = 'write_off';
     case StockAdjustment = 'stock_adjustment';
     case Inventory = 'inventory';
@@ -30,6 +31,7 @@ enum JournalSourceType: string
             self::Receipt => 'Customer Receipt',
             self::ReceiptApplication => 'Advance Applied',
             self::Payment => 'Supplier Payment',
+            self::PaymentApplication => 'Advance Applied (Supplier)',
             self::WriteOff => 'Receivable Write-off',
             self::StockAdjustment => 'Stock Adjustment',
             self::Inventory => 'Inventory',
@@ -50,6 +52,7 @@ enum JournalSourceType: string
             self::Receipt => 'RCT',
             self::ReceiptApplication => 'RCA',
             self::Payment => 'PMT',
+            self::PaymentApplication => 'SAA',
             self::WriteOff => 'WOF',
             self::StockAdjustment => 'ADJ',
             default => 'GJ',

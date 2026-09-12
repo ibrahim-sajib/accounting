@@ -91,6 +91,16 @@ const navGroups = computed(() => [
         ],
     },
     {
+        label: 'Payables',
+        items: [
+            { label: 'Overview', routeName: 'payables.index', icon: 'bill', permission: 'payables.view' },
+            { label: 'Outstanding', routeName: 'payable-outstanding.index', icon: 'bill', permission: 'payables.view' },
+            { label: 'Aging Report', routeName: 'payable-aging.index', icon: 'alert', permission: 'payables.view' },
+            { label: 'Record Payment', routeName: 'supplier-payment.index', icon: 'payment', permission: 'payment.post' },
+            { label: 'Supplier Advances', routeName: 'supplier-advances.index', icon: 'currency', permission: 'payables.view' },
+        ],
+    },
+    {
         label: 'Transactions',
         items: [
             { label: 'Journals', routeName: 'journals.index', icon: 'journal', permission: 'journal.view' },
@@ -175,7 +185,7 @@ const isActive = (routeName: string) => {
             <!-- Sidebar footer -->
             <div class="border-t border-gray-200 p-3 dark:border-gray-800">
                 <div class="rounded-lg bg-gray-50 px-3 py-2 text-xs text-gray-500 dark:bg-gray-800/60 dark:text-gray-400">
-                    Phase 8 · Receivables workflow
+                    Phase 9 · Payables workflow
                 </div>
             </div>
         </aside>

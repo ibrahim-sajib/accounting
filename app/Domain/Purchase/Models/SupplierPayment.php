@@ -18,7 +18,7 @@ class SupplierPayment extends Model
     protected $table = 'supplier_payments';
 
     protected $fillable = [
-        'company_id', 'branch_id', 'supplier_id', 'payment_no', 'payment_date',
+        'company_id', 'branch_id', 'supplier_id', 'type', 'payment_no', 'payment_date',
         'account_id', 'reference', 'memo', 'amount', 'status', 'posted_at', 'posted_by',
         'created_by', 'updated_by',
     ];
@@ -57,6 +57,21 @@ class SupplierPayment extends Model
     public function journal()
     {
         return $this->hasOne(\App\Domain\Accounting\Models\Journal::class, 'source_id')
-            ->where('source_type', 'payment');
+            ->whereIn('source_type', ['payment', 'payment_application']);
+    }
+
+    public function isAdvance(): bool
+    {
+        return $this->type === \App\Support\Enums\SupplierPaymentType::Advance->value;
+    }
+
+    public function appliedAmount(): float
+    {
+        return (float) $this->allocations()->sum('amount');
+    }
+
+    public function advanceBalance(): float
+    {
+        return max((float) $this->amount - (float) $this->appliedAmount(), 0);
     }
 }

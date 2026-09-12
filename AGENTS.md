@@ -178,6 +178,18 @@ Safe to rename a migration's column BEFORE it has run in MySQL (SQLite runs from
   Phase 6 added a positive non-super-admin test (accountant CRUD). Always add a positive
   permission test per module, not just the negative 403 case.
 
+### 1.22 SQLite tolerates selecting NONEXISTENT columns; MySQL 500s
+- Selecting a column the table does not have — e.g. `->get(['id','code','name','credit_limit',
+  'payment_terms_days'])` on `suppliers` when `credit_limit` lives only on `customers` — PASSES
+  every PHPUnit test: SQLite is dynamically typed and returns NULL for unknown selected columns,
+  so `Supplier::query()->get(['credit_limit'])` works there. MySQL errors on the very same query:
+  `SQLSTATE[42S22] Unknown column 'credit_limit' in 'field list'` → the page 500s in the real app.
+- This is why the SPA navigation pass (§3.3) is mandatory: `PayableController::supplierOptions()`
+  (copied from `ReceivableController::customerOptions()` but not adapted to the supplier schema)
+  crashed /payables, /payables/outstanding, /payables/record-payment and /payables/advances in
+  Docker while all 13 Phase 9 PHPUnit tests stayed green. When mirroring an AR page/service into
+  AP (or any domain), audit every selected + mapped column against the receiving table's migration.
+
 ---
 
 ## 2. Engineering conventions (senior baseline)
@@ -430,6 +442,47 @@ Safe to rename a migration's column BEFORE it has run in MySQL (SQLite runs from
     `collected_this_month` (receipt_allocations joined to receipts where `receipt_date >= first of
     month`, all receipt types), `advance_balance` (Σ unapplied), `top_customers` (top 5 by balance),
     `recent_receipts` (latest 8).
+- **Phase 9 domains added (Payables — AP workflow)**: `app/Domain/Payables/` holds
+  `PayableService`, `PayableController`, `MultiBillPaymentRequest`/`SupplierAdvanceRequest`/
+  `SupplierAdvanceApplicationRequest`, `PayablePostingException`. Scope: the AP mirror of Phase 8 —
+  multi-bill supplier payments, supplier advances (Cash Dr | Advances to Suppliers Cr) applied to
+  bills later, outstanding list, AP aging report, and an AP dashboard. No AP write-off/debit-notes yet.
+  - **Supplier payments (multi-alloc)**: `payables.record-payment` posts ONE `payment` (PMT) journal
+    (AP Dr total | Cash/Bank Cr total) covering N posted bills of the same supplier; `PY-{year}-%04d`
+    numbering SHARES the Phase 6 sequence (`PayableService::nextPaymentNumber()` scans
+    `supplier_payments.payment_no`). Server re-checks each allocation ≤ that bill's live
+    `balanceDue()`, posted status, and supplier ownership; over-allocation/foreign-bill → `PayablePostingException`.
+  - **Advances**: receipt with `type='advance'` (`SupplierPaymentType` enum `payment|advance`, new
+    `supplier_payments.type` column) books Cash/Bank Cr | **Advances to Suppliers** Dr. The asset
+    account is NOT a settings column — it's a COA leaf code **1161** (seeded under 1160) via
+    `PayableService::advanceAccountFor()`. Applying an advance posts a `payment_application` journal
+    (AP Dr | 1161 Cr) that REUSES the `supplier_payment_allocations` pivot, so BOTH the advance and
+    its applications point at the same `source_id`; `SupplierPayment::journal()` must match
+    `whereIn('source_type', ['payment','payment_application'])`. `advanceBalance() = amount −
+    Σ(allocation)`, application refused above it. New `JournalSourceType` case:
+    `PaymentApplication` (label 'Advance Applied (Supplier)', prefix **SAA**) — required because
+    `nextJournalNumber()` calls `JournalSourceType::from($sourceType)` (§1.18).
+  - **Route-base naming** (sidebar §1.17 lesson): each Payables sidebar item has a DISTINCT base —
+    `payables.index` (/payables), `payable-outstanding.index`, `payable-aging.index`,
+    `supplier-payment.index|store` (/payables/record-payment), `supplier-advances.index|store|show|apply`
+    (/payables/advances...) — so `isActive` highlights exactly one item.
+  - **Permissions**: new module `payables` = `view|advance`; accountant gets `payables.*`,
+    purchase-executive `payables.view`+`payables.advance`, viewer `payables.view`. `payment.post`
+    is reused for multi-alloc payments + advance application.
+  - **UI**: `Pages/Payables/{Index,Outstanding,Aging,RecordPayment}.vue` + `Advances/{Index,Show}.vue`.
+    New advances are recorded via a modal on Advances/Index posting to `supplier-advances.store` (no
+    GET create route). Record Payment has allocate-all/clear + per-bill amount inputs; the Advance
+    Show has an "Apply to Bills" modal (`apply_{bill.id}` inputs). Sidebar "Payables" group; breadcrumb
+    labels `payables`/`payable-outstanding`/`payable-aging`/`supplier-payment: 'Record Payment'`/
+    `supplier-advances: 'Supplier Advances'`; `Journals/Show` gained the SAA label + "View Advance".
+  - **Gotcha — §1.22**: `PayableController::supplierOptions()` was copied from the AR side and
+    selected `credit_limit` (customer-only) from `suppliers` → passed all SQLite tests, 500'd in
+    MySQL on /payables + /payables/outstanding + /payables/record-payment + /payables/advances.
+    Mapped columns must be audited against the receiving table's migration.
+  - **AP dashboard**: `total_payable`, `overdue` (balance on bills with `days_overdue > 0`),
+    `paid_this_month` (Σ `supplier_payments.amount` for the month, all types — deliberately simpler
+    than the AR allocations join), `advance_balance` (Σ unapplied), `top_suppliers` (top 5 by balance),
+    `recent_payments` (latest 8).
 - **Aliases in `bootstrap/app.php`**: `'permission' => EnsurePermission::class`; Inertia header
   middleware appended to the `web` group.
 - **Vue page patterns**:

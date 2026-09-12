@@ -24,7 +24,7 @@ class RoleSeeder extends Seeder
                 'account.*', 'journal.*', 'opening_balance.*', 'report.*', 'dashboard.view',
                 'sales.view', 'sales.create', 'sales.update', 'sales.post', 'sales.delete',
                 'purchase.view', 'purchase.create', 'purchase.update', 'purchase.post', 'purchase.delete',
-                'receipt.*', 'receivables.*', 'payment.*', 'bank.*', 'expense.*',
+                'receipt.*', 'receivables.*', 'payment.*', 'payables.*', 'bank.*', 'expense.*',
                 'inventory.*',
                 'fiscal_year.view', 'period.view', 'currency.view', 'tax.view',
                 'accounting_config.view', 'accounting_config.update',
@@ -43,7 +43,7 @@ class RoleSeeder extends Seeder
             'name' => 'Purchase Executive',
             'permissions' => [
                 'dashboard.view', 'purchase.*', 'payment.view', 'payment.create',
-                'supplier.view', 'product.view', 'report.view',
+                'supplier.view', 'product.view', 'report.view', 'payables.view', 'payables.advance',
             ],
         ],
         'inventory-manager' => [
@@ -67,7 +67,7 @@ class RoleSeeder extends Seeder
                 'supplier.view', 'product.view', 'warehouse.view', 'inventory.view',
                 'bank.view', 'expense.view', 'payroll.view', 'budget.view',
                 'fiscal_year.view', 'period.view', 'currency.view', 'tax.view',
-                'journal.view', 'opening_balance.view', 'receipt.view', 'receivables.view', 'payment.view', 'audit.view', 'accounting_config.view',
+                'journal.view', 'opening_balance.view', 'receipt.view', 'receivables.view', 'payment.view', 'payables.view', 'audit.view', 'accounting_config.view',
             ],
         ],
     ];
