@@ -824,6 +824,26 @@ Safe to rename a migration's column BEFORE it has run in MySQL (SQLite runs from
     seeder change. Route base `statements` → GET `/statements` only (`statements.index`). Sidebar
     Reporting group gained a **Statements** item (icon `statement` added to `AppIcon`, below
     Reports); breadcrumb `statements: 'Statements'`.
+- **Phase 8c domain added (Dashboard — module 30)**: `DashboardService` joined `app/Domain/Report/`
+  (read-only query layer — no tables) and `DashboardController` (app/Http) now renders a metrics
+  landing page instead of the setup-modules skeleton. `Pages/Dashboard.vue` shows the hero
+  (company/basis/FY/active period) + 6 KPI cards + `Trial Balance` health card + AR/AP open-item
+  card + Reporting quick links + `Recent Journals` (latest 6 posted) + the existing multi-company
+  strip. Route `dashboard` stays permission-free (any authenticated user).
+  - **Metric ranges**: `activity` (income/expense/net) + the trial-balance check use the ACTIVE
+    period's date range (fall back to the active fiscal year); `cash_balance` is cumulative UP TO
+    `range.to` (no `from` — pass `null` `$from` to `signedSum`, which early-dates with
+    `0000-01-01`). AR/AP figures come from `SalesInvoice::balanceDue()` / `PurchaseBill::balanceDue()`
+    over POSTED rows (open count + overdue split by `due_date < today`).
+  - **Gotchas hit in tests**: the test must post journals in the **active** period (not merely the
+    first *open* period) or the range-scoped income/expense totals come back 0 while cash stays
+    non-zero; and skipping the `whereHas('journal')` status filter (guarding it with `when($from)`)
+    silently includes DRAFT lines in the cumulative cash balance — the status filter must ALWAYS
+    apply (`status=posted` + `whereBetween` with an `0000-01-01` floor). `recent_journals` shows only
+    posted rows.
+  - **Permissions**: no seeder change (`dashboard` route is public to authenticated users; sidebar
+    item already existed with `permission: null`). No migration.
+
 - **Aliases in `bootstrap/app.php`**: `'permission' => EnsurePermission::class`; Inertia header
   middleware appended to the `web` group.
 - **Vue page patterns**:
