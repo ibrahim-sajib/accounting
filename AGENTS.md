@@ -204,6 +204,24 @@ Safe to rename a migration's column BEFORE it has run in MySQL (SQLite runs from
 - `PHPUnit` + a `decimal` `amount` column: auto-match equality `where('amount', 500.0)` works in both
   SQLite and MySQL when the stored value is exactly 500.0; keep CSV amounts on the same magnitude.
 
+### 1.24 Vue option-list props must be `[{value, label}]`, never raw Eloquent models
+- Passing `Account::query()->get(['id','name'])` (or `name`/`account_name` on bank accounts) straight
+  into a `<select v-for="o in opts">` that reads `o.value`/`o.label` renders BLANK options — no crash,
+  no console error, the select just contains empty `<option>`s. Every option list in a `formProps()`
+  must be explicitly mapped: `->get([...])->map(fn ($m) => ['value' => $m->id, 'label' => ...])->values()->all()`.
+  PHP/Inertia tests only assert `has('cashAccounts')` so they stay green; only the headless browser
+  pass reveals the blank dropdown → the create form silently can't submit a valid option (Expense §1.22-style).
+- Watch SELECTED COLUMNS vs the receiving table too: selecting `currency_id` from `cash_accounts`
+  (it lives only on `bank_accounts`) passes SQLite, 500s in MySQL (§1.22) — audit every selected+cast
+  column against the migration.
+
+### 1.25 `AuditLogger::log()` argument order
+- Signature is `log(module: string, action: string, recordType: ?string=null, recordId: ?int=null,
+  oldValues: array=[], newValues: array=[], companyId: ?int=null)`. The 3rd arg is a TYPE STRING,
+  NOT the old record. Passing `$model->getOriginal()` as the 3rd arg throws
+  `Argument #3 ($recordType) must be of type ?string, array given` at runtime. Correct pattern:
+  `AuditLogger::log('expense', 'update', null, $expense->id, $expense->getOriginal(), $expense->fresh()->toArray(), $expense->company_id)`.
+
 ---
 
 ## 2. Engineering conventions (senior baseline)
@@ -531,6 +549,36 @@ Safe to rename a migration's column BEFORE it has run in MySQL (SQLite runs from
     reconciliations/reconciliations.show + sub-actions). `CashBankTabs` sub-navigation (Overview/
     Transactions/Accounts/Reconciliation); sidebar "Cash & Bank" group; breadcrumb label
     `cash-bank: 'Cash & Bank'`. `AppIcon` gained `bank`/`expense`.
+- **Phase 6b added Expense (module 19)**: `app/Domain/Expense/` holds `ExpenseCategory` (+table
+  `expense_categories`: name + default `expense_account_id`) and `Expense` (+table `expenses`),
+  `ExpenseService`, `ExpenseController`/`ExpenseCategoryController`, `ExpenseRequest`/`ExpenseCategoryRequest`,
+  `ExpensePostingException`, and the `expenses:generate-recurring` console command. Scope: expense
+  categories (modal CRUD on `Expense/Categories.vue`), expenses drafted under a category
+  (draft → posted `EXP` journal) with `ExpensePaymentMethod` (`cash|bank|payable`), and recurring expenses
+  that auto-generate the next DRAFT copy on schedule (never auto-posted).
+  - **Journal at posting**: `Expense Account Dr (net) | Input Tax Dr (tax, via tax_rate.input_account_id →
+    setting default) | credit = total` to `cash_account.gl_account_id` (cash), `bank_account.gl_account_id`
+    (bank), or `supplier.ap_account_id → setting default_ap_account_id` (payable, party_type=supplier).
+    Expense account = `category.expense_account_id`; everything must be a postable leaf
+    (`ExpensePostingException` otherwise). `expense_no = EXP-{year}-%04d` numbering is assigned only at
+    posting (drafts have null); journal `source_type=expense` (prefix `EXP`).
+  - **Forms**: method selects are `v-if`-gated (`#expense_cash`/`#expense_bank`/`#expense_supplier`) — a
+    driver picks the payment method first. Category/payee/date/amount + optional tax (server recomputes
+    `tax_amount = amount × rate%` from the stored amount). Recurring toggle adds frequency
+    (weekly/monthly/yearly) + optional next-run.
+  - **Recurring**: `is_recurring` + `recurrence_frequency` + `next_generation_date`; the command finds
+    posted recurring expenses with `next_generation_date <= today`, creates a DRAFT copy (expense_date =
+    next run, notes prefixed "Recurring copy from EXP-…"), and advances BOTH the copy's and the source's
+    schedule. Register nothing in `routes/console.php` — Laravel 11 auto-discovers `app/Console/Commands/`.
+  - **Permissions/UI**: reuses pre-seeded `expense` module (`view|create|update|delete|approve|post`);
+    accountant `expense.*`, viewer `expense.view`. Route base `expenses` (+ `expense-categories` route
+    base for the category page). **Ordering lesson**: the static `/expenses/categories` routes MUST be
+    registered BEFORE `/expenses/{expense}` (`expenses.show`) or `{expense}` swallows "categories" → 404.
+    Sidebar "Expenses" group (separate heading below Cash & Bank) + breadcrumb labels
+    `expenses: 'Expenses'`/`expense-categories: 'Expense Categories'`/`expenses: 'New Expense'`.
+    `ExpenseCategorySeeder` seeds Rent/Utilities/Salaries/Office Supplies/Travel → COA leaves
+    5121/5131/5111/5141/5142 (wired into `DatabaseSeeder` + `provisionDefaults`);
+    in-use categories deactivate instead of delete.
 - **Aliases in `bootstrap/app.php`**: `'permission' => EnsurePermission::class`; Inertia header
   middleware appended to the `web` group.
 - **Vue page patterns**:

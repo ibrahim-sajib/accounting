@@ -42,6 +42,8 @@ const MODULE_LABELS: Record<string, string> = {
     'supplier-payment': 'Record Payment',
     'supplier-advances': 'Supplier Advances',
     'cash-bank': 'Cash & Bank',
+    expenses: 'Expenses',
+    'expense-categories': 'Expense Categories',
     profile: 'Profile',
 };
 
@@ -61,6 +63,8 @@ const SINGULAR_LABELS: Record<string, string> = {
     journals: 'Journal',
     'stock-adjustments': 'Stock Adjustment',
     'stock-transfers': 'Stock Transfer',
+    expenses: 'Expense',
+    'expense-categories': 'Expense Category',
 };
 
 const CREATE_LABELS: Record<string, string> = {
@@ -70,6 +74,7 @@ const CREATE_LABELS: Record<string, string> = {
     purchase: 'New Purchase Bill',
     'stock-adjustments': 'New Adjustment',
     'stock-transfers': 'New Transfer',
+    expenses: 'New Expense',
 };
 
 const crumbs = computed<Crumb[]>(() => {

@@ -22,6 +22,7 @@ class DatabaseSeeder extends Seeder
             TaxSeeder::class,
             AccountingSettingSeeder::class,
             MasterDataSeeder::class,
+            ExpenseCategorySeeder::class,
         ]);
     }
 }

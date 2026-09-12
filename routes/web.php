@@ -13,6 +13,8 @@ use App\Domain\CashBank\Http\Controllers\CashBankTransactionController;
 use App\Domain\Company\Http\Controllers\BranchController;
 use App\Domain\Company\Http\Controllers\CompanyController;
 use App\Domain\Currency\Http\Controllers\CurrencyController;
+use App\Domain\Expense\Http\Controllers\ExpenseCategoryController;
+use App\Domain\Expense\Http\Controllers\ExpenseController;
 use App\Domain\Inventory\Http\Controllers\StockAdjustmentController;
 use App\Domain\Inventory\Http\Controllers\StockController;
 use App\Domain\Inventory\Http\Controllers\StockTransferController;
@@ -453,6 +455,33 @@ Route::middleware(['auth', 'verified'])->group(function () {
         ->name('cash-bank.reconciliations.unmatch-line');
     Route::middleware('permission:bank.reconcile')->post('/cash-bank/reconciliations/{import}/complete', [BankReconciliationController::class, 'complete'])
         ->name('cash-bank.reconciliations.complete');
+
+    Route::middleware('permission:expense.view')->get('/expenses', [ExpenseController::class, 'index'])
+        ->name('expenses.index');
+
+    Route::middleware('permission:expense.view')->get('/expenses/categories', [ExpenseCategoryController::class, 'index'])
+        ->name('expense-categories.index');
+    Route::middleware('permission:expense.create')->post('/expenses/categories', [ExpenseCategoryController::class, 'store'])
+        ->name('expense-categories.store');
+    Route::middleware('permission:expense.update')->put('/expenses/categories/{category}', [ExpenseCategoryController::class, 'update'])
+        ->name('expense-categories.update');
+    Route::middleware('permission:expense.delete')->delete('/expenses/categories/{category}', [ExpenseCategoryController::class, 'destroy'])
+        ->name('expense-categories.destroy');
+
+    Route::middleware('permission:expense.create')->get('/expenses/create', [ExpenseController::class, 'create'])
+        ->name('expenses.create');
+    Route::middleware('permission:expense.create')->post('/expenses', [ExpenseController::class, 'store'])
+        ->name('expenses.store');
+    Route::middleware('permission:expense.view')->get('/expenses/{expense}', [ExpenseController::class, 'show'])
+        ->name('expenses.show');
+    Route::middleware('permission:expense.update')->get('/expenses/{expense}/edit', [ExpenseController::class, 'edit'])
+        ->name('expenses.edit');
+    Route::middleware('permission:expense.update')->put('/expenses/{expense}', [ExpenseController::class, 'update'])
+        ->name('expenses.update');
+    Route::middleware('permission:expense.post')->post('/expenses/{expense}/post', [ExpenseController::class, 'post'])
+        ->name('expenses.post');
+    Route::middleware('permission:expense.delete')->delete('/expenses/{expense}', [ExpenseController::class, 'destroy'])
+        ->name('expenses.destroy');
 
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
