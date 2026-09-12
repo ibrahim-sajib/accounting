@@ -127,6 +127,7 @@ class PurchaseBillController
             'lines.product:id,sku,name',
             'lines.taxRate:id,name,rate_percent',
             'payments' => fn ($q) => $q->orderByDesc('payment_date'),
+            'attachments.uploader:id,name',
         ]);
 
         $journal = $bill->journal()->first();
@@ -177,6 +178,7 @@ class PurchaseBillController
                 ]),
                 'journal_id' => $journal?->id,
                 'journal_no' => $journal?->journal_no,
+                'attachments' => \App\Domain\Document\Services\AttachmentService::serialize($bill->attachments),
             ],
             'accounts' => $this->paymentAccountOptions(),
             'today' => now()->toDateString(),

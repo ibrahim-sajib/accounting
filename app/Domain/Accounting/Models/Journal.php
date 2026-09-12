@@ -68,6 +68,11 @@ class Journal extends Model
         return $this->belongsTo(\App\Models\User::class, 'posted_by');
     }
 
+    public function attachments()
+    {
+        return $this->morphMany(\App\Domain\Document\Models\Attachment::class, 'attachable');
+    }
+
     public function statusValue(): TransactionStatus
     {
         return TransactionStatus::from($this->status);

@@ -103,10 +103,13 @@ class JournalController
     {
         $this->authorizeJournal($journal);
 
-        $journal->load(['lines.account', 'period', 'createdBy', 'postedBy', 'reversal', 'origin']);
+        $journal->load(['lines.account', 'period', 'createdBy', 'postedBy', 'reversal', 'origin', 'attachments.uploader:id,name']);
+
+        $data = $journal->toArray();
+        $data['attachments'] = \App\Domain\Document\Services\AttachmentService::serialize($journal->attachments);
 
         return Inertia::render('Journals/Show', [
-            'journal' => $journal,
+            'journal' => $data,
         ]);
     }
 

@@ -70,6 +70,11 @@ class SalesInvoice extends Model
             ->where('source_type', 'sales_invoice');
     }
 
+    public function attachments()
+    {
+        return $this->morphMany(\App\Domain\Document\Models\Attachment::class, 'attachable');
+    }
+
     public function createdBy()
     {
         return $this->belongsTo(\App\Models\User::class, 'created_by');

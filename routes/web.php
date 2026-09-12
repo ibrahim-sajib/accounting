@@ -6,6 +6,7 @@ use App\Domain\Accounting\Http\Controllers\AccountController;
 use App\Domain\Approval\Http\Controllers\ApprovalController;
 use App\Domain\Approval\Http\Controllers\ApprovalWorkflowController;
 use App\Domain\Audit\Http\Controllers\AuditController;
+use App\Domain\Document\Http\Controllers\AttachmentController;
 use App\Domain\Notification\Http\Controllers\NotificationController;
 use App\Domain\Accounting\Http\Controllers\FiscalYearController;
 use App\Domain\Accounting\Http\Controllers\JournalController;
@@ -221,6 +222,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
         ->name('journals.reverse');
     Route::middleware('permission:journal.delete')->delete('/journals/{journal}', [JournalController::class, 'destroy'])
         ->name('journals.destroy');
+    Route::middleware('permission:journal.update')->post('/journals/{journal}/attachments', [AttachmentController::class, 'storeJournal'])
+        ->name('journals.attachments.store');
 
     // ── Opening Balances ──
     Route::middleware('permission:opening_balance.view')->get('/opening-balances', [OpeningBalanceController::class, 'index'])
@@ -321,6 +324,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
         ->name('sales.invoices.pay');
     Route::middleware('permission:sales.delete')->delete('/sales/invoices/{invoice}', [SalesInvoiceController::class, 'destroy'])
         ->name('sales.invoices.destroy');
+    Route::middleware('permission:sales.update')->post('/sales/invoices/{invoice}/attachments', [AttachmentController::class, 'storeInvoice'])
+        ->name('sales.invoices.attachments.store');
 
     Route::middleware('permission:receivables.view')->get('/receivables', [ReceivableController::class, 'index'])
         ->name('receivables.index');
@@ -365,6 +370,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
         ->name('purchase.bills.pay');
     Route::middleware('permission:purchase.delete')->delete('/purchase/bills/{bill}', [PurchaseBillController::class, 'destroy'])
         ->name('purchase.bills.destroy');
+    Route::middleware('permission:purchase.update')->post('/purchase/bills/{bill}/attachments', [AttachmentController::class, 'storeBill'])
+        ->name('purchase.bills.attachments.store');
 
     // ── Payables (AP workflow) ──
     Route::middleware('permission:payables.view')->get('/payables', [PayableController::class, 'index'])
@@ -495,6 +502,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
         ->name('expenses.post');
     Route::middleware('permission:expense.delete')->delete('/expenses/{expense}', [ExpenseController::class, 'destroy'])
         ->name('expenses.destroy');
+    Route::middleware('permission:expense.update')->post('/expenses/{expense}/attachments', [AttachmentController::class, 'storeExpense'])
+        ->name('expenses.attachments.store');
 
     // Fixed Assets (module 21) — categories/run-depreciation must precede /{fixed_asset}.
     Route::middleware('permission:fixed_asset.view')->get('/fixed-assets', [FixedAssetController::class, 'index'])
@@ -618,6 +627,14 @@ Route::middleware(['auth', 'verified'])->group(function () {
         ->name('notifications.read-all');
     Route::post('/notifications/{notification}/read', [NotificationController::class, 'read'])
         ->name('notifications.read');
+
+    // Documents / Attachments (module 29) — polymorphic uploads; ownership re-checked in controller.
+    Route::get('/attachments/{attachment}/preview', [AttachmentController::class, 'preview'])
+        ->name('attachments.preview');
+    Route::get('/attachments/{attachment}/download', [AttachmentController::class, 'download'])
+        ->name('attachments.download');
+    Route::delete('/attachments/{attachment}', [AttachmentController::class, 'destroy'])
+        ->name('attachments.destroy');
     Route::middleware('permission:payroll.update')->put('/payroll/designations/{designation}', [DesignationController::class, 'update'])
         ->name('payroll.designations.update');
     Route::middleware('permission:payroll.delete')->delete('/payroll/designations/{designation}', [DesignationController::class, 'destroy'])

@@ -3,6 +3,7 @@ import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
 import PageHeader from '@/Components/PageHeader.vue';
 import StatusBadge from '@/Components/StatusBadge.vue';
 import AppIcon from '@/Components/AppIcon.vue';
+import DocumentAttachments from '@/Components/DocumentAttachments.vue';
 import { Link, router, usePage } from '@inertiajs/vue3';
 import { computed } from 'vue';
 import { formatMoney } from '@/utils/formatMoney';
@@ -24,6 +25,14 @@ interface Journal {
     period?: { id: number; name: string } | null;
     origin?: Journal | null;
     reversal?: Journal | null;
+    attachments?: {
+        id: number;
+        original_name: string;
+        mime_type: string;
+        file_size: number;
+        created_at: string;
+        uploaded_by: string;
+    }[];
 }
 
 interface JournalLine {
@@ -217,6 +226,12 @@ const sourceTypeLabel: Record<string, string> = {
                             </tfoot>
                         </table>
                     </div>
+
+                    <DocumentAttachments
+                        :attachments="j.attachments ?? []"
+                        :store-url="route('journals.attachments.store', j.id)"
+                        permission="journal.update"
+                    />
 
                     <!-- Reversal / origin link -->
                     <div

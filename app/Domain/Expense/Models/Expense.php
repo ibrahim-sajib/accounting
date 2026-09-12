@@ -94,6 +94,11 @@ class Expense extends Model
         return $this->belongsTo(Journal::class);
     }
 
+    public function attachments()
+    {
+        return $this->morphMany(\App\Domain\Document\Models\Attachment::class, 'attachable');
+    }
+
     public function total()
     {
         return round($this->amount + $this->tax_amount, 4);

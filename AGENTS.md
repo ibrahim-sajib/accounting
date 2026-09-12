@@ -916,6 +916,40 @@ Safe to rename a migration's column BEFORE it has run in MySQL (SQLite runs from
     `Pages/Notifications/Index.vue` lists company-scoped rows (unread dot, category `StatusBadge`,
     click-to-read, Mark all as read). Tests (Phase9cCoreTest, 5 tests) cover approver/requester
     notice, page render + unread count, read, and company-scoped read-all.
+- **Phase 9d domain added (Documents/Attachments — module 29)**: `app/Domain/Document/` holds
+  `Attachment` (+ `attachments` table: the §2.4 polymorphic trio — `attachable_type/attachable_id`)
+  with `file_path`/`original_name`/`mime_type`/`file_size`/`uploaded_by`, and the three-row
+  `(company_id, attachable_type, attachable_id)` scoping, soft delete, audit-logged), the
+  per-model `attachments()` morphMany on SalesInvoice/PurchaseBill/Expense/Journal,
+  `AttachmentService`, `AttachmentController`, and `AttachmentStoreRequest`. Files land on a
+  dedicated non-public **`uploads`** disk (`config/filesystems.php` → `storage/app/uploads/`),
+  served only through `attachments.preview` (inline) / `attachments.download` routes; never in
+  `public/`.
+  - **Whitelist + gating**: `Attachment::ALLOWED_TYPES` maps `model => permission-slug`
+    (`sales.update|purchase.update|expense.update|journal.update`). Store routes add a
+    `permission:` middleware AND `AttachmentService::canUpload()` double-checks the attachable
+    belongs to the **active company** (super admins included — a company mismatch 403s before the
+    bypass) plus the module permission. `canAccess()` gates preview/download/destroy (super-admin
+    bypass, company match, owning module's permission). Store/destroy audit-log under module
+    `document`, actions `attach|detach`.
+  - **Routes**: per-module POST `…/attachments` (param name MUST equal the controller method arg:
+    `{invoice}`↔`$invoice`, `{bill}`↔`$bill`, `{expense}`↔`$expense`, `{journal}`↔`$journal` —
+    §7a rule) + generic `attachments.preview|download` (GET) and `attachments.destroy` (DELETE).
+    No permission middleware on the generic routes — access re-checked in the controller.
+  - **UI**: reusable `Components/DocumentAttachments.vue` (list rows with preview/download/remove,
+    upload via `router.post(..., { forceFormData: true })` on a hidden file input, size+uploader+
+    date meta, `permission:` prop drives the attach/remove affordance via `usePage`); mounted on
+    `Sales/Invoices/Show`, `Purchase/Bills/Show`, and `Journals/Show` (controllers serialize
+    `attachments.uploader:id,name` through `AttachmentService::serialize()`). Journal Show now
+    maps the raw model to `$journal->toArray()` + overwritten `attachments` key.
+  - **Testing gotchas**: `Storage::fake('uploads')` must run in EVERY test (the disk is real
+    otherwise); `assertDatabaseCount('attachments', …)` counts SOFT-DELETED rows too — use
+    `assertSoftDeleted`; `accounting_periods` has NO `company_id` column (§1.22-style) — resolve a
+    period via `whereHas('fiscalYear', fn ($q) => $q->where('company_id', …))`; cross-company tests
+    must CREATE Company 2 first (the `users.company_id`/`sales_invoices.company_id` FKs reject
+    inserts to a nonexistent company). Tests (Phase9dCoreTest, 7 tests) cover attach+show-list,
+    journal attach+preview, download filename, destroy (row + file), viewer-403, cross-company
+    upload 403, cross-company download 403.
 
 - **Aliases in `bootstrap/app.php`**: `'permission' => EnsurePermission::class`; Inertia header
   middleware appended to the `web` group.

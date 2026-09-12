@@ -127,6 +127,7 @@ class SalesInvoiceController
             'lines.product:id,sku,name',
             'lines.taxRate:id,name,rate_percent',
             'receipts' => fn ($q) => $q->orderByDesc('receipt_date'),
+            'attachments.uploader:id,name',
         ]);
 
         $journal = $invoice->journal()->first();
@@ -177,6 +178,7 @@ class SalesInvoiceController
                 ]),
                 'journal_id' => $journal?->id,
                 'journal_no' => $journal?->journal_no,
+                'attachments' => \App\Domain\Document\Services\AttachmentService::serialize($invoice->attachments),
             ],
             'accounts' => $this->paymentAccountOptions(),
             'today' => now()->toDateString(),

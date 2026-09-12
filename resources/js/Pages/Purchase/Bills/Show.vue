@@ -9,6 +9,7 @@ import InputError from '@/Components/InputError.vue';
 import TextInput from '@/Components/TextInput.vue';
 import Modal from '@/Components/Modal.vue';
 import AppIcon from '@/Components/AppIcon.vue';
+import DocumentAttachments from '@/Components/DocumentAttachments.vue';
 import { Link, router, useForm, usePage } from '@inertiajs/vue3';
 import { computed, ref } from 'vue';
 import { formatDate } from '@/utils/formatDate';
@@ -78,6 +79,14 @@ interface BillShow {
     payments: Payment[];
     journal_id?: number | null;
     journal_no?: string | null;
+    attachments: {
+        id: number;
+        original_name: string;
+        mime_type: string;
+        file_size: number;
+        created_at: string;
+        uploaded_by: string;
+    }[];
 }
 
 const page = usePage();
@@ -284,6 +293,12 @@ const paymentState = computed(() => {
                             {{ bill.notes }}
                         </div>
                     </div>
+
+                    <DocumentAttachments
+                        :attachments="bill.attachments"
+                        :store-url="route('purchase.bills.attachments.store', bill.id)"
+                        permission="purchase.update"
+                    />
                 </div>
 
                 <div class="space-y-6">
