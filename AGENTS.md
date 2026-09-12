@@ -781,6 +781,49 @@ Safe to rename a migration's column BEFORE it has run in MySQL (SQLite runs from
     merges only the matching payload — the Vue props diverge by tab (`filters`/`accounts`/`entries`/
     `summary`/`totals` vs `filters`/`rows`/`totals`/`balanced`), so the component props must be
     optional and the template branches on the `report` prop.
+- **Phase 8b domain added (Financial Statements — module 25)**: `StatementService` +
+  `StatementController` in the SAME `app/Domain/Report/` (no tables; another query layer per the
+  arch doc). `Pages/Statements/Index.vue` renders four statements behind tab buttons that re-issue
+  `router.get(route('statements.index'), {statement, fiscal_year_id, period_id})` sharing the
+  ReportService range-resolution (`$this->reportService->filters()`).
+  - **Shared tree machinery** (`flattenTree()/walk()/leafRow()`): loads all accounts of the given
+    `type`s ordered by code, builds a `children` map keyed by `(int) parent_id` (NULL parents land
+    on key 0), walks from `accounts->first()->parent_id`, and emits a flat row list mixing group rows
+    (parent totals ROLLED UP from postable leaves only) + leaf rows with a `level` indent.
+    `is_group`/`is_total` rows drive the shaded headers; `type` on each row is used to split section
+    totals. Leaves keep `$balance[$account->id]` lookups — balances come from a single
+    `SUM(debit)/SUM(credit)` query over POSTED lines in the range, signed by `normal_balance`.
+  - **Income statement** returns Current + Year-to-date columns: Current = selected window
+    (period or FY), YTD = `fy.start_date → window end`. Per-section "Total Income/Total Expenses"
+    synthetic rows + `totals.net_income` (income − expense). Note the seeded COA has NO parent debt
+    for 4000/5000 — every parent shows its Σ-leaf total, so a $0 "Total Revenue" section header is
+    normal when only a single leaf (e.g. 4111) holds activity.
+  - **Balance sheet** is cumulative `fy.start_date → as-of (window end)`, three tree sections
+    (Assets/Liabilities/Equity). Equity gets a `synthetic = true` "Current Year Earnings" row
+    (= net income for the same range) so `totals.liabilities_equity` reconciles to `totals.assets`;
+    the page renders `totals.difference` (must be ±0.01).
+  - **Cash flow (direct, no activity tags)**: cash accounts = postable asset leaves with codes
+    `111%`/`112%`. For every posted journal touching cash in the window, the counterpart lines
+    (non-cash) are classified by ACCOUNT CODE/TYPE — income/expense, current asset (≠12xx),
+    current liability (≠22xx/215x) → operating; non-current asset (12xx) → investing;
+    long-term liability (22xx)/short-term debt (215x)/equity → financing. Category net =
+    −Σ(counterpart debit−credit); `reconciled` checks `opening + net_change === closing`
+    (opening/closing = signed Σ cash accounts from FY start). This works for the seeded COA; any
+    COA that books cash against exotic accounts should reassess `classify()`.
+  - **Statement of equity**: per-equity-account Opening (FY start → window start − 1) / Movement /
+    Closing (→ window end) + synthetic Current Year Earnings row + totals (movement = closing −
+    opening).
+  - **UI/test gotchas**: `vue-tsc` rejects inline `as T[]` type assertions inside template
+    expressions (line 263 error `TS1005 ':' expected`) — hoist such literals to a script const
+    (`bsSections`). New page files MUST be `npm run build`-ed before `php artisan test` — PHPUnit
+    renders the real blade view and errors `Unable to locate file in Vite manifest:
+    .../Pages/Statements/Index.vue` (500) until the page is in `public/build/manifest.json`, which is
+    why Phase tests are run AFTER build. Cash & Bank group roll-up equals the Σ of its leaves
+    (assert `round($leafSum,4)` against the group, no sign flip).
+  - **Permissions/UI**: reuses `report.view` (accountant `report.*`, viewer `report.view`) — no
+    seeder change. Route base `statements` → GET `/statements` only (`statements.index`). Sidebar
+    Reporting group gained a **Statements** item (icon `statement` added to `AppIcon`, below
+    Reports); breadcrumb `statements: 'Statements'`.
 - **Aliases in `bootstrap/app.php`**: `'permission' => EnsurePermission::class`; Inertia header
   middleware appended to the `web` group.
 - **Vue page patterns**:

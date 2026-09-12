@@ -49,6 +49,7 @@ const MODULE_LABELS: Record<string, string> = {
     payroll: 'Payroll',
     budgets: 'Budgets',
     reports: 'Reports',
+    statements: 'Statements',
     profile: 'Profile',
 };
 
