@@ -41,6 +41,8 @@ const paths: Record<string, string> = {
     alert: 'M12 9v4m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z',
     adjust: 'M12 21a9 9 0 100-18 9 9 0 000 18zm0-5a4 4 0 100-8 4 4 0 000 8zm0-2a2 2 0 100-4 2 2 0 000 4z',
     transfer: 'M8 7h11m0 0l-3-3m3 3l-3 3M16 17H5m0 0l3 3m-3-3l3-3',
+    bank: 'M3 7l9-4 9 4M5 10v8m4-8v8m6-8v8m4-8v8M3 18h18M2 21h20',
+    expense: 'M9 3v18m-3-15h8a3 3 0 010 6H8h9a3 3 0 010 6H6',
 };
 
 const d = computed(() => paths[props.name] ?? '');

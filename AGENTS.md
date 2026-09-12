@@ -190,6 +190,20 @@ Safe to rename a migration's column BEFORE it has run in MySQL (SQLite runs from
   Docker while all 13 Phase 9 PHPUnit tests stayed green. When mirroring an AR page/service into
   AP (or any domain), audit every selected + mapped column against the receiving table's migration.
 
+### 1.23 Eloquent FK naming hit twice + `whereDate` with Carbon objects
+- §1.20 struck again in Cash & Bank: `bank_statement_lines` was created with column `import_id`, but
+  `BankStatementImport::lines()` (`hasMany`) derives `bank_statement_import_id` → `no such column`
+  at runtime in SQLite tests. Renamed the migration column BEFORE Docker had applied it (safe per §1.20).
+  Rule: when the child table's real column is NOT `<singular_model>_id`, declare the FK explicitly on
+  BOTH sides (`hasMany(..., 'bank_statement_import_id')` + `belongsTo(..., 'bank_statement_import_id')`).
+- `whereDate('col', $carbon)` where `$carbon` is a `Carbon` (e.g. from a `'date'` cast) serialises to a
+  datetime string (`2026-09-10 00:00:00`) — SQLite compares `date(col) = '2026-09-10 00:00:00'` as a
+  STRING → no match, so bank-statement auto-match silently matched 0 lines while plain-date queries
+  matched. Always normalise: `$line->line_date->toDateString()` and
+  `Carbon::parse($date)->toDateString()` before `whereDate`.
+- `PHPUnit` + a `decimal` `amount` column: auto-match equality `where('amount', 500.0)` works in both
+  SQLite and MySQL when the stored value is exactly 500.0; keep CSV amounts on the same magnitude.
+
 ---
 
 ## 2. Engineering conventions (senior baseline)
@@ -483,6 +497,40 @@ Safe to rename a migration's column BEFORE it has run in MySQL (SQLite runs from
     `paid_this_month` (Σ `supplier_payments.amount` for the month, all types — deliberately simpler
     than the AR allocations join), `advance_balance` (Σ unapplied), `top_suppliers` (top 5 by balance),
     `recent_payments` (latest 8).
+- **Phase 6b domains added (Cash & Bank)**: `app/Domain/CashBank/` holds `CashAccount`, `BankAccount`,
+  `CashBankTransaction`, `BankStatementImport`, `BankStatementLine`, `CashBankService`,
+  `BankReconciliationService`, `CashBankController`/`CashBankAccountController`/
+  `CashBankTransactionController`/`BankReconciliationController`, the form requests, and
+  `CashBankPostingException`. Scope: direct cash receipts/payments, bank deposits/withdrawals,
+  transfers, charges/interest, plus statement-CSV bank reconciliation that locks completed periods.
+  - **Unified ledger**: ONE `cash_bank_transactions` table serves both cash and bank moves (superset of
+    the architecture doc's `bank_transactions`) to avoid double rows for cash↔bank moves — a
+    deliberate deviation from `accounting-erp-architecture.md` §19; each row targets its GL account via
+    `cash_account_id`/`bank_account_id` (mapped through `gl_account_id`), plus `to_bank_account_id` and
+    `counter_account_id`. Types via `CashBankTransactionType` enum (`cash_receipt|cash_payment|
+    bank_deposit|bank_withdrawal|bank_transfer|bank_charge|bank_interest`).
+  - **Posting**: every transaction is posted immediately as a balanced `Journal` (`source_type=bank`)
+    — Cash Receipt: Cash Dr | Counter Cr; Cash Payment: Counter Dr | Cash Cr; Deposit: Bank Dr | Cash
+    Cr; Withdrawal: Cash Dr | Bank Cr; Transfer: ToBank Dr | Bank Cr; Charge: Counter Dr | Bank Cr;
+    Interest: Bank Dr | Counter Cr. Numbering at creation `CBT-{year}-%04d` (transaction_no, NOT
+    journal_no which uses the shared `CBT` prefix). All GL accounts (cash/bank GL + counter) must be
+    postable leaves with active cash/bank accounts (`CashBankPostingException` otherwise). The
+    `CashBankTransactionRequest` enforces required account fields per type (incl. `different:bank_account_id`
+    for transfers). **Vue gotcha**: the form selects are `v-if`-gated on the computed type — a
+    driver must pick the type BEFORE filling accounts.
+  - **Reconciliation**: `bank_statement_imports` (month + uploaded file) → `bank_statement_lines`
+    (one per CSV row `date,description,amount`; parentheses/DR = negative; header row skipped).
+    `BankReconciliationService::import()` auto-matches by exact date + magnitude, then `complete()`
+    requires ALL lines matched and stamps `bank_account.last_reconciled_date = end-of-month`.
+    `CashBankService::deleteTransaction()` refuses deletions of transactions dating **on/before the
+    last reconciled date** (super admin exempt). `statement_month` accepts `YYYY-MM` (browser month
+    input) — the request validates with `regex:/^\d{4}-\d{1,2}(-\d{1,2})?$/` and the service
+    normalises via `monthStart()`.
+  - **Permissions/UI**: reuses the pre-seeded `bank` module (`view|create|update|delete|reconcile`) —
+    accountant has `bank.*`, viewer `bank.view`. Route base `cash-bank` (index/transactions/accounts/
+    reconciliations/reconciliations.show + sub-actions). `CashBankTabs` sub-navigation (Overview/
+    Transactions/Accounts/Reconciliation); sidebar "Cash & Bank" group; breadcrumb label
+    `cash-bank: 'Cash & Bank'`. `AppIcon` gained `bank`/`expense`.
 - **Aliases in `bootstrap/app.php`**: `'permission' => EnsurePermission::class`; Inertia header
   middleware appended to the `web` group.
 - **Vue page patterns**:

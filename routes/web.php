@@ -6,6 +6,10 @@ use App\Domain\Accounting\Http\Controllers\AccountController;
 use App\Domain\Accounting\Http\Controllers\FiscalYearController;
 use App\Domain\Accounting\Http\Controllers\JournalController;
 use App\Domain\Accounting\Http\Controllers\OpeningBalanceController;
+use App\Domain\CashBank\Http\Controllers\BankReconciliationController;
+use App\Domain\CashBank\Http\Controllers\CashBankAccountController;
+use App\Domain\CashBank\Http\Controllers\CashBankController;
+use App\Domain\CashBank\Http\Controllers\CashBankTransactionController;
 use App\Domain\Company\Http\Controllers\BranchController;
 use App\Domain\Company\Http\Controllers\CompanyController;
 use App\Domain\Currency\Http\Controllers\CurrencyController;
@@ -408,6 +412,47 @@ Route::middleware(['auth', 'verified'])->group(function () {
         ->name('stock-transfers.post');
     Route::middleware('permission:inventory.delete')->delete('/inventory/transfers/{transfer}', [StockTransferController::class, 'destroy'])
         ->name('stock-transfers.destroy');
+
+    // ── Cash & Bank ──
+    Route::middleware('permission:bank.view')->get('/cash-bank', [CashBankController::class, 'index'])
+        ->name('cash-bank.index');
+    Route::middleware('permission:bank.view')->get('/cash-bank/transactions', [CashBankController::class, 'transactions'])
+        ->name('cash-bank.transactions');
+    Route::middleware('permission:bank.view')->get('/cash-bank/accounts', [CashBankController::class, 'accounts'])
+        ->name('cash-bank.accounts');
+    Route::middleware('permission:bank.view')->get('/cash-bank/reconciliations', [CashBankController::class, 'reconciliations'])
+        ->name('cash-bank.reconciliations');
+    Route::middleware('permission:bank.view')->get('/cash-bank/reconciliations/{import}', [CashBankController::class, 'showReconciliation'])
+        ->name('cash-bank.reconciliations.show');
+
+    Route::middleware('permission:bank.create')->post('/cash-bank/transactions', [CashBankTransactionController::class, 'store'])
+        ->name('cash-bank.transactions.store');
+    Route::middleware('permission:bank.delete')->delete('/cash-bank/transactions/{transaction}', [CashBankTransactionController::class, 'destroy'])
+        ->name('cash-bank.transactions.destroy');
+
+    Route::middleware('permission:bank.create')->post('/cash-bank/accounts/cash', [CashBankAccountController::class, 'storeCash'])
+        ->name('cash-bank.accounts.store-cash');
+    Route::middleware('permission:bank.update')->put('/cash-bank/accounts/cash/{cashAccount}', [CashBankAccountController::class, 'updateCash'])
+        ->name('cash-bank.accounts.update-cash');
+    Route::middleware('permission:bank.delete')->delete('/cash-bank/accounts/cash/{cashAccount}', [CashBankAccountController::class, 'destroyCash'])
+        ->name('cash-bank.accounts.destroy-cash');
+    Route::middleware('permission:bank.create')->post('/cash-bank/accounts/bank', [CashBankAccountController::class, 'storeBank'])
+        ->name('cash-bank.accounts.store-bank');
+    Route::middleware('permission:bank.update')->put('/cash-bank/accounts/bank/{bankAccount}', [CashBankAccountController::class, 'updateBank'])
+        ->name('cash-bank.accounts.update-bank');
+    Route::middleware('permission:bank.delete')->delete('/cash-bank/accounts/bank/{bankAccount}', [CashBankAccountController::class, 'destroyBank'])
+        ->name('cash-bank.accounts.destroy-bank');
+
+    Route::middleware('permission:bank.reconcile')->post('/cash-bank/reconciliations', [BankReconciliationController::class, 'store'])
+        ->name('cash-bank.reconciliations.store');
+    Route::middleware('permission:bank.reconcile')->post('/cash-bank/reconciliations/{import}/auto-match', [BankReconciliationController::class, 'autoMatch'])
+        ->name('cash-bank.reconciliations.auto-match');
+    Route::middleware('permission:bank.reconcile')->post('/cash-bank/reconciliations/{import}/{line}/match', [BankReconciliationController::class, 'matchLine'])
+        ->name('cash-bank.reconciliations.match-line');
+    Route::middleware('permission:bank.reconcile')->post('/cash-bank/reconciliations/{import}/{line}/unmatch', [BankReconciliationController::class, 'unmatchLine'])
+        ->name('cash-bank.reconciliations.unmatch-line');
+    Route::middleware('permission:bank.reconcile')->post('/cash-bank/reconciliations/{import}/complete', [BankReconciliationController::class, 'complete'])
+        ->name('cash-bank.reconciliations.complete');
 
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');

@@ -55,6 +55,11 @@ enum JournalSourceType: string
             self::PaymentApplication => 'SAA',
             self::WriteOff => 'WOF',
             self::StockAdjustment => 'ADJ',
+            self::Bank => 'CBT',
+            self::Expense => 'EXP',
+            self::Depreciation => 'DEP',
+            self::Payroll => 'PYR',
+            self::Closing => 'YEC',
             default => 'GJ',
         };
     }

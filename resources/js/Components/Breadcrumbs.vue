@@ -41,6 +41,7 @@ const MODULE_LABELS: Record<string, string> = {
     'payable-aging': 'Payables',
     'supplier-payment': 'Record Payment',
     'supplier-advances': 'Supplier Advances',
+    'cash-bank': 'Cash & Bank',
     profile: 'Profile',
 };
 
