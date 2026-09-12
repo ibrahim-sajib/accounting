@@ -29,7 +29,7 @@ class RoleSeeder extends Seeder
                 'fiscal_year.view', 'period.view', 'currency.view', 'tax.view',
                 'accounting_config.view', 'accounting_config.update',
                 'customer.view', 'supplier.view', 'product.view', 'warehouse.view',
-                'audit.view',
+                'audit.view', 'approval.view', 'approval.approve',
             ],
         ],
         'sales-executive' => [
@@ -67,7 +67,7 @@ class RoleSeeder extends Seeder
                 'supplier.view', 'product.view', 'warehouse.view', 'inventory.view',
                 'bank.view', 'expense.view', 'payroll.view', 'budget.view', 'fixed_asset.view',
                 'fiscal_year.view', 'period.view', 'currency.view', 'tax.view',
-                'journal.view', 'opening_balance.view', 'receipt.view', 'receivables.view', 'payment.view', 'payables.view', 'audit.view', 'accounting_config.view',
+                'journal.view', 'opening_balance.view', 'receipt.view', 'receivables.view', 'payment.view', 'payables.view', 'audit.view', 'accounting_config.view', 'approval.view',
             ],
         ],
     ];

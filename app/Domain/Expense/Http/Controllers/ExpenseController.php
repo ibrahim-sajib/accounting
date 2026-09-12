@@ -3,6 +3,7 @@
 namespace App\Domain\Expense\Http\Controllers;
 
 use App\Domain\Accounting\Models\AccountingSetting;
+use App\Domain\Approval\Services\ApprovalWorkflowService;
 use App\Domain\CashBank\Models\BankAccount;
 use App\Domain\CashBank\Models\CashAccount;
 use App\Domain\Expense\Exceptions\ExpensePostingException;
@@ -118,6 +119,12 @@ public function store(ExpenseRequest $request): RedirectResponse
     public function post(Expense $expense): RedirectResponse
     {
         $this->authorizeCompany($expense);
+
+        $pendingApproval = app(ApprovalWorkflowService::class)
+            ->submitForApproval('expense', $expense->company_id, $expense, (float) $expense->amount, auth()->id());
+        if ($pendingApproval) {
+            return back()->with('error', 'This expense exceeds the posting approval threshold — approval request #'.$pendingApproval->id.' is pending. Posting resumes once approved.');
+        }
 
         try {
             $this->expenseService->post($expense);

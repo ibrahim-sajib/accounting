@@ -48,6 +48,8 @@ const paths: Record<string, string> = {
     budget: 'M9 3v18m-3-15h8a3 3 0 010 6H8h9a3 3 0 010 6H6M12 3v18',
     report: 'M13 3H5a2 2 0 00-2 2v14a2 2 0 002 2h11a2 2 0 002-2V9l-5-6zm0 0v6h6M7 13h10M7 17h6M7 9h2',
     statement: 'M4 4v16h16M8 14v4m4-8v8m4-3v3M4 9h16',
+    approval: 'M9 12l2 2 4-4M12 3l7 3v5c0 4.97-3 8.35-7 9.87C8 19.35 5 15.97 5 11V6l7-3z',
+    workflow: 'M4 5h5v5H4V5zm11 9h5v5h-5v-5zM9 7.5h5m0 0a2.5 2.5 0 01-2.5 2.5H11a2 2 0 00-2 2m6-4.5a2.5 2.5 0 012.5 2.5v1m0 0H9',
 };
 
 const d = computed(() => paths[props.name] ?? '');

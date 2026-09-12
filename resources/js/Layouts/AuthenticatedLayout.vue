@@ -144,6 +144,13 @@ const navGroups = computed(() => [
             { label: 'Opening Balances', routeName: 'opening-balances.index', icon: 'opening', permission: 'opening_balance.view' },
         ],
     },
+    {
+        label: 'Governance',
+        items: [
+            { label: 'Approvals', routeName: 'approvals.index', icon: 'approval', permission: 'approval.view' },
+            { label: 'Approval Workflows', routeName: 'approval-workflows.index', icon: 'workflow', permission: 'approval.view' },
+        ],
+    },
 ]);
 
 const switchCompany = (id: number) => {

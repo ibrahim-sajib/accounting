@@ -4,6 +4,7 @@ namespace App\Domain\Sales\Http\Controllers;
 
 use App\Domain\Accounting\Models\Account;
 use App\Domain\Accounting\Models\AccountingSetting;
+use App\Domain\Approval\Services\ApprovalWorkflowService;
 use App\Domain\Audit\Services\AuditLogger;
 use App\Domain\Party\Models\Customer;
 use App\Domain\Product\Models\Product;
@@ -250,6 +251,12 @@ class SalesInvoiceController
     public function post(SalesInvoice $invoice): RedirectResponse
     {
         $this->authorizeInvoice($invoice);
+
+        $pendingApproval = app(ApprovalWorkflowService::class)
+            ->submitForApproval('sales_invoice', $invoice->company_id, $invoice, (float) $invoice->total, auth()->id());
+        if ($pendingApproval) {
+            return back()->with('error', 'This invoice exceeds the posting approval threshold — approval request #'.$pendingApproval->id.' is pending. Posting resumes once approved.');
+        }
 
         try {
             $invoice = $this->service->postInvoice($invoice);

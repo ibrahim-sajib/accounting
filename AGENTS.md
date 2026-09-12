@@ -843,6 +843,37 @@ Safe to rename a migration's column BEFORE it has run in MySQL (SQLite runs from
     posted rows.
   - **Permissions**: no seeder change (`dashboard` route is public to authenticated users; sidebar
     item already existed with `permission: null`). No migration.
+- **Phase 9a domain added (Approval Engine — module 27)**: `app/Domain/Approval/` holds
+  `ApprovalWorkflow` (+table `approval_workflows`: per-company rules with `module`, `min_amount`/
+  `max_amount` band, `approver_role_id`/`approver_user_id`, `sequence`, `is_active`) and
+  `ApprovalRequest` (+table `approval_requests`, the §2.4 polymorphic pair: `morphs approvable`,
+  `requested_by`, `status pending|approved|rejected`, `current_step`/`total_steps`, `decided_by`/
+  `decided_at`). `ApprovalWorkflowService` matches an amount-module band → ordered chain, and gating
+  is **optional-by-default**: no matching active rule = documents post exactly as before.
+  - **Posting gate**: `submitForApproval()` runs at the TOP of the `post()` methods of
+    SalesInvoiceController, PurchaseBillController, ExpenseController, and JournalController (modules
+    `sales_invoice|purchase_bill|expense|journal`, amounts = invoice/bill/expense total, journal debit
+    sum). A matching unapproved rule makes post() redirect-back-with-error and creates/returns a
+    PENDING request; an existing APPROVED request (or no rule) lets posting proceed; REJECTED →
+    the next submit creates a fresh request. `approve()` advances `current_step` (multi-sequence
+    chains need every step's approver before `status=approved`); `reject()` stores `reject_reason`.
+    `approverCan()` = super-admin bypass OR user holds the step's `approver_role_id` (pivot
+    `company_id` scoped) OR IS the configured `approver_user_id` — anything else throws
+    `ApprovalException` → back()->with('error').
+  - **Permissions/UI**: new `approval` module = `view|approve|configure` in `PermissionSeeder`;
+    RoleSeeder: accountant gains `approval.view`+`approval.approve`, viewer `approval.view`
+    (company-admin keeps `*`). Route base `approvals` (index + approve/reject) and
+    `approval-workflows` (index + store/update/destroy, mutations gated `approval.configure`).
+    Sidebar **Governance** group (Approvals + Approval Workflows); breadcrumbs `Approval Workflows`;
+    `AppIcon` gained `approval`/`workflow`. Pages: `Approval/Index.vue` (pending table with
+    Approve/Reject-per-approver buttons + recent-decisions table, reason textarea in a reject Modal —
+    reuse the `HTMLTextAreaElement` setter lesson if driving it via CDP) and `Approval/Workflows.vue`
+    (modal CRUD like Currencies; `sequence`/`min_amount` stay client-side STRINGS — vue-tsc rejects
+    `v-model` on a `number` into `TextInput`, feed `String(w.sequence)` on edit; server normalizes).
+  - **Tests (Phase9aCoreTest, 9 tests)**: gate-then-approve-then-post flow, rejected→resubmit creates
+    a NEW request (`requestFor()` helper must use `latest('id')` — `firstOrFail` picks the stale
+    rejected row), multi-step chain advances step-by-step, below-threshold posts without a request,
+    viewer can view but `POST approve` 403s, configure permission enforced (360-nav green 12/12).
 
 - **Aliases in `bootstrap/app.php`**: `'permission' => EnsurePermission::class`; Inertia header
   middleware appended to the `web` group.

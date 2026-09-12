@@ -3,6 +3,8 @@
 use App\Domain\Accounting\Http\Controllers\AccountingPeriodController;
 use App\Domain\Accounting\Http\Controllers\AccountingSettingController;
 use App\Domain\Accounting\Http\Controllers\AccountController;
+use App\Domain\Approval\Http\Controllers\ApprovalController;
+use App\Domain\Approval\Http\Controllers\ApprovalWorkflowController;
 use App\Domain\Accounting\Http\Controllers\FiscalYearController;
 use App\Domain\Accounting\Http\Controllers\JournalController;
 use App\Domain\Accounting\Http\Controllers\OpeningBalanceController;
@@ -586,6 +588,23 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
     Route::middleware('permission:report.view')->get('/statements', [StatementController::class, 'index'])
         ->name('statements.index');
+
+    // Approval engine (module 27) — workflow rules + polymorphic approval requests.
+    Route::middleware('permission:approval.view')->get('/approvals', [ApprovalController::class, 'index'])
+        ->name('approvals.index');
+    Route::middleware('permission:approval.approve')->post('/approvals/{approvalRequest}/approve', [ApprovalController::class, 'approve'])
+        ->name('approvals.approve');
+    Route::middleware('permission:approval.approve')->post('/approvals/{approvalRequest}/reject', [ApprovalController::class, 'reject'])
+        ->name('approvals.reject');
+
+    Route::middleware('permission:approval.view')->get('/approval-workflows', [ApprovalWorkflowController::class, 'index'])
+        ->name('approval-workflows.index');
+    Route::middleware('permission:approval.configure')->post('/approval-workflows', [ApprovalWorkflowController::class, 'store'])
+        ->name('approval-workflows.store');
+    Route::middleware('permission:approval.configure')->put('/approval-workflows/{workflow}', [ApprovalWorkflowController::class, 'update'])
+        ->name('approval-workflows.update');
+    Route::middleware('permission:approval.configure')->delete('/approval-workflows/{workflow}', [ApprovalWorkflowController::class, 'destroy'])
+        ->name('approval-workflows.destroy');
     Route::middleware('permission:payroll.update')->put('/payroll/designations/{designation}', [DesignationController::class, 'update'])
         ->name('payroll.designations.update');
     Route::middleware('permission:payroll.delete')->delete('/payroll/designations/{designation}', [DesignationController::class, 'destroy'])

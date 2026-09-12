@@ -45,6 +45,7 @@ class PermissionSeeder extends Seeder
         'report' => ['view', 'export'],
         'dashboard' => ['view'],
         'audit' => ['view'],
+        'approval' => ['view', 'approve', 'configure'],
         'settings' => ['view', 'update'],
     ];
 

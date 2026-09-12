@@ -4,6 +4,7 @@ namespace App\Domain\Purchase\Http\Controllers;
 
 use App\Domain\Accounting\Models\Account;
 use App\Domain\Accounting\Models\AccountingSetting;
+use App\Domain\Approval\Services\ApprovalWorkflowService;
 use App\Domain\Audit\Services\AuditLogger;
 use App\Domain\Party\Models\Supplier;
 use App\Domain\Product\Models\Product;
@@ -250,6 +251,12 @@ class PurchaseBillController
     public function post(PurchaseBill $bill): RedirectResponse
     {
         $this->authorizeBill($bill);
+
+        $pendingApproval = app(ApprovalWorkflowService::class)
+            ->submitForApproval('purchase_bill', $bill->company_id, $bill, (float) $bill->total, auth()->id());
+        if ($pendingApproval) {
+            return back()->with('error', 'This bill exceeds the posting approval threshold — approval request #'.$pendingApproval->id.' is pending. Posting resumes once approved.');
+        }
 
         try {
             $bill = $this->service->postBill($bill);

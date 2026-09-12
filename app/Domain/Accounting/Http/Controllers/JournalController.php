@@ -8,6 +8,7 @@ use App\Domain\Accounting\Models\Account;
 use App\Domain\Accounting\Models\AccountingPeriod;
 use App\Domain\Accounting\Models\Journal;
 use App\Domain\Accounting\Services\JournalPostingService;
+use App\Domain\Approval\Services\ApprovalWorkflowService;
 use App\Support\Enums\JournalSourceType;
 use App\Support\Enums\TransactionStatus;
 use Illuminate\Http\RedirectResponse;
@@ -160,6 +161,14 @@ class JournalController
     public function post(Journal $journal): RedirectResponse
     {
         $this->authorizeJournal($journal);
+
+        $amount = (float) $journal->lines()->sum('debit');
+
+        $pendingApproval = app(ApprovalWorkflowService::class)
+            ->submitForApproval('journal', $journal->company_id, $journal, $amount, auth()->id());
+        if ($pendingApproval) {
+            return back()->with('error', 'This journal exceeds the posting approval threshold — approval request #'.$pendingApproval->id.' is pending. Posting resumes once approved.');
+        }
 
         try {
             $journal = $this->postingService->post($journal);
