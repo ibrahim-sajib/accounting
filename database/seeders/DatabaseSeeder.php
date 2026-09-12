@@ -24,6 +24,7 @@ class DatabaseSeeder extends Seeder
             MasterDataSeeder::class,
             ExpenseCategorySeeder::class,
             AssetCategorySeeder::class,
+            PayrollSeeder::class,
         ]);
     }
 }

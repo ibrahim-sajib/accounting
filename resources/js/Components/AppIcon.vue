@@ -44,6 +44,7 @@ const paths: Record<string, string> = {
     bank: 'M3 7l9-4 9 4M5 10v8m4-8v8m6-8v8m4-8v8M3 18h18M2 21h20',
     expense: 'M9 3v18m-3-15h8a3 3 0 010 6H8h9a3 3 0 010 6H6',
     asset: 'M3 21V8l9-5 9 5v13h-6v-7H9v7H3zM12 3v13',
+    payroll: 'M20 8H4a2 2 0 00-2 2v8a2 2 0 002 2h16a2 2 0 002-2v-8a2 2 0 00-2-2zm-5 5a3 3 0 11-6 0 3 3 0 016 0zM2 13h2M20 13h2',
 };
 
 const d = computed(() => paths[props.name] ?? '');

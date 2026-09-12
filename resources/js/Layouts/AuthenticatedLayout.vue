@@ -119,6 +119,12 @@ const navGroups = computed(() => [
         ],
     },
     {
+        label: 'Payroll',
+        items: [
+            { label: 'Payroll', routeName: 'payroll.index', icon: 'payroll', permission: 'payroll.view' },
+        ],
+    },
+    {
         label: 'Transactions',
         items: [
             { label: 'Journals', routeName: 'journals.index', icon: 'journal', permission: 'journal.view' },
@@ -203,7 +209,7 @@ const isActive = (routeName: string) => {
             <!-- Sidebar footer -->
             <div class="border-t border-gray-200 p-3 dark:border-gray-800">
                 <div class="rounded-lg bg-gray-50 px-3 py-2 text-xs text-gray-500 dark:bg-gray-800/60 dark:text-gray-400">
-                    Phase 6 · Cash & Bank + Expense
+                    Phase 7 · Inventory + Payroll
                 </div>
             </div>
         </aside>

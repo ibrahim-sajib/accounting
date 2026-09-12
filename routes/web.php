@@ -17,6 +17,10 @@ use App\Domain\Expense\Http\Controllers\ExpenseCategoryController;
 use App\Domain\Expense\Http\Controllers\ExpenseController;
 use App\Domain\FixedAsset\Http\Controllers\AssetCategoryController;
 use App\Domain\FixedAsset\Http\Controllers\FixedAssetController;
+use App\Domain\Payroll\Http\Controllers\PayrollRunController;
+use App\Domain\Payroll\Http\Controllers\EmployeeController;
+use App\Domain\Payroll\Http\Controllers\DepartmentController;
+use App\Domain\Payroll\Http\Controllers\DesignationController;
 use App\Domain\Inventory\Http\Controllers\StockAdjustmentController;
 use App\Domain\Inventory\Http\Controllers\StockController;
 use App\Domain\Inventory\Http\Controllers\StockTransferController;
@@ -515,6 +519,50 @@ Route::middleware(['auth', 'verified'])->group(function () {
         ->name('fixed-assets.dispose');
     Route::middleware('permission:fixed_asset.delete')->delete('/fixed-assets/{asset}', [FixedAssetController::class, 'destroy'])
         ->name('fixed-assets.destroy');
+
+    // Payroll (module 22) — runs + employees (+ department/designation sub-resources).
+    Route::middleware('permission:payroll.view')->get('/payroll', [PayrollRunController::class, 'index'])
+        ->name('payroll.index');
+    Route::middleware('permission:payroll.process')->post('/payroll/process', [PayrollRunController::class, 'store'])
+        ->name('payroll.process');
+    Route::middleware('permission:payroll.view')->get('/payroll/runs/{run}', [PayrollRunController::class, 'show'])
+        ->name('payroll.runs.show');
+    Route::middleware('permission:payroll.update')->put('/payroll/runs/{run}/lines/{line}', [PayrollRunController::class, 'updateLine'])
+        ->name('payroll.runs.lines.update');
+    Route::middleware('permission:payroll.post')->post('/payroll/runs/{run}/post', [PayrollRunController::class, 'post'])
+        ->name('payroll.runs.post');
+    Route::middleware('permission:payroll.delete')->delete('/payroll/runs/{run}', [PayrollRunController::class, 'destroy'])
+        ->name('payroll.runs.destroy');
+    Route::middleware('permission:payroll.post')->post('/payroll/runs/{run}/payments', [PayrollRunController::class, 'storePayment'])
+        ->name('payroll.payments.store');
+
+    Route::middleware('permission:payroll.view')->get('/payroll/employees', [EmployeeController::class, 'index'])
+        ->name('payroll.employees');
+    Route::middleware('permission:payroll.create')->get('/payroll/employees/create', [EmployeeController::class, 'create'])
+        ->name('payroll.employees.create');
+    Route::middleware('permission:payroll.create')->post('/payroll/employees', [EmployeeController::class, 'store'])
+        ->name('payroll.employees.store');
+    Route::middleware('permission:payroll.view')->get('/payroll/employees/{employee}', [EmployeeController::class, 'show'])
+        ->name('payroll.employees.show');
+    Route::middleware('permission:payroll.update')->get('/payroll/employees/{employee}/edit', [EmployeeController::class, 'edit'])
+        ->name('payroll.employees.edit');
+    Route::middleware('permission:payroll.update')->put('/payroll/employees/{employee}', [EmployeeController::class, 'update'])
+        ->name('payroll.employees.update');
+    Route::middleware('permission:payroll.delete')->delete('/payroll/employees/{employee}', [EmployeeController::class, 'destroy'])
+        ->name('payroll.employees.destroy');
+
+    Route::middleware('permission:payroll.create')->post('/payroll/departments', [DepartmentController::class, 'store'])
+        ->name('payroll.departments.store');
+    Route::middleware('permission:payroll.update')->put('/payroll/departments/{department}', [DepartmentController::class, 'update'])
+        ->name('payroll.departments.update');
+    Route::middleware('permission:payroll.delete')->delete('/payroll/departments/{department}', [DepartmentController::class, 'destroy'])
+        ->name('payroll.departments.destroy');
+    Route::middleware('permission:payroll.create')->post('/payroll/designations', [DesignationController::class, 'store'])
+        ->name('payroll.designations.store');
+    Route::middleware('permission:payroll.update')->put('/payroll/designations/{designation}', [DesignationController::class, 'update'])
+        ->name('payroll.designations.update');
+    Route::middleware('permission:payroll.delete')->delete('/payroll/designations/{designation}', [DesignationController::class, 'destroy'])
+        ->name('payroll.designations.destroy');
 
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');

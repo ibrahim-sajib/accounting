@@ -222,6 +222,18 @@ Safe to rename a migration's column BEFORE it has run in MySQL (SQLite runs from
   `Argument #3 ($recordType) must be of type ?string, array given` at runtime. Correct pattern:
   `AuditLogger::log('expense', 'update', null, $expense->id, $expense->getOriginal(), $expense->fresh()->toArray(), $expense->company_id)`.
 
+### 1.26 Eloquent relation keys in Inertia props are snake_case — Vue reads camelCase
+- Passing a raw `$model` (even with `->load('salaryStructure')`) as an Inertia prop serializes the
+  relation under its snake_case key (`employee.salary_structure`), so `props.employee.salaryStructure`
+  in `.vue` is `undefined` → the salary card rendered `Basic/Gross/Net` with **all zeros** (no error,
+  no crash — just silent 0.00 everywhere). Top-level/table columns (employee.name, join_date …) and
+  same-name relations (department, designation) are fine; only the camelCased relation key breaks.
+- Fix: never pass the raw model when Vue expects a differently-named key — map explicitly in the
+  controller (`EmployeeController::serialize()`) to `['id','name','email','phone','join_date',
+  'is_active','department_id','designation_id','department'=>['id','name'],'designation'=>['id','name'],
+  'salaryStructure'=>...,]`. Lock it in the test: `->has('employee.salaryStructure')->where(
+  'employee.salaryStructure.basic','50000.0000')` (this bug slipped past PHPInertia assertions `has('employee')`).
+
 ---
 
 ## 2. Engineering conventions (senior baseline)
@@ -635,6 +647,70 @@ Safe to rename a migration's column BEFORE it has run in MySQL (SQLite runs from
     (CREATE doesn't inherit it); posting-only aspirations are NOT satisfied by
     capitalizing + then asserting the draft is postable — exercise the real endpoints. `DepreciationRun
     POST` returns a flash `error` (not a field error) when the service rejects.
+- **Phase 7b domain added (Payroll — module 22)**: `app/Domain/Payroll/` holds `Department`,
+  `Designation`, `Employee`, `SalaryStructure`, `PayrollRun` (+`PayrollRunLine`), `SalaryPayment`,
+  `PayrollService`, `EmployeeController`/`DepartmentController`/`DesignationController`/
+  `PayrollRunController`, the form requests, `PayrollPostingException`, and
+  `app/Support/Enums/SalaryPaymentMethod` (`cash|bank`). Scope: employee register with a salary
+  structure (1:1 child table), process a payroll run per period (draft → review → post accrual →
+  pay salaries). Attendance/leaves are DEFERRED (documented future scope) and there is **no**
+  `attendances`/`leaves` table.
+  - **Tables**: `departments`, `designations` (both `is_active`, unique name per company),
+    `employees` (+`company_id`, `department_id`, `designation_id`, `join_date`, `is_active`),
+    `salary_structures` (**1:1 child of employee** — deliberate deviation from the arch doc's JSON
+    column: FIXED columns `basic`, `house_rent_allowance`, `medical_allowance`, `travel_allowance`,
+    `other_allowance`, `income_tax_deduction`, `provident_fund_deduction`, `other_deduction`;
+    gross = basic + allowances, net = gross − deductions, computed in `SalaryStructure`),
+    `payroll_runs` (unique `(company_id, period_id)` per company, one run per period),
+    `payroll_run_lines` (unique `(company_id, payroll_run_id, employee_id)`), `salary_payments`.
+  - **Lifecycle**: `process` creates a DRAFT run dated the period's `end_date`, one line per ACTIVE
+    employee that has a salary structure (service filters, refused if none). Lines are adjustable
+    while draft (gross/deductions; net and run totals recomputed server-side — §1.16 numeric
+    normalization in `prepareForValidation`). `post` books the accrual journal
+    (`source_type=payroll`, prefix **PYR**): **Salary Expense (5111) Dr (gross) | Salary Payable
+    (2141) Cr (net) | Employee Deductions Payable (2143) Cr (deductions)** — 2143 is a leaf newly
+    seeded under 2140 by `ChartOfAccountsSeeder`; only drafted when deductions > 0. `run_no =
+    PR-{year}-%04d` assigned at posting (§1.18). Salary payment (`source_type=payroll` again, same
+    PYR prefix) books **Salary Payable Dr | Cash/Bank GL Cr**, reuses `payroll_runs.period_id`/`run`
+    reference, requires a POSTED run and `amount ≤ remainingPayable()` (overpayment refused),
+    `payment_no = SP-{year}-%04d`. Both source types point `source_id` at `payroll_runs.id` so
+    `Journals/Show` shows one "View Payroll Run" link for accrual and payment alike.
+  - **Don't forget (§1.18)**: `PayrollRun`/`SalaryPayment` journals need `JournalSourceType::Payroll`
+    (label 'Payroll', prefix PYR) — already existed. Numbering helpers scan their own tables
+    (`nextRunNo`/`nextPaymentNo`) for the max `run_no`/`payment_no`; the PYR journal number comes
+    from `JournalPostingService::nextJournalNumber()` shared sequence user.
+  - **Route model binding gotcha (again)**: a controller method MUST declare route params in the SAME
+    ORDER as the route. `PUT /payroll/runs/{run}/lines/{line}` with method `updateLine($run, $line)`
+    works, but `updateLine($line)` alone 500s with
+    `Argument #1 ($line) must be of type PayrollRunLine, string given` — Laravel's implicit binding
+    `array_shift`s from the route-parameter list in ROUTE order, so `$line` receives `{run}`'s value
+    when `$run` isn't declared. Always declare `($run, $line)` (or dance around §7a's word-vs-arg 404
+    trap by keeping every param).
+  - **Permissions**: `payroll` module (`view|create|update|delete|process|post`) was already in
+    `PermissionSeeder`. RoleSeeder grants accountant `payroll.view` + **`payroll.post` only** (NOT
+    `payroll.*` — accountants review/post but the HR-Payroll manager processes), viewer `payroll.view`.
+    Route map: index/show = view; process = process; runs/employees update/edit = update; delete =
+    delete; post/payments.store = post; department/designation store = create.
+  - **Sub-resource delete = deactivate-when-in-use** (mirrors Expense categories): a department or
+    designation assigned to employees is set `is_active=false` (kept, `info` flash) instead of
+    deleted; only unused ones hard-delete (`assertSoftDeleted` in tests — the row persists because of
+    SoftDeletes).
+  - **UI**: single sidebar "Payroll" item (base `payroll`); `Components/PayrollTabs.vue` (Runs |
+    Employees) mirrors `CashBankTabs`. `Pages/Payroll/{Index, Employees, EmployeesCreate,
+    EmployeesEdit, EmployeeShow, RunShow}.vue`. Index = "Process Payroll" bar (`#pr_period` POST
+    `payroll.process`) + status filter. Employees embeds departments + designations as two
+    inline-edit modals (Add row + per-row Edit/Save/Delete). RunShow: edit-in-place gross/deductions
+    per line with live net + totals footer (`#adjust` → Save → `payroll.runs.lines.update`),
+    Post/Delete on drafts, "Record Salary Payment" modal (`#pay_method` select, method-gated
+    `#pay_cash`/`#pay_bank`, `#pay_amount` prefilled with remaining, `#pay_date`); payments table.
+    Breadcrumb `payroll: 'Payroll'` (module) + `'Employee'` (singular) + `'New Employee'` (create);
+    `AppIcon` gained `payroll`; `Journals/Show` gained the `payroll` label + "View Payroll Run".
+  - **Test gotchas in Phase7bCoreTest**: payroll runs reuse the seeded corporate demo company — keep
+    every email unique; salary math must include ALL allowances/deductions from the base
+    `employeePayload()` when overriding a subset (overwriting just `basic` while keeping the $5,000
+    medical/travel allowances silently inflates gross by $10k — assertions must sum the full
+    structure). The accountant positive test must create the draft run AS ADMIN first (accountant
+    lacks `payroll.process`), then switch users to exercise `payroll.post`.
 - **Aliases in `bootstrap/app.php`**: `'permission' => EnsurePermission::class`; Inertia header
   middleware appended to the `web` group.
 - **Vue page patterns**:

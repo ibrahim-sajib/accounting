@@ -75,6 +75,7 @@ class ChartOfAccountsSeeder extends Seeder
                     ['code' => '2140', 'name' => 'Accrued Expenses', 'children' => [
                         ['code' => '2141', 'name' => 'Accrued Salaries & Benefits'],
                         ['code' => '2142', 'name' => 'Accrued Utilities'],
+                        ['code' => '2143', 'name' => 'Employee Deductions Payable'],
                     ]],
                     ['code' => '2150', 'name' => 'Short-Term Debt', 'children' => [
                         ['code' => '2151', 'name' => 'Short-Term Loans'],

@@ -151,8 +151,9 @@ class CompanyController
         (new \Database\Seeders\MasterDataSeeder())->run();
         (new \Database\Seeders\ExpenseCategorySeeder())->run();
         (new \Database\Seeders\AssetCategorySeeder())->run();
+        (new \Database\Seeders\PayrollSeeder())->run();
         (new \Database\Seeders\RoleSeeder())->run($company->id);
-        \App\Domain\Audit\Services\AuditLogger::log('company', 'provision', null, $company->id, [], ['currencies', 'fiscal_years', 'settings', 'chart_of_accounts', 'tax', 'accounting_settings', 'master_data', 'expense_categories', 'asset_categories', 'roles'], $company->id);
+        \App\Domain\Audit\Services\AuditLogger::log('company', 'provision', null, $company->id, [], ['currencies', 'fiscal_years', 'settings', 'chart_of_accounts', 'tax', 'accounting_settings', 'master_data', 'expense_categories', 'asset_categories', 'payroll', 'roles'], $company->id);
     }
 
     protected function normalizePayload(CompanyRequest $request): array
