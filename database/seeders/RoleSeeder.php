@@ -26,7 +26,7 @@ class RoleSeeder extends Seeder
                 'purchase.view', 'purchase.create', 'purchase.update', 'purchase.post', 'purchase.delete',
                 'receipt.*', 'receivables.*', 'payment.*', 'payables.*', 'bank.*', 'expense.*',
                 'inventory.*', 'fixed_asset.*', 'payroll.view', 'payroll.post', 'budget.*',
-                'fiscal_year.view', 'period.*', 'currency.view', 'tax.view',
+                'fiscal_year.view', 'fiscal_year.close', 'fiscal_year.reopen', 'period.*', 'currency.view', 'tax.view',
                 'accounting_config.view', 'accounting_config.update',
                 'customer.view', 'supplier.view', 'product.view', 'warehouse.view',
                 'audit.view', 'approval.view', 'approval.approve',

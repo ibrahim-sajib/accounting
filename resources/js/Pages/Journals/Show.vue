@@ -110,6 +110,10 @@ const sourceLink = computed(() => {
         return { label: 'View Payroll Run', href: route('payroll.runs.show', j.value.source_id) };
     }
 
+    if (j.value.source_type === 'closing' && j.value.source_id) {
+        return { label: 'View Fiscal Year', href: route('fiscal-years.index') };
+    }
+
     return null;
 });
 
@@ -128,6 +132,7 @@ const sourceTypeLabel: Record<string, string> = {
     depreciation: 'Depreciation',
     asset_disposal: 'Asset Disposal',
     payroll: 'Payroll',
+    closing: 'Year-End Closing',
 };
 </script>
 

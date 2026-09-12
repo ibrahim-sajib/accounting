@@ -976,6 +976,39 @@ Safe to rename a migration's column BEFORE it has run in MySQL (SQLite runs from
   - Tests (Phase10aCoreTest, 7 tests): close+posting-block, sequence guard, close→reopen restore,
     locked-later-blocks-reopen, setActive/delete 422 on closed, cross-company close 403, accountant-
     vs-viewer close. The old Phase1 test was updated to the new permanent-lock semantics.
+- **Phase 10b domain added (Year-End Closing — module 32)**: `FiscalYearClosingService` +
+  `FiscalYearClosingException` in `app/Domain/Accounting/` replaces the naive FiscalYear
+  `close()`/`reopen()` flips from Phase 1.
+  - **YEC journal**: with all periods closed + FY not active + FY not already closed, closing
+    computes per-account signed nets from POSTED journal lines in the FY range and books a
+    balanced `source_type=closing` (prefix **YEC**, `YEC-{year}-%04d`) journal dated the FY's last
+    day in its LAST period: each income leaf Dr (its net), each expense leaf Cr (its net), and the
+    difference to Retained Earnings (**3211**, seeded postable leaf; missing → error). The journal
+    is inserted directly as `posted` (all periods are closed so the normal isOpen gate must be
+    bypassed — deliberate, mirroring opening posts), with `source_id = fiscal_year.id`.
+  - **Carry-forward opening**: if a later fiscal year exists with a first period, asset/liability/
+    equity nets (income/expense are excluded — they were zeroed) are carried into an
+    `source_type=opening` (OB) journal dated the next FY's first day. This runs in the SAME
+    transaction as the YEC insert, so the carried RE balance comes from the closing lines.
+  - **Gotcha hit in tests (§1.23 redux)**: `->whereBetween('journals.journal_date',
+    [$fy->start_date, $fy->end_date])` silently EXCLUDES the YEC journal — a `date` cast stores
+    `2040-12-31 00:00:00` and SQLite compares the string `'2040-12-31 00:00:00' > '2040-12-31'`, so
+    the closing journal (dated the FY's last day) was dropped from the range and the carry-forward
+    saw only cash, not the RE credit. Always bound ranges with `->startOfDay()`/`->endOfDay()`.
+  - **Guards**: close refused when periods are still open, when the FY is `is_active`, or when
+    already closed; reopen refused when ANY later FY is already closed (sequence). Both map
+    `FiscalYearClosingException` → `back()->with('error')`.
+  - **Permissions**: accountant gained `fiscal_year.close` + `fiscal_year.reopen` (was view-only;
+    close/reopen were previously company-admin-only via `*`). `FiscalYearController` now catches
+    the exception; `FiscalYears/Index.vue` gained a Reopen button for closed years (Close already
+    existed, hidden while active); `Journals/Show.vue` labels `closing` as 'Year-End Closing' with
+    a "View Fiscal Year" source link (note: `fiscal-years.index` is the only FY route — there is
+    no show route).
+  - Tests (Phase10bCoreTest, 6 tests): close books RE + carries forward (asserts YEC/OB numbers,
+    journal dates, RE/cash line amounts, balance), open-period refusal, active refusal, later-year-
+    closed blocks reopen, reopen works, accountant close vs viewer 403. Test gotcha: `POST
+    /journals` only creates a DRAFT (store never posts) — the helper must ALSO hit
+    `journals.post` before balances exist.
 
 - **Aliases in `bootstrap/app.php`**: `'permission' => EnsurePermission::class`; Inertia header
   middleware appended to the `web` group.

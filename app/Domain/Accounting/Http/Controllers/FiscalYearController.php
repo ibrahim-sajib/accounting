@@ -84,26 +84,22 @@ class FiscalYearController
 
     public function close(Request $request, FiscalYear $fiscalYear): RedirectResponse
     {
-        if ($fiscalYear->is_active) {
-            return back()->with('error', 'Close the active fiscal year after creating a new one first.');
+        try {
+            app(\App\Domain\Accounting\Services\FiscalYearClosingService::class)->close($fiscalYear);
+        } catch (\App\Domain\Accounting\Exceptions\FiscalYearClosingException $e) {
+            return back()->with('error', $e->getMessage());
         }
 
-        $fiscalYear->update(['status' => FiscalYearStatus::Closed->value]);
-
-        $fiscalYear->periods()
-            ->where('status', \App\Support\Enums\PeriodStatus::Open->value)
-            ->update(['status' => \App\Support\Enums\PeriodStatus::Closed->value]);
-
-        \App\Domain\Audit\Services\AuditLogger::log('fiscal_year', 'close', null, $fiscalYear->id, [], ['status' => 'closed'], $fiscalYear->company_id);
-
-        return back()->with('success', 'Fiscal year closed.');
+        return back()->with('success', 'Fiscal year closed. Net income closed to retained earnings.');
     }
 
     public function reopen(Request $request, FiscalYear $fiscalYear): RedirectResponse
     {
-        $fiscalYear->update(['status' => FiscalYearStatus::Open->value]);
-
-        \App\Domain\Audit\Services\AuditLogger::log('fiscal_year', 'reopen', null, $fiscalYear->id, [], ['status' => 'open'], $fiscalYear->company_id);
+        try {
+            app(\App\Domain\Accounting\Services\FiscalYearClosingService::class)->reopen($fiscalYear);
+        } catch (\App\Domain\Accounting\Exceptions\FiscalYearClosingException $e) {
+            return back()->with('error', $e->getMessage());
+        }
 
         return back()->with('success', 'Fiscal year reopened.');
     }

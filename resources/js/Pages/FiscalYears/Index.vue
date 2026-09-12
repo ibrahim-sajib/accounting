@@ -21,6 +21,7 @@ interface FiscalYear {
 const page = usePage();
 const canCreate = computed(() => page.props.auth.permissions.includes('fiscal_year.create') || page.props.auth.user.is_super_admin);
 const canClose = computed(() => page.props.auth.permissions.includes('fiscal_year.close') || page.props.auth.user.is_super_admin);
+const canReopen = computed(() => page.props.auth.permissions.includes('fiscal_year.reopen') || page.props.auth.user.is_super_admin);
 
 defineProps<{
     fiscalYears: {
@@ -31,8 +32,14 @@ defineProps<{
 }>();
 
 const closeYear = (fiscalYear: FiscalYear) => {
-    if (confirm(`Close fiscal year ${fiscalYear.name}? All remaining periods will be closed.`)) {
+    if (confirm(`Close fiscal year ${fiscalYear.name}? All periods must be closed first. Net income will be closed to retained earnings and balances carried to the next year.`)) {
         router.post(route('fiscal-years.close', fiscalYear.id), {}, { preserveScroll: true });
+    }
+};
+
+const reopenYear = (fiscalYear: FiscalYear) => {
+    if (confirm(`Reopen fiscal year ${fiscalYear.name}? This lets you post adjustments into its closed periods.`)) {
+        router.post(route('fiscal-years.reopen', fiscalYear.id), {}, { preserveScroll: true });
     }
 };
 </script>
@@ -106,6 +113,14 @@ const closeYear = (fiscalYear: FiscalYear) => {
                                         @click="closeYear(fiscalYear)"
                                     >
                                         Close
+                                    </button>
+                                    <button
+                                        v-if="canReopen && fiscalYear.status === 'closed'"
+                                        type="button"
+                                        class="text-xs font-medium text-amber-600 hover:text-amber-800 dark:text-amber-400"
+                                        @click="reopenYear(fiscalYear)"
+                                    >
+                                        Reopen
                                     </button>
                                 </div>
                             </td>
