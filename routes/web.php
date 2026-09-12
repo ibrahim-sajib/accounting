@@ -32,6 +32,7 @@ use App\Domain\Product\Http\Controllers\ProductController;
 use App\Domain\Rbac\Http\Controllers\RoleController;
 use App\Domain\Rbac\Http\Controllers\UserController;
 use App\Domain\Receivables\Http\Controllers\ReceivableController;
+use App\Domain\Report\Http\Controllers\ReportController;
 use App\Domain\Sales\Http\Controllers\SalesInvoiceController;
 use App\Domain\Purchase\Http\Controllers\PurchaseBillController;
 use App\Domain\Settings\Http\Controllers\SystemSettingController;
@@ -578,6 +579,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
         ->name('budgets.post');
     Route::middleware('permission:budget.delete')->delete('/budgets/{budget}', [BudgetController::class, 'destroy'])
         ->name('budgets.destroy');
+
+    Route::middleware('permission:report.view')->get('/reports', [ReportController::class, 'index'])
+        ->name('reports.index');
     Route::middleware('permission:payroll.update')->put('/payroll/designations/{designation}', [DesignationController::class, 'update'])
         ->name('payroll.designations.update');
     Route::middleware('permission:payroll.delete')->delete('/payroll/designations/{designation}', [DesignationController::class, 'destroy'])

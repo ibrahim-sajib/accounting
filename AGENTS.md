@@ -749,6 +749,38 @@ Safe to rename a migration's column BEFORE it has run in MySQL (SQLite runs from
     `lines[].budgeted_amount` null → `'0'` (§1.16).
   - **Permission note**: budget lines/variance pages render for viewer too (`budget.view`); only
     mutations are gated.
+- **Phase 8a domain added (Accounting Reports — module 24)**: `app/Domain/Report/` holds just
+  `ReportService` + `ReportController` — NO new tables (reports are read-only query layers over
+  `journal_line`/`journal` per the arch doc's "not modules with source-of-truth tables" rule).
+  `Pages/Report/Index.vue` renders BOTH reports behind tab buttons (General Ledger | Trial Balance)
+  that re-issue `router.get(route('reports.index'), {report, fiscal_year_id, period_id/account_id})`.
+  - **Range resolution**: `ReportService::filters()` picks the most-recent fiscal year when none is
+    chosen, then a single period if `period_id` belongs to it, else the whole FY. `from`/`to` fall
+    back to the FY dates. **Gotcha**: the `->get(['id','name','fiscal_year_id', ...])` column list
+    MUST include `start_date`/`end_date` on the periods select or `$period->start_date` is null →
+    `Call to a member function toDateString() on null` on the very first period-filtered request
+    (plain /reports passes because a null period falls through to the FY dates — only the period
+    path blows up). TDD caught this, not the nav pass.
+  - **GL running balance** carries the account's balance from the FY start into the report window
+    (`priorBalances()` sums posted lines from `fy.start_date` to `from − 1 day`) and per-account
+    `summary` (debit/credit/net/closing) + report-wide `totals`. Entries sorted by journal_date then
+    journal_id; the Vue page groups rows under account subheader rows client-side (`ledgerRows`
+    computed mixing `{kind:'header'}` + `{kind:'entry'}` — never render `<template v-for>` with a
+    stray empty `<tr>` + invented props like `$nextIndex`).
+  - **Trial balance** is classic two-column: each account's NET balance goes on its normal side
+    (asset/expense → Debit column, where a credit-heavy asset shows a NEGATIVE debit; liability/
+    equity/income → Credit column); `balanced` = |debit − credit| < 0.01 (the arch doc's "trial
+    balance sums to zero" invariant); footer totals row. Draft journals are excluded (status=posted
+    filter only) — asserted in both GL and TB.
+  - **Permissions/UI**: reuses the pre-seeded `report` module (`view|export`; accountant `report.*`,
+    viewer `report.view`) — no seeder change. Route base `reports` → GET `/reports` only
+    (`reports.index`, `permission:report.view`). Sidebar gained a **Reporting** group (label
+    `Reports`, icon `report` added to `AppIcon`) placed after Budget, before Transactions (later
+    phases add Statements + the real Dashboard to this group). Breadcrumb label `reports: 'Reports'`.
+    `ReportController::index()` switches on `?report=general-ledger|trial-balance` (default GL) and
+    merges only the matching payload — the Vue props diverge by tab (`filters`/`accounts`/`entries`/
+    `summary`/`totals` vs `filters`/`rows`/`totals`/`balanced`), so the component props must be
+    optional and the template branches on the `report` prop.
 - **Aliases in `bootstrap/app.php`**: `'permission' => EnsurePermission::class`; Inertia header
   middleware appended to the `web` group.
 - **Vue page patterns**:

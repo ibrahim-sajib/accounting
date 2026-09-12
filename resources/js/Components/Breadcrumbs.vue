@@ -48,6 +48,7 @@ const MODULE_LABELS: Record<string, string> = {
     'asset-categories': 'Asset Categories',
     payroll: 'Payroll',
     budgets: 'Budgets',
+    reports: 'Reports',
     profile: 'Profile',
 };
 
