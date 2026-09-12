@@ -63,6 +63,14 @@ class HandleInertiaRequests extends Middleware
             'companies' => $user
                 ? $this->listAccessibleCompanies($user)
                 : [],
+            'notifications' => $user
+                ? [
+                    'unread_count' => $user->notifications()
+                        ->whereNull('read_at')
+                        ->where('data->company_id', $companyId)
+                        ->count(),
+                ]
+                : ['unread_count' => 0],
             'flash' => [
                 'success' => fn () => $request->session()->get('success'),
                 'error' => fn () => $request->session()->get('error'),

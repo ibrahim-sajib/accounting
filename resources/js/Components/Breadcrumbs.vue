@@ -53,6 +53,7 @@ const MODULE_LABELS: Record<string, string> = {
     approvals: 'Approvals',
     'approval-workflows': 'Approval Workflows',
     audit: 'Audit Log',
+    notifications: 'Notifications',
     profile: 'Profile',
 };
 

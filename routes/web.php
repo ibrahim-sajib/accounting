@@ -6,6 +6,7 @@ use App\Domain\Accounting\Http\Controllers\AccountController;
 use App\Domain\Approval\Http\Controllers\ApprovalController;
 use App\Domain\Approval\Http\Controllers\ApprovalWorkflowController;
 use App\Domain\Audit\Http\Controllers\AuditController;
+use App\Domain\Notification\Http\Controllers\NotificationController;
 use App\Domain\Accounting\Http\Controllers\FiscalYearController;
 use App\Domain\Accounting\Http\Controllers\JournalController;
 use App\Domain\Accounting\Http\Controllers\OpeningBalanceController;
@@ -609,6 +610,14 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
     Route::middleware('permission:audit.view')->get('/audit', [AuditController::class, 'index'])
         ->name('audit.index');
+
+    // Notifications (module 28) — personal in-app center fed by approval events.
+    Route::get('/notifications', [NotificationController::class, 'index'])
+        ->name('notifications.index');
+    Route::post('/notifications/read-all', [NotificationController::class, 'readAll'])
+        ->name('notifications.read-all');
+    Route::post('/notifications/{notification}/read', [NotificationController::class, 'read'])
+        ->name('notifications.read');
     Route::middleware('permission:payroll.update')->put('/payroll/designations/{designation}', [DesignationController::class, 'update'])
         ->name('payroll.designations.update');
     Route::middleware('permission:payroll.delete')->delete('/payroll/designations/{designation}', [DesignationController::class, 'destroy'])

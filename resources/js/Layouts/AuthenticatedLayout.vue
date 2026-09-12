@@ -12,6 +12,7 @@ const user = computed(() => page.props.auth.user);
 const currentCompany = computed(() => page.props.current_company);
 const companies = computed(() => page.props.companies ?? []);
 const permissions = computed(() => page.props.auth.permissions ?? []);
+const unreadNotifications = computed(() => page.props.notifications?.unread_count ?? 0);
 
 const can = (slug: string) => permissions.value.includes(slug) || user.value?.is_super_admin;
 
@@ -150,6 +151,7 @@ const navGroups = computed(() => [
             { label: 'Approvals', routeName: 'approvals.index', icon: 'approval', permission: 'approval.view' },
             { label: 'Approval Workflows', routeName: 'approval-workflows.index', icon: 'workflow', permission: 'approval.view' },
             { label: 'Audit Log', routeName: 'audit.index', icon: 'audit', permission: 'audit.view' },
+            { label: 'Notifications', routeName: 'notifications.index', icon: 'bell' },
         ],
     },
 ]);
@@ -270,6 +272,19 @@ const isActive = (routeName: string) => {
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
                         </svg>
                     </button>
+
+                    <!-- Notifications -->
+                    <Link
+                        :href="route('notifications.index')"
+                        class="relative rounded-lg p-2 text-gray-500 hover:bg-gray-100 hover:text-gray-700 dark:text-gray-300 dark:hover:bg-gray-800"
+                        :title="'Notifications'"
+                    >
+                        <AppIcon name="bell" class="h-5 w-5" />
+                        <span
+                            v-if="unreadNotifications > 0"
+                            class="absolute -right-0.5 -top-0.5 inline-flex h-4 min-w-4 items-center justify-center rounded-full bg-red-600 px-1 text-[10px] font-bold text-white"
+                        >{{ unreadNotifications > 9 ? '9+' : unreadNotifications }}</span>
+                    </Link>
 
                     <!-- Company switcher -->
                     <Dropdown v-if="companies.length" align="right" width="48">

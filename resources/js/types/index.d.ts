@@ -27,6 +27,9 @@ auth: {
         status: string;
         currency_code: string | null;
     }[];
+    notifications: {
+        unread_count: number;
+    };
     flash: {
         success?: string;
         error?: string;

@@ -5,6 +5,7 @@ namespace App\Domain\Approval\Services;
 use App\Domain\Approval\Exceptions\ApprovalException;
 use App\Domain\Approval\Models\ApprovalRequest;
 use App\Domain\Approval\Models\ApprovalWorkflow;
+use App\Domain\Notification\Services\NotificationService;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Collection;
@@ -87,7 +88,7 @@ class ApprovalWorkflowService
             return $latest->isPending() ? $latest : null;
         }
 
-        return ApprovalRequest::query()->create([
+        $request = ApprovalRequest::query()->create([
             'company_id' => $companyId,
             'module' => $module,
             'approvable_type' => $approvable->getMorphClass(),
@@ -98,6 +99,10 @@ class ApprovalWorkflowService
             'current_step' => 1,
             'total_steps' => $chain->count(),
         ]);
+
+        NotificationService::notifyApprovers($request);
+
+        return $request;
     }
 
     public function approverCan(ApprovalRequest $request, User $user): bool
@@ -148,6 +153,10 @@ class ApprovalWorkflowService
             }
 
             $request->save();
+
+            if ($request->status === 'approved') {
+                NotificationService::notifyRequester($request);
+            }
         });
 
         return $request->fresh();
@@ -170,6 +179,8 @@ class ApprovalWorkflowService
             $request->reject_reason = $reason;
             $request->save();
         });
+
+        NotificationService::notifyRequester($request->fresh());
 
         return $request->fresh();
     }

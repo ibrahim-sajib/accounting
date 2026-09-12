@@ -891,6 +891,31 @@ Safe to rename a migration's column BEFORE it has run in MySQL (SQLite runs from
     viewer). Sidebar **Governance** gained `Audit Log` (base `audit`, active-state unique);
     breadcrumb `audit: 'Audit Log'`; `AppIcon` gained `audit` (magnifier). Tests (Phase9bCoreTest,
     5 tests) cover render + module/action filters + diff shape + viewer-allowed/plain-user-403.
+- **Phase 9c domain added (Notifications — module 28)**: `app/Domain/Notification/` holds
+  `Notifications/{DocumentNeedsApproval,ApprovalDecision}.php` (database channel; `data` carries
+  `company_id`, `category`, `title`, `body`, `approvals_url`) and `Services/NotificationService.php`
+  (`notifyApprovers()` / `notifyRequester()`). Uses Laravel's stock `notifications` table via the
+  `Notifiable` trait's `HasDatabaseNotifications` — migration `2026_10_06_100011_create_notifications_table.php`.
+  No `Notification` model is needed below `DatabaseNotification` (type-hint it in controllers for
+  route-model binding). Scope by `data->company_id` (JSON column) on every read.
+  - **Wiring**: `ApprovalWorkflowService::submitForApproval()` notifies approvers after creating a
+    PENDING request; `approve()` notifies the requester ONLY when the chain reaches final `approved`;
+    `reject()` always notifies. Read paths are personal+company-scoped: `read()` 403s unless the
+    notification belongs to the acting user, `readAll()` marks only rows whose `company_id` data
+    matches the active company.
+  - **§1.21 redux — never `wherePivot` inside `whereHas`**: `User::whereHas('roles', fn ($q) =>
+    $q->where('roles.id', $id)->wherePivot('company_id', $cid))` silently selects ZERO users (the
+    constraint builder offers no pivot) → approvers never get notified while all tests for the
+    posting gate stay green. The pivot table `user_roles` is a plain table — query it directly:
+    `UserRole::where('role_id', $id)->where('company_id', $cid)->pluck('user_id')` and merge.
+  - **Permissions/UI**: no permission change (notifications are personal). Routes `notifications.index|
+    read|read-all` (no permission gate — any authenticated user). Topbar **bell** (`AppIcon` `bell`)
+    with an unread-count badge (9+ cap) links to the index; Sidebar **Governance** gained
+    `Notifications`; breadcrumb `notifications: 'Notifications'`; shared prop
+    `notifications.unread_count` added to `PageProps` (`resources/js/types/index.d.ts`).
+    `Pages/Notifications/Index.vue` lists company-scoped rows (unread dot, category `StatusBadge`,
+    click-to-read, Mark all as read). Tests (Phase9cCoreTest, 5 tests) cover approver/requester
+    notice, page render + unread count, read, and company-scoped read-all.
 
 - **Aliases in `bootstrap/app.php`**: `'permission' => EnsurePermission::class`; Inertia header
   middleware appended to the `web` group.
