@@ -5,6 +5,7 @@ use App\Domain\Accounting\Http\Controllers\AccountingSettingController;
 use App\Domain\Accounting\Http\Controllers\AccountController;
 use App\Domain\Approval\Http\Controllers\ApprovalController;
 use App\Domain\Approval\Http\Controllers\ApprovalWorkflowController;
+use App\Domain\Audit\Http\Controllers\AuditController;
 use App\Domain\Accounting\Http\Controllers\FiscalYearController;
 use App\Domain\Accounting\Http\Controllers\JournalController;
 use App\Domain\Accounting\Http\Controllers\OpeningBalanceController;
@@ -605,6 +606,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
         ->name('approval-workflows.update');
     Route::middleware('permission:approval.configure')->delete('/approval-workflows/{workflow}', [ApprovalWorkflowController::class, 'destroy'])
         ->name('approval-workflows.destroy');
+
+    Route::middleware('permission:audit.view')->get('/audit', [AuditController::class, 'index'])
+        ->name('audit.index');
     Route::middleware('permission:payroll.update')->put('/payroll/designations/{designation}', [DesignationController::class, 'update'])
         ->name('payroll.designations.update');
     Route::middleware('permission:payroll.delete')->delete('/payroll/designations/{designation}', [DesignationController::class, 'destroy'])

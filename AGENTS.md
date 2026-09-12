@@ -874,6 +874,23 @@ Safe to rename a migration's column BEFORE it has run in MySQL (SQLite runs from
     a NEW request (`requestFor()` helper must use `latest('id')` — `firstOrFail` picks the stale
     rejected row), multi-step chain advances step-by-step, below-threshold posts without a request,
     viewer can view but `POST approve` 403s, configure permission enforced (360-nav green 12/12).
+- **Phase 9b domain added (Audit UI — module 26)**: `AuditController` in the EXISTING
+  `app/Domain/Audit/` (tables + `AuditLogger` existed from Phase 1/2; this phase renders the
+  append-only log). Route `GET /audit` (`audit.index`, `permission:audit.view`); `Pages/Audit/Index.vue`
+  with module/action/date/free-text filters (`router.get(route('audit.index'), {preserveState})`),
+  dense table (When/User/Module/Action/Record/IP/Changes) + a details Modal with a per-field
+  Before/After diff AND raw old/new JSON `<pre>` blocks.
+  - **Server-side diff** (`AuditController::diff()`): compares `old_values`/`new_values` arrays,
+    drops `created_at/updated_at/deleted_at`, emits up to 8 `{field, old, new}` rows (values shortened
+    to 120 chars); the modal still needs the RAW `old_values`/`new_values` in the Inertia prop too —
+    the page renders `json(row).old/new`. Without the raw arrays the modal JSON would be empty.
+  - **Ordering gotcha in tests**: `logs` list is `orderByDesc('id')` — the row expected at
+    `logs.data.1` in a test is NOT the second *created* entry; data is newest-first, so assert
+    against the correct index (the customer-update sample ends at index 2 after 4 seeded logs).
+  - **Permissions/UI**: no seeder or migration change (`audit.view` already granted to accountant +
+    viewer). Sidebar **Governance** gained `Audit Log` (base `audit`, active-state unique);
+    breadcrumb `audit: 'Audit Log'`; `AppIcon` gained `audit` (magnifier). Tests (Phase9bCoreTest,
+    5 tests) cover render + module/action filters + diff shape + viewer-allowed/plain-user-403.
 
 - **Aliases in `bootstrap/app.php`**: `'permission' => EnsurePermission::class`; Inertia header
   middleware appended to the `web` group.

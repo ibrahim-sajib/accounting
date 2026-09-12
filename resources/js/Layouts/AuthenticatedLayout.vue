@@ -149,6 +149,7 @@ const navGroups = computed(() => [
         items: [
             { label: 'Approvals', routeName: 'approvals.index', icon: 'approval', permission: 'approval.view' },
             { label: 'Approval Workflows', routeName: 'approval-workflows.index', icon: 'workflow', permission: 'approval.view' },
+            { label: 'Audit Log', routeName: 'audit.index', icon: 'audit', permission: 'audit.view' },
         ],
     },
 ]);

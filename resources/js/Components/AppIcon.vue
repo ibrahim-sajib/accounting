@@ -50,6 +50,7 @@ const paths: Record<string, string> = {
     statement: 'M4 4v16h16M8 14v4m4-8v8m4-3v3M4 9h16',
     approval: 'M9 12l2 2 4-4M12 3l7 3v5c0 4.97-3 8.35-7 9.87C8 19.35 5 15.97 5 11V6l7-3z',
     workflow: 'M4 5h5v5H4V5zm11 9h5v5h-5v-5zM9 7.5h5m0 0a2.5 2.5 0 01-2.5 2.5H11a2 2 0 00-2 2m6-4.5a2.5 2.5 0 012.5 2.5v1m0 0H9',
+    audit: 'M21 21l-4.35-4.35M17 11a6 6 0 11-12 0 6 6 0 0112 0zM8 11h6m-3-3v6',
 };
 
 const d = computed(() => paths[props.name] ?? '');
