@@ -15,6 +15,8 @@ use App\Domain\Company\Http\Controllers\CompanyController;
 use App\Domain\Currency\Http\Controllers\CurrencyController;
 use App\Domain\Expense\Http\Controllers\ExpenseCategoryController;
 use App\Domain\Expense\Http\Controllers\ExpenseController;
+use App\Domain\FixedAsset\Http\Controllers\AssetCategoryController;
+use App\Domain\FixedAsset\Http\Controllers\FixedAssetController;
 use App\Domain\Inventory\Http\Controllers\StockAdjustmentController;
 use App\Domain\Inventory\Http\Controllers\StockController;
 use App\Domain\Inventory\Http\Controllers\StockTransferController;
@@ -482,6 +484,37 @@ Route::middleware(['auth', 'verified'])->group(function () {
         ->name('expenses.post');
     Route::middleware('permission:expense.delete')->delete('/expenses/{expense}', [ExpenseController::class, 'destroy'])
         ->name('expenses.destroy');
+
+    // Fixed Assets (module 21) — categories/run-depreciation must precede /{fixed_asset}.
+    Route::middleware('permission:fixed_asset.view')->get('/fixed-assets', [FixedAssetController::class, 'index'])
+        ->name('fixed-assets.index');
+    Route::middleware('permission:fixed_asset.view')->get('/fixed-assets/categories', [AssetCategoryController::class, 'index'])
+        ->name('asset-categories.index');
+    Route::middleware('permission:fixed_asset.create')->post('/fixed-assets/categories', [AssetCategoryController::class, 'store'])
+        ->name('asset-categories.store');
+    Route::middleware('permission:fixed_asset.update')->put('/fixed-assets/categories/{category}', [AssetCategoryController::class, 'update'])
+        ->name('asset-categories.update');
+    Route::middleware('permission:fixed_asset.delete')->delete('/fixed-assets/categories/{category}', [AssetCategoryController::class, 'destroy'])
+        ->name('asset-categories.destroy');
+    Route::middleware('permission:fixed_asset.depreciate')->post('/fixed-assets/run-depreciation', [FixedAssetController::class, 'depreciate'])
+        ->name('fixed-assets.depreciate');
+
+    Route::middleware('permission:fixed_asset.create')->get('/fixed-assets/create', [FixedAssetController::class, 'create'])
+        ->name('fixed-assets.create');
+    Route::middleware('permission:fixed_asset.create')->post('/fixed-assets', [FixedAssetController::class, 'store'])
+        ->name('fixed-assets.store');
+    Route::middleware('permission:fixed_asset.view')->get('/fixed-assets/{asset}', [FixedAssetController::class, 'show'])
+        ->name('fixed-assets.show');
+    Route::middleware('permission:fixed_asset.update')->get('/fixed-assets/{asset}/edit', [FixedAssetController::class, 'edit'])
+        ->name('fixed-assets.edit');
+    Route::middleware('permission:fixed_asset.update')->put('/fixed-assets/{asset}', [FixedAssetController::class, 'update'])
+        ->name('fixed-assets.update');
+    Route::middleware('permission:fixed_asset.update')->post('/fixed-assets/{asset}/capitalize', [FixedAssetController::class, 'capitalize'])
+        ->name('fixed-assets.capitalize');
+    Route::middleware('permission:fixed_asset.delete')->post('/fixed-assets/{asset}/dispose', [FixedAssetController::class, 'dispose'])
+        ->name('fixed-assets.dispose');
+    Route::middleware('permission:fixed_asset.delete')->delete('/fixed-assets/{asset}', [FixedAssetController::class, 'destroy'])
+        ->name('fixed-assets.destroy');
 
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');

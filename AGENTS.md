@@ -579,6 +579,62 @@ Safe to rename a migration's column BEFORE it has run in MySQL (SQLite runs from
     `ExpenseCategorySeeder` seeds Rent/Utilities/Salaries/Office Supplies/Travel → COA leaves
     5121/5131/5111/5141/5142 (wired into `DatabaseSeeder` + `provisionDefaults`);
     in-use categories deactivate instead of delete.
+- **Phase 7a domain added (Fixed Assets — module 21)**: `app/Domain/FixedAsset/` holds
+  `AssetCategory` (+table `asset_categories`), `FixedAsset` (+table `fixed_assets`),
+  `DepreciationEntry` (+table `depreciation_entries`, unique `(fixed_asset_id, period_id)`),
+  `AssetDisposal` (+table `asset_disposals`), `FixedAssetService`,
+  `FixedAssetController`/`AssetCategoryController`, the form requests
+  (`FixedAssetRequest`/`AssetCategoryRequest`/`FixedAssetDisposeRequest`/`DepreciationRunRequest`),
+  `FixedAssetPostingException`, and enums `DepreciationMethod` (`straight_line|declining_balance`),
+  `AssetStatus` (`draft|active|disposed`), `AssetPaymentMethod` (`cash|bank|payable`).
+  Scope: asset register with categories (one set of asset/accum-dep/dep-expense accounts + default
+  method/life per category), capitalize-on-posting, scheduled depreciation (batch, per open period),
+  and disposal. No asset revaluation/impairment/partial-disposal yet.
+  - **Lifecycle**: drafts are register-only (edit/delete allowed); `capitalize()` posts the acquisition
+    journal (`source_type=capitalization`, prefix **FA**, number `FA-{year}-%04d`) and flips
+    `status=active`. `runDepreciation()` posts ONE batch DEP journal per period (`source_type=depreciation`,
+    prefix **DEP**) with 2 lines per active asset **not already booked** for that period (idempotent via the
+    `(fixed_asset_id, period_id)` unique key) — Dep Expense Dr | Accumulated Dep Cr; amounts use the asset's
+    current method: SL = cost/life, DB = book × (2/life) capped at book. `dispose()` posts
+    `source_type=asset_disposal` (prefix **DSP**): Cash Dr (proceeds) + Accumulated Dep Dr | Fixed Asset Cr
+    (cost) + Gain Cr / Loss Dr; requires an **active** asset; proceeds cash account defaults to the first
+    active cash account; gain/loss auto-derived (postable-leaf Gauss/Loss accounts MUST exist).
+  - **Don't forget**: each journal `source_type` needs a `JournalSourceType` case (label + prefix) because
+    `nextJournalNumber()` calls `JournalSourceType::from($sourceType)` (§1.18). Added
+    `capitalization` ('Asset Acquisition', FA) and `asset_disposal` ('Asset Disposal', DSP);
+    `depreciation` (DEP) already existed.
+  - **The `journal_date` for the DEP batch = `period->end_date`**; acquisition journal date = acquisition
+    date. **Route model binding**: route param name MUST equal the controller method's variable name —
+    routes were written as `/fixed-assets/{fixed_asset}` while the controller typed `FixedAsset $asset`;
+    implicit binding fails so the arg resolves to a fresh empty model and every capitalized/dispose/dep
+    POST 404s in the SPA. Use `{asset}` when the arg is `$asset` (this bit every `POST /fixed-assets/{id}/…`
+    sub-action; the standalone `/{fixed_asset}` word-vs-arg mismatch is a silent 404 trap).
+  - **Vue gotcha (unrelated but hit in nav)**: asserting rendered text via `document.body.innerText` misses
+    text inside certain overflow/transitioning containers, while the same string IS in `textContent` and
+    `outerHTML` — for SPA content assertions prefer `textContent` over `innerText` in the headless pass.
+  - **DepreciationRunRequest** validates `period_id` with a plain `exists:accounting_periods,id` rule —
+    `Rule::exists(...)->where(fn)`, `->whereHas(...)`, and closures in `where()` all blow up
+    (`str_replace(): Argument #3 ($subject) must be of type array|string, Closure given` / unknown
+    `whereHas` on `Exists`). The service scopes the period by company instead.
+  - **Permissions**: `fixed_asset` module (`view|create|update|delete|depreciate`) was already in
+    `PermissionSeeder`; RoleSeeder grants accountant `fixed_asset.*`, viewer `fixed_asset.view`.
+    Route map: create register+category store; update edit/capitalize; delete draft-destroy/dispose/category
+    delete; depreciate run-depreciation. `Store` returns `redirect()->route('fixed-assets.show', $asset)`.
+  - **COA/seeders**: `ChartOfAccountsSeeder` gained postable leaves **4213 Gain on Disposal of Fixed
+    Assets** (under 4210) and **5193 Loss on Disposal of Fixed Assets** (under 5190).
+    `AssetCategorySeeder` seeds Buildings & Structures (1212/1221/5151/SL/240), Machinery & Equipment
+    (1213/1222/5151/SL/60), Furniture, Fixtures & Computers (1214/1223/5151/SL/36), Vehicles
+    (1215/1224/5151/SL/60) — wired into `DatabaseSeeder` + `provisionDefaults`.
+  - **UI**: `Pages/FixedAssets/{Index,Create,Edit,Show,Categories,AssetForm}.vue`. Index has a
+    `Run Depreciation` bar (`#dep_period`) posting `fixed-assets.depreciate` + status/category filters.
+    Show links to the FA/asset journal (`Journals/Show.vue` gained `capitalization|depreciation|
+    asset_disposal` labels + "View Asset" source links); Show computes accumulated/book value client-side
+    and renders a future depreciation schedule. AppIcon gained `asset`; StatusBadge gained `disposed`.
+    Breadcrumbs `fixed-assets: 'Fixed Assets'`/`asset-categories: 'Asset Categories'`.
+  - **Test gotchas in Phase7aCoreTest**: helpers that persist assets DIRECTLY must include `company_id`
+    (CREATE doesn't inherit it); posting-only aspirations are NOT satisfied by
+    capitalizing + then asserting the draft is postable — exercise the real endpoints. `DepreciationRun
+    POST` returns a flash `error` (not a field error) when the service rejects.
 - **Aliases in `bootstrap/app.php`**: `'permission' => EnsurePermission::class`; Inertia header
   middleware appended to the `web` group.
 - **Vue page patterns**:

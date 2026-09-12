@@ -25,6 +25,7 @@ const colorMap: Record<string, string> = {
     partial: 'bg-amber-100 text-amber-700 dark:bg-amber-900/50 dark:text-amber-300',
     unpaid: 'bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-300',
     overdue: 'bg-red-100 text-red-700 dark:bg-red-900/50 dark:text-red-300',
+    disposed: 'bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-300',
 };
 
 const cls = computed(() => {

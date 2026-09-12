@@ -119,6 +119,7 @@ class ChartOfAccountsSeeder extends Seeder
                     ['code' => '4210', 'name' => 'Interest & Other Income', 'children' => [
                         ['code' => '4211', 'name' => 'Interest Income'],
                         ['code' => '4212', 'name' => 'Miscellaneous Income'],
+                        ['code' => '4213', 'name' => 'Gain on Disposal of Fixed Assets'],
                     ]],
                 ]],
             ],
@@ -156,6 +157,7 @@ class ChartOfAccountsSeeder extends Seeder
                     ]],
                     ['code' => '5190', 'name' => 'Bad Debt Expense', 'children' => [
                         ['code' => '5191', 'name' => 'Bad Debt Expense'],
+                        ['code' => '5193', 'name' => 'Loss on Disposal of Fixed Assets'],
                     ]],
                 ]],
                 ['code' => '5200', 'name' => 'Cost of Goods Sold', 'children' => [

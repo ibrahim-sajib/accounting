@@ -18,6 +18,8 @@ enum JournalSourceType: string
     case Bank = 'bank';
     case Expense = 'expense';
     case Depreciation = 'depreciation';
+    case Capitalization = 'capitalization';
+    case AssetDisposal = 'asset_disposal';
     case Payroll = 'payroll';
     case Closing = 'closing';
 
@@ -38,6 +40,8 @@ enum JournalSourceType: string
             self::Bank => 'Bank',
             self::Expense => 'Expense',
             self::Depreciation => 'Depreciation',
+            self::Capitalization => 'Asset Acquisition',
+            self::AssetDisposal => 'Asset Disposal',
             self::Payroll => 'Payroll',
             self::Closing => 'Year-End Closing',
         };
@@ -58,6 +62,8 @@ enum JournalSourceType: string
             self::Bank => 'CBT',
             self::Expense => 'EXP',
             self::Depreciation => 'DEP',
+            self::Capitalization => 'FA',
+            self::AssetDisposal => 'DSP',
             self::Payroll => 'PYR',
             self::Closing => 'YEC',
             default => 'GJ',

@@ -23,6 +23,7 @@ class DatabaseSeeder extends Seeder
             AccountingSettingSeeder::class,
             MasterDataSeeder::class,
             ExpenseCategorySeeder::class,
+            AssetCategorySeeder::class,
         ]);
     }
 }

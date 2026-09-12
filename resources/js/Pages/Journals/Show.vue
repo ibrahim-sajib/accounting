@@ -73,6 +73,10 @@ const deleteJournal = () => {
 };
 
 const sourceLink = computed(() => {
+    if ((j.value.source_type === 'capitalization' || j.value.source_type === 'depreciation' || j.value.source_type === 'asset_disposal') && j.value.source_id) {
+        return { label: 'View Asset', href: route('fixed-assets.show', j.value.source_id) };
+    }
+
     if (j.value.source_type === 'sales_invoice' && j.value.source_id) {
         return { label: 'View Invoice', href: route('sales.invoices.show', j.value.source_id) };
     }
@@ -107,6 +111,9 @@ const sourceTypeLabel: Record<string, string> = {
     payment_application: 'Advance Applied',
     stock_adjustment: 'Stock Adjustment',
     write_off: 'Receivable Write-off',
+    capitalization: 'Asset Acquisition',
+    depreciation: 'Depreciation',
+    asset_disposal: 'Asset Disposal',
 };
 </script>
 

@@ -113,6 +113,12 @@ const navGroups = computed(() => [
         ],
     },
     {
+        label: 'Fixed Assets',
+        items: [
+            { label: 'Fixed Assets', routeName: 'fixed-assets.index', icon: 'asset', permission: 'fixed_asset.view' },
+        ],
+    },
+    {
         label: 'Transactions',
         items: [
             { label: 'Journals', routeName: 'journals.index', icon: 'journal', permission: 'journal.view' },
