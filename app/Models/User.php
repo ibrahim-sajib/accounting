@@ -27,6 +27,7 @@ class User extends Authenticatable
     protected $fillable = [
         'name',
         'email',
+        'email_verified_at',
         'password',
         'company_id',
         'is_super_admin',
@@ -116,7 +117,11 @@ class User extends Authenticatable
             return false;
         }
 
-        return Permission::query()
+        // RBAC lives on the control-plane; tenants only mirror it. Read from
+        // there even when the request's default connection is a tenant DB.
+        $platform = app(\App\Domain\Tenant\Services\TenantManager::class)->platformConnection();
+
+        return Permission::on($platform)
             ->join('role_permissions', function ($join) use ($roleIds) {
                 $join->on('role_permissions.permission_id', '=', 'permissions.id')
                     ->whereIn('role_permissions.role_id', $roleIds);

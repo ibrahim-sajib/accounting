@@ -58,9 +58,14 @@ class UserController
             'company_id' => $request->input('company_id') ?? current_company_id(),
             'status' => $request->input('status', 'active'),
             'is_super_admin' => false,
+            // No mailer round-trip in this product; accounts are usable
+            // immediately.
+            'email_verified_at' => now(),
         ]);
 
         $this->syncAccess($user, $request);
+
+        app(\App\Domain\Tenant\Services\TenantManager::class)->syncUser($user);
 
         \App\Domain\Audit\Services\AuditLogger::log('user', 'create', null, $user->id, [], $user->toArray(), $user->company_id);
 
@@ -105,6 +110,8 @@ class UserController
         }
 
         $this->syncAccess($user, $request);
+
+        app(\App\Domain\Tenant\Services\TenantManager::class)->syncUser($user);
 
         \App\Domain\Audit\Services\AuditLogger::log('user', 'update', null, $user->id, $old, $user->toArray(), $user->company_id);
 

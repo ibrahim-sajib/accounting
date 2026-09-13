@@ -3,6 +3,7 @@
 namespace App\Http\Middleware;
 
 use App\Domain\Company\Models\Company;
+use App\Domain\Tenant\Services\TenantManager;
 use Illuminate\Http\Request;
 use Inertia\Middleware;
 
@@ -33,7 +34,10 @@ class HandleInertiaRequests extends Middleware
         $user = $request->user();
         $companyId = session('active_company_id');
 
-        $company = $companyId ? Company::query()->find($companyId) : null;
+        // The registry of accessible companies and the current company's profile
+        // always live on the control-plane, not inside a tenant database.
+        $platform = app(TenantManager::class)->platformConnection();
+        $company = $companyId ? Company::on($platform)->find($companyId) : null;
 
         return [
             ...parent::share($request),
@@ -80,8 +84,10 @@ class HandleInertiaRequests extends Middleware
 
     private function listAccessibleCompanies($user): array
     {
+        $platform = app(TenantManager::class)->platformConnection();
+
         if ($user->is_super_admin) {
-            return Company::query()
+            return Company::on($platform)
                 ->orderBy('name')
                 ->get(['id', 'name', 'status', 'currency_code'])
                 ->map(fn ($company) => [

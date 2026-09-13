@@ -1118,11 +1118,28 @@ Safe to rename a migration's column BEFORE it has run in MySQL (SQLite runs from
     accounts, 2 tax types, 2 fiscal years, 6 currencies, 5 expense categories, 4 asset categories,
     5 departments, 1 accounting_settings. All seeders are idempotent (`firstOrCreate`) so re-running
     provision on a seeded DB is a no-op.
-  - **Stage 2 pending**: switch every request to the active company's `tenant_{id}` connection at
-    runtime (mirror of the "active_company context" already used for permissions); super-admin
-    platform screens (Companies, Users, Roles) keep reading the control-plane `mysql` connection.
-    Until then the single-DB `accounting_erp` remains the runtime source and tenant DBs are the
-    write-ahead provisioning target.
+  - **Stage 2 (DONE — runtime per-tenant switching)**: `SelectTenantDatabase` web middleware (after
+    `SetActiveCompanyContext`, before `HandleInertiaRequests`) calls
+    `TenantManager::configure(active_company_id)`, which registers the `tenant_{id}` connection
+    config (merged from `mysql`, so the app account connects with its per-tenant GRANT) and flips
+    `DB::setDefaultConnection()` per request. Platform routes (`companies.*`, `users.*`, `roles.*`,
+    `profile.*`, `notifications.*`) stay on the control-plane `mysql` connection; everything else
+    reads/writes the active company's own database. `HandleInertiaRequests` pins its `companies` /
+    `current_company` props to the control-plane (`Company::on(platformConnection())`), notifications
+    stay a control-plane inbox (filtered by `data->company_id`), and `User::hasPermission()` + the
+    notification service read RBAC/users from the control-plane so tenants only ever mirror them.
+    `TenantManager::syncUser()` mirrors platform-created users (row + roles + role_permissions +
+    uca) into every tenant they can reach — called from `UserController::store/update`. Audit rows
+    are written per-tenant (the Audit page reads the active tenant). Verified live: super admin and
+    a created buyer company-admin + accountant all run business screens 100% against `tenant_{id}`
+    (customer + audit rows land in the tenant DB only), platform screens still hit `mysql`, and the
+    accountant correctly 403s `companies.*`.
+  - **Gotcha in Stage 2**: `email_verified_at` was NOT in `User::$fillable`, so
+    `User::create([... 'email_verified_at' => now()])` silently dropped the column (mass-assignment
+    ignores unfillable keys) → every provisioned company-admin stayed UNVERIFIED and hit the
+    `verified` middleware redirect loop on first login. Add it to `$fillable` (done). Also
+    `Str::slug($name)` joins words with **`.`**, so the auto-admin email is
+    `admin@buyer.corp.<ts>.local`, not hyphenated.
 
 - **Aliases in `bootstrap/app.php`**: `'permission' => EnsurePermission::class`; Inertia header
   middleware appended to the `web` group.

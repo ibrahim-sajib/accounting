@@ -7,12 +7,16 @@ use App\Domain\Approval\Models\ApprovalWorkflow;
 use App\Domain\Notification\Notifications\ApprovalDecision;
 use App\Domain\Notification\Notifications\DocumentNeedsApproval;
 use App\Domain\Rbac\Models\UserRole;
+use App\Domain\Tenant\Services\TenantManager;
 use App\Models\User;
 
 class NotificationService
 {
     public static function notifyApprovers(ApprovalRequest $request): void
     {
+        // Approvers are platform registry rows; tenants only carry mirrors.
+        $platform = app(TenantManager::class)->platformConnection();
+
         $chain = ApprovalWorkflow::query()
             ->where('company_id', $request->company_id)
             ->where('module', $request->module)
@@ -32,7 +36,7 @@ class NotificationService
             }
 
             if ($workflow->approver_role_id) {
-                $ids = UserRole::query()
+                $ids = UserRole::on($platform)
                     ->where('role_id', $workflow->approver_role_id)
                     ->where('company_id', $request->company_id)
                     ->pluck('user_id');
@@ -40,7 +44,7 @@ class NotificationService
             }
         }
 
-        $users = User::query()->whereKey($targets->unique())->get();
+        $users = User::on($platform)->whereKey($targets->unique())->get();
 
         $notification = new DocumentNeedsApproval(
             $request->id,
@@ -57,7 +61,8 @@ class NotificationService
 
     public static function notifyRequester(ApprovalRequest $request): void
     {
-        $requester = User::query()->find($request->requested_by);
+        $platform = app(TenantManager::class)->platformConnection();
+        $requester = User::on($platform)->find($request->requested_by);
 
         if (! $requester) {
             return;

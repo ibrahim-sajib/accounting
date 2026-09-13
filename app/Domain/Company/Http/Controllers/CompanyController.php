@@ -187,6 +187,9 @@ class CompanyController
                 'company_id' => $company->id,
                 'status' => UserStatus::Active->value,
                 'is_super_admin' => false,
+                // The app auto-provisions this login; there is no mailer
+                // round-trip for the buyer's first admin.
+                'email_verified_at' => now(),
             ]);
         }
 

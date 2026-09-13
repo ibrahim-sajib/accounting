@@ -3,6 +3,7 @@
 namespace App\Domain\Tenant\Services;
 
 use App\Domain\Company\Models\Company;
+use App\Models\User;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -38,6 +39,42 @@ class TenantManager
     public function connectionName(Company $company): string
     {
         return 'tenant_'.$company->id;
+    }
+
+    /**
+     * Connection the control-plane data (users, companies, RBAC, UCA, the
+     * notification inbox) lives on. Falls back to the default when tenancy is
+     * disabled (the SQLite test suite keeps using its own shared database).
+     */
+    public function platformConnection(): string
+    {
+        return $this->enabled() ? 'mysql' : config('database.default');
+    }
+
+    /**
+     * Select the runtime default connection for the current request. Points at
+     * the active company's tenant database, or back at the control-plane for
+     * platform screens. Runs after auth/session bootstrap, before any
+     * controller or Inertia share reads data.
+     */
+    public function configure(?int $companyId): void
+    {
+        if (! $this->enabled()) {
+            return;
+        }
+
+        $platform = $this->platformConnection();
+        DB::setDefaultConnection($platform);
+
+        if ($companyId === null) {
+            return;
+        }
+
+        $company = Company::on($platform)->find($companyId);
+        if ($company) {
+            $this->registerConnection($company);
+            DB::setDefaultConnection($this->connectionName($company));
+        }
     }
 
     public function exists(Company $company): bool
@@ -108,7 +145,7 @@ class TenantManager
     public function seed(Company $company): void
     {
         $conn = $this->connectionName($company);
-        $platform = config('database.default');
+        $platform = DB::getDefaultConnection();
 
         DB::setDefaultConnection($conn);
 
@@ -260,6 +297,97 @@ class TenantManager
         foreach (array_chunk($rows, 200) as $chunk) {
             if ($chunk !== []) {
                 DB::table($table)->insertOrIgnore($chunk);
+            }
+        }
+    }
+
+    /**
+     * Keep a platform user's row + access + roles mirrored into every tenant
+     * database the user can reach. Tenant DBs stay FK-consistent for audit
+     * stamps (created_by) and notification target rows, and their RBAC copies
+     * (roles/user_roles/user_company_access) stay in step with the platform
+     * registry. Called after user create/update.
+     */
+    public function syncUser(User $user): void
+    {
+        if (! $this->enabled()) {
+            return;
+        }
+
+        $platform = $this->platformConnection();
+
+        $companyIds = DB::connection($platform)->table('user_company_access')
+            ->where('user_id', $user->id)
+            ->pluck('company_id')
+            ->push($user->company_id)
+            ->unique()
+            ->sort()
+            ->values()
+            ->all();
+
+        foreach ($companyIds as $companyId) {
+            if ($companyId === null) {
+                continue;
+            }
+
+            $company = Company::on($platform)->withTrashed()->find($companyId);
+            if (! $company) {
+                continue;
+            }
+
+            $this->registerConnection($company);
+            $tenant = DB::connection($this->connectionName($company));
+
+            if (! $tenant->table('companies')->where('id', $companyId)->exists()) {
+                continue;
+            }
+
+            $userRoleRows = DB::connection($platform)->table('user_roles')
+                ->where('user_id', $user->id)
+                ->where('company_id', $companyId)
+                ->get()
+                ->map(fn ($row) => ['user_id' => $row->user_id, 'role_id' => $row->role_id, 'company_id' => $row->company_id, 'branch_id' => $row->branch_id])
+                ->all();
+
+            foreach ($userRoleRows as $row) {
+                $role = (array) DB::connection($platform)->table('roles')->where('id', $row['role_id'])->first();
+                if ($role === []) {
+                    continue;
+                }
+                // Audit stamps may point at a user who is not (yet) in this
+                // tenant — null them so the role copy cannot be FK-skipped.
+                $role['created_by'] = null;
+                $role['updated_by'] = null;
+                $tenant->table('roles')->insertOrIgnore([$role]);
+
+                $rolePermissions = DB::connection($platform)->table('role_permissions')
+                    ->where('role_id', $row['role_id'])
+                    ->get()
+                    ->map(fn ($r) => (array) $r)
+                    ->all();
+                foreach ($rolePermissions as $rp) {
+                    $tenant->table('role_permissions')->insertOrIgnore([$rp]);
+                }
+            }
+
+            $userRow = (array) DB::connection($platform)->table('users')->where('id', $user->id)->first();
+            $userRow['company_id'] = $user->company_id == $companyId ? $companyId : null;
+            $tenant->table('users')->updateOrInsert(['id' => $user->id], $userRow);
+
+            $tenant->table('user_roles')->where('user_id', $user->id)->where('company_id', $companyId)->delete();
+            foreach ($userRoleRows as $row) {
+                $tenant->table('user_roles')->insertOrIgnore([$row]);
+            }
+
+            $tenant->table('user_company_access')->where('user_id', $user->id)->where('company_id', $companyId)->delete();
+            $accessRows = DB::connection($platform)->table('user_company_access')
+                ->where('user_id', $user->id)
+                ->where('company_id', $companyId)
+                ->get()
+                ->map(fn ($row) => (array) $row)
+                ->all();
+            foreach ($accessRows as $row) {
+                $tenant->table('user_company_access')->insertOrIgnore([$row]);
             }
         }
     }

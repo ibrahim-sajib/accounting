@@ -4,8 +4,8 @@ How the sellable accounting product isolates each company in its own MySQL
 database, and the exact flow from "super admin creates a company" to "the
 buyer manages everything inside that tenant".
 
-Status: **Stage 1 complete (provisioning, verified live)** · Stage 2 (runtime
-connection switching) planned.
+Status: **Stage 1 + Stage 2 complete** (provisioning + runtime per-tenant
+switching, both verified live in Docker).
 
 ---
 
@@ -117,21 +117,45 @@ Both are documented in `AGENTS.md` §1.29:
 
 ---
 
-## 5. Stage 2 (planned): runtime connection switching
+## 5. Stage 2 (live): runtime connection switching
 
-Today the single `accounting_erp` database is still the runtime source for
-transactional screens; tenant databases are the write-ahead provisioning target.
-Stage 2 makes them the real runtime source:
+The single `accounting_erp` database is no longer the runtime source for
+transactional screens — every business route now runs against the active
+company's own tenant database.
 
-- A middleware after auth sets the default connection to
-  `tenant_{active_company_id}` (registered on demand by `TenantManager`) so
-  every tenant-scoped query runs in the company's own database.
-- Super-admin platform screens (Companies, Users, Roles, user access) pin the
-  `mysql` control-plane connection.
-- `Clone` operations across companies ship data between `tenant_A` and
-  `tenant_B` directly.
-- Test infra gains a multi-connection mode (platform + one tenant SQLite file).
+How it works:
 
-Known open decisions for Stage 2: where audit logs live (per-tenant vs.
-control-plane), and how a super admin browsing a company sees that company's
-tenant data vs. platform data.
+- `SelectTenantDatabase` (web middleware, between the active-company bootstrap
+  and the Inertia share) calls `TenantManager::configure(session company id)`.
+  `configure()` registers the `tenant_{id}` connection (config merged from the
+  `mysql` connection, so the app account connects with its per-tenant GRANT)
+  and flips `DB::setDefaultConnection()` in place.
+- **Platform screens** (route-name prefixes `companies.`, `users.`, `roles.`,
+  `profile.`, `notifications.`) pin the control-plane `mysql` connection.
+- **Everything else** — dashboard, journals, sales/purchase/inventory, AP/AR,
+  payroll, fixed assets, budgets, reports/statements, cash & bank, expense,
+  approvals, settings, audit — reads and writes the active company's tenant DB.
+  The per-tenant `companies` row is what makes the mirrored master-data seeders
+  and RBAC work inside each tenant.
+- Control-plane reads stay explicit where the code needs the registry:
+  `HandleInertiaRequests` shares `companies`/`current_company` via
+  `Company::on(platformConnection())`; `User::hasPermission()` and the
+  notification service read RBAC/users from the control-plane.
+- Notifications are a control-plane inbox (one table, filtered by the JSON
+  `data->company_id`) — only audit logs are per-tenant.
+- **User mirroring**: creating/updating a user via Users stays a platform
+  write; `TenantManager::syncUser()` then mirrors the user row, roles,
+  role_permissions and UCA into every tenant the user can reach, so audit FK
+  stamps and per-tenant routing stay consistent.
+
+Verified live (Docker):
+
+- Super admin under the demo company: creating a customer + its audit row
+  landed in `accounting_tenant_1` only; `accounting_erp.customers` untouched.
+- A provisioned buyer company admin logged in and ran dashboard/journals/
+  customers 100% against `accounting_tenant_{id}`, and correctly 403'd
+  `companies.*` (platform) as an accountant.
+
+Tenant DBs are still dropped only manually. Platform cleanup in a demo
+environment: soft-delete the company, delete its users/roles/UCA, drop the
+tenant database.
