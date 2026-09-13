@@ -165,8 +165,11 @@ class UserController
     {
         return Role::query()
             ->where(fn ($q) => $q->whereNull('company_id')->orWhere('company_id', current_company_id()))
+            ->orderByRaw('company_id IS NULL ASC')
             ->orderBy('name')
             ->get(['id', 'name', 'slug'])
+            ->unique('slug')
+            ->values()
             ->map(fn ($role) => ['value' => $role->id, 'label' => $role->name, 'slug' => $role->slug])
             ->all();
     }
