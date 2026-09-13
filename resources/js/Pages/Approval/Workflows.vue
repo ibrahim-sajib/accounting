@@ -168,11 +168,15 @@ const destroy = (w: Workflow) => {
             </div>
 
             <Modal :show="showModal" @close="showModal = false">
-                <h2 class="text-lg font-semibold text-gray-900 dark:text-gray-100">
-                    {{ editing ? 'Edit workflow' : 'New workflow' }}
-                </h2>
+                <div class="p-6">
+                    <h2 class="text-lg font-semibold text-gray-900 dark:text-gray-100">
+                        {{ editing ? 'Edit workflow' : 'New workflow' }}
+                    </h2>
+                    <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
+                        Documents that match an active rule pass through this approval step before they can be posted.
+                    </p>
 
-                <div class="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2">
+                    <div class="mt-5 grid grid-cols-1 gap-4 sm:grid-cols-2">
                     <div class="sm:col-span-2">
                         <InputLabel for="wf_name" value="Name" :required="true" />
                         <TextInput id="wf_name" v-model="form.name" class="mt-1 w-full" required />
@@ -231,11 +235,12 @@ const destroy = (w: Workflow) => {
                     </div>
                 </div>
 
-                <div class="mt-5 flex justify-end gap-2">
+                <div class="mt-6 flex justify-end gap-3">
                     <SecondaryButton @click="showModal = false">Cancel</SecondaryButton>
                     <PrimaryButton :disabled="form.processing" @click="submit">
                         {{ editing ? 'Save changes' : 'Create' }}
                     </PrimaryButton>
+                </div>
                 </div>
             </Modal>
         </div>
