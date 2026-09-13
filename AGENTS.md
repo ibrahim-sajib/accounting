@@ -1038,7 +1038,14 @@ Safe to rename a migration's column BEFORE it has run in MySQL (SQLite runs from
   - Form/modal grids inside shared `Modal.vue` use `grid-cols-1 … sm:grid-cols-2` (bare
     `grid grid-cols-2 gap-4` in a `<dialog>` crushes the form on a phone); totals rows
     (`grid-cols-3`/`grid-cols-4`) and 3-stat-card rows (`grid-cols-3 gap-3`) collapse to one
-    column below `sm`. `Modal.vue` was upgraded to the Jetstream flex-centering pattern —
+    column below `sm`. **WARNING — `col-span-2` inside a `grid-cols-1` grid**: a bare
+    `class="col-span-2"` on the first cell (e.g. the Name field) forces the browser to create an
+    IMPLICIT second grid track below `sm`, so every following field gets squeezed into a narrow
+    ~72px first track — the modal looks "broken" on phones while it is pixel-perfect on desktop.
+    Always use the responsive span (`sm:col-span-2`) so the span exists only when the grid is
+    multi-column. Verify with a width sweep (`setDeviceMetricsOverride` 320→414→640→768…) that
+    asserts `gridTemplateColumns` is single-track (`288px`) on phones and equal 2 tracks
+    (`312px 312px`) from 640 up — overlap detection + column count, not just field tops. `Modal.vue` was upgraded to the Jetstream flex-centering pattern —
     `flex min-h-full items-center justify-center` inside a `md:flex` scroll-region wrapper — so
     modals are vertically centered on every device.
   - Topbar: company-switcher text is `hidden sm:inline` (icon-only on xs); `<main>` is

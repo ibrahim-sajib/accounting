@@ -173,7 +173,7 @@ const destroy = (w: Workflow) => {
                 </h2>
 
                 <div class="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2">
-                    <div class="col-span-2">
+                    <div class="sm:col-span-2">
                         <InputLabel for="wf_name" value="Name" :required="true" />
                         <TextInput id="wf_name" v-model="form.name" class="mt-1 w-full" required />
                         <InputError class="mt-2" :message="form.errors.name" />
