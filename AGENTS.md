@@ -234,6 +234,24 @@ Safe to rename a migration's column BEFORE it has run in MySQL (SQLite runs from
   'salaryStructure'=>...,]`. Lock it in the test: `->has('employee.salaryStructure')->where(
   'employee.salaryStructure.basic','50000.0000')` (this bug slipped past PHPInertia assertions `has('employee')`).
 
+### 1.27 Laravel 11 no longer truncates auto-generated index names — MySQL 64-char limit
+- `Blueprint::createIndexName()` (Laravel 11.56) builds `{table}_{col1}_{col2}_unique`/`_index`/`_foreign`
+  and NO LONGER truncates to 64 chars (older Laravel did). Any identifier > 64 explodes only on MySQL
+  at migration time: `SQLSTATE[42000] 1059 Identifier name '..._unique' is too long` — SQLite tests stay
+  green (no length limit). Triggered by `2026_09_20_120004_create_supplier_payment_allocations_table`
+  (`supplier_payment_allocations + supplier_payment_id + purchase_bill_id + _unique` = 72 chars), while
+  the AR twin `receipt_allocations` (52 chars) was fine.
+- Fix: pass an explicit short name — `$table->unique([...], 'spa_payment_bill_unique')`. Safe to edit a
+  migration that FAILED in Docker (never applied, §1.20); do NOT rename one already executed.
+- Audit rule: when adding a migration for a MySQL deployment, compute every generated identifier length
+  (table + columns + suffix) for `unique()`/`index()`/`morphs()`/`constrained()` before running.
+
+### 1.28 Vue dev-time hot reload requires the Vite dev server
+- The app serves prebuilt `public/build/` assets when `npm run dev` is NOT running (no `public/hot`).
+  Frontend edits therefore need `npm run build` to take effect. For instant HMR run `npm run dev` and
+  keep it up; it writes `public/hot` and Laravel's `@vite` picks the dev-server URL automatically.
+  Stop it and the app silently falls back to the compiled bundle (stale `public/hot` = blank page, §1.13).
+
 ---
 
 ## 2. Engineering conventions (senior baseline)

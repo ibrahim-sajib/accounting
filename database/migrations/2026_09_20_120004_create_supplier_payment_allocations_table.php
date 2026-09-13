@@ -15,7 +15,7 @@ return new class extends Migration
             $table->decimal('amount', 18, 4)->default(0);
             $table->timestamps();
 
-            $table->unique(['supplier_payment_id', 'purchase_bill_id']);
+            $table->unique(['supplier_payment_id', 'purchase_bill_id'], 'spa_payment_bill_unique');
             $table->index(['purchase_bill_id']);
         });
     }
