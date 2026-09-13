@@ -34,7 +34,7 @@ class TenantProvisionCommand extends Command
         $skipped = 0;
 
         foreach ($companies as $company) {
-            if ($tenancy->exists($company)) {
+            if ($company->database_name && $tenancy->exists($company)) {
                 $this->info("[skip] {$company->name} -> {$tenancy->databaseName($company)} already exists");
                 $skipped++;
 

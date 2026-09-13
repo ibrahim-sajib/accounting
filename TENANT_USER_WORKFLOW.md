@@ -13,7 +13,7 @@
 ## ধারণাটা (এক লাইনে)
 
 - **Control-plane** (`accounting_erp`): ইউজার, কোম্পানি, রোল/পারমিশন, অ্যাক্সেস রেজিস্ট্রি, নোটিফিকেশন ইনবক্স, platform seed data
-- **Per-tenant** (`accounting_tenant_{company_id}`): ওই কোম্পানির সব বিজনেস ডেটা + নিজের master data + নিজের audit log — সম্পূর্ণ আলাদা
+- **Per-tenant** (`accounting_tenant_{company-নাম}`): ওই কোম্পানির সব বিজনেস ডেটা + নিজের master data + নিজের audit log — সম্পূর্ণ আলাদা। DB-র নাম **কোম্পানির নাম অনুযায়ী** — যেমন "Demo Business Ltd" → `accounting_tenant_demo_business_ltd`
 
 নতুন কোম্পানি তৈরি মানেই **নতুন আলাদা ডেটাবেস** তৈরি → migrate → seed। তারপর ওই কোম্পানির লোকজনের সব কাজ ওই ডেটাবেসেই।
 
@@ -32,12 +32,12 @@ Companies → **Create Company** → নাম/বasis/status দিলে `POST
 1. **Company row** control-plane-এ তৈরি
 2. **Master data seed** (platform-এ): Currency, Fiscal Year + Period, COA, Tax, Accounting Setting, Expense/Asset Category, Department, System Setting
 3. **Company Admin অটো-তৈরি** — `admin@<কোম্পানির-নাম>.local` / `password` (email verify করা, company-admin রোল + default access) — flash-এ credential দেখায়
-4. **Dedicated ডেটাবেস তৈরি** — `accounting_tenant_{id}`:
-   - `CREATE DATABASE` (root connection)
-   - `GRANT` (অ্যাপ অ্যাকাউন্ট পায় ওই DB-তে 권한)
+4. **Dedicated ডেটাবেস তৈরি** — **company-নামভিত্তিক**: `accounting_tenant_<নামের snake_case>` (যেমন "Test Store Pvt Ltd" → `accounting_tenant_test_store_pvt_ltd`; 64-অক্ষরের সীমা মানা হয়, নাম মিলে গেলে শেষে -2/-3 যোগ)। নাম `companies.database_name`-এ সেভ হয়:
+   - `CREATE DATABASE` (root connection) + `GRANT`
    - **migrate** — সব 72টা table, FK সহ
    - **registry copy** (FK-safe ক্রম) — companies → users (admin + সব সুপার অ্যাডমিন) → branches → permissions (152) → roles (16) → role_permissions → user_roles → user_company_access
    - **master seeders আবার চলে** — COA (100 অ্যাকাউন্ট), Tax, Accounting Setting, Currency, FiscalYear, Product Category/Unit, Expense Category, Asset Category, Department, Role — এগুলো idempotent
+   - পুরনো `accounting_tenant_{id}` ডেটাবেস থাকলে আগের নামে `tenant:provision` চালালে সেটা স্বয়ংক্রিয়ভাবে নাম-ভিত্তিক নামে **rename** হয়ে যায়
 5. Audit + redirect (flash-এ admin credential)
 
 ফলাফল: নতুন কোম্পানির জন্য **পূর্ণাঙ্গ নিজস্ব DB**, সাথে তার admin login।
@@ -90,8 +90,8 @@ Company Admin নিজের লোক (accountant etc.) বানায় **U
 | Login, users, companies list, roles, permissions, UCA | control-plane `mysql` |
 | Company created-by info (registry) | control-plane + tenant mirror |
 | Notifications inbox | control-plane (কারণ ফিল্টার `data->company_id` দিয়ে) |
-| সব business data + journals + master data + stock + payroll + fixed asset + budget | `accounting_tenant_{id}` |
-| Audit log | `accounting_tenant_{id}` (per-tenant) |
+| সব business data + journals + master data + stock + payroll + fixed asset + budget | `accounting_tenant_{company-নাম}` |
+| Audit log | `accounting_tenant_{company-নাম}` (per-tenant) |
 | Platform-এ user বানালে tenant mirror | `syncUser()` নিজে থেকেই |
 
 ## যাচাই (কীভাবে দেখবে যে সব সত্যিই নিজের DB-তে)
@@ -99,7 +99,7 @@ Company Admin নিজের লোক (accountant etc.) বানায় **U
 ```bash
 docker compose exec mysql mysql -uroot -proot
 SHOW DATABASES LIKE 'accounting_tenant_%';      # প্রতি কোম্পানি = ১টা
-USE accounting_tenant_1; SHOW TABLES;           # 72 টেবিল
+USE accounting_tenant_demo_business_ltd; SHOW TABLES;  # 72 টেবিল
 SELECT COUNT(*) FROM customers;                 # ওই কোম্পানির ডেটা
 USE accounting_erp; SELECT COUNT(*) FROM customers;  # এখানে ০ (অথবা পুরনো)
 ```

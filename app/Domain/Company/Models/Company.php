@@ -21,7 +21,7 @@ class Company extends Model
         'tax_registration_no', 'vat_registration_no', 'accounting_basis',
         'status', 'settings', 'email', 'phone', 'address', 'city', 'state',
         'zip_code', 'fiscal_year_start', 'fiscal_year_end',
-        'created_by', 'updated_by',
+        'database_name', 'created_by', 'updated_by',
     ];
 
     protected $casts = [

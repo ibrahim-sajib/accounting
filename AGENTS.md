@@ -272,9 +272,16 @@ Safe to rename a migration's column BEFORE it has run in MySQL (SQLite runs from
   `company_id = null` for any non-tenant `company_id` (FK fix again). Only then does the API app
   really have companies=users=permissions=roles.
 - 47 migrations reference `companies`/`users` FKs — tenants are FULL schema mirrors (FKs kept,
-  keys preserved), never a stripped clone. Tenant DB = `accounting_tenant_{company_id}`;
-  connection `tenant_{id}` (params `database` + root `username/password`); platform control-plane
+  keys preserved), never a stripped clone. Tenant DB is **company-name based**
+  (`accounting_tenant_{snake_case name}`, persisted on `companies.database_name`; legacy
+  `{prefix}_{id}` DBs are auto-renamed by `provision()`/`tenant:provision`); connection
+  `tenant_{id}` (params `database` + root `username/password`); platform control-plane
   stays the existing `accounting_erp` via the `mysql` connection.
+- Company Admin = the company's top user: the `company-admin` role is granted **every** permission
+  (`'*'` in RoleSeeder), so all business menus + Users/Roles/Branches (company-scoped) work. The
+  cross-company `Companies` platform registry stays super-admin-only — the sidebar item carries
+  `superAdminOnly: true` (filtered in `itemVisible`) so non-super-admins never see a menu that
+  would 403 for them. New platform permission modules need no RoleSeeder change for company-admin.
 
 ---
 
@@ -1097,12 +1104,18 @@ Safe to rename a migration's column BEFORE it has run in MySQL (SQLite runs from
     approval modal opens centered (`left≥0`, `right≤vw`, `top≥0`, `bottom≤vh`). A `col-span-2`
     first field makes a "fields[0].top > fields[1].bottom" stacked-check a false positive — compare
     a field pair that genuinely shares a row.
-- **Phase 12 (Database-per-tenant — sellable product)**: every company gets its OWN MySQL database
-  `accounting_tenant_{company_id}` (connection `tenant_{id}`), auto-created/migrated/seeded the
+- **Phase 12 (Database-per-tenant — sellable product)**: every company gets its OWN MySQL database,
+  **named after the company** (`accounting_tenant_<snake_case name>`, e.g. "Demo Business Ltd" →
+  `accounting_tenant_demo_business_ltd`; the resolved name is persisted on `companies.database_name`;
+  MySQL's 64-char identifier limit is respected with a numeric ‑2/‑3 suffix on collision,
+  connection `tenant_{id}`), auto-created/migrated/seeded the
   moment a super admin creates the company. The existing single `accounting_erp` database becomes
   the **control-plane**: users, companies, RBAC, `user_company_access`, audit + platform seed data.
   `app/Domain/Tenant/Services/TenantManager.php` centralizes: `enabled()` (only when the default
   driver is `mysql` — SQLite tests bypass everything), `databaseName()/connectionName()/exists()`,
+  `legacyExists()` + `buildDatabaseName()` (company-name-based, unique), `renameDatabase()` (MySQL
+  has NO `RENAME DATABASE` — tables are moved into a fresh schema; legacy `{prefix}{id}` databases
+  are auto-renamed on next `provision`),
   `provision()` (create DB → grant via the root `tenant_admin` connection → migrate → seed),
   `copyPlatformBoilerplate()` (the FK-ordered copy, §1.29), and `runMasterDataSeeders()`. CLI
   mirrors `tenant:provision {id}` / `tenant:migrate {id}`. `config/tenancy.php` (`enabled`,

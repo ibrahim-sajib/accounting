@@ -64,7 +64,11 @@ const toggleGroup = (label: string) => {
     localStorage.setItem(`sidebar-open-${label}`, next ? '1' : '0');
 };
 
-function itemVisible(item: { permission?: string | null }): boolean {
+function itemVisible(item: { permission?: string | null; superAdminOnly?: boolean }): boolean {
+    if (item.superAdminOnly && !user.value?.is_super_admin) {
+        return false;
+    }
+
     return !item.permission || can(item.permission);
 }
 
@@ -125,7 +129,7 @@ const navGroups = computed(() => [
     {
         label: 'Organization',
         items: [
-            { label: 'Companies', routeName: 'companies.index', icon: 'building', permission: 'company.view' },
+            { label: 'Companies', routeName: 'companies.index', icon: 'building', permission: 'company.view', superAdminOnly: true },
             { label: 'Branches', routeName: 'branches.index', icon: 'branch', permission: 'branch.view' },
             { label: 'Users', routeName: 'users.index', icon: 'users', permission: 'user.view' },
             { label: 'Roles & Permissions', routeName: 'roles.index', icon: 'shield', permission: 'role.view' },

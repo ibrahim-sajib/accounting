@@ -19,7 +19,8 @@ switching, both verified live in Docker).
 | Layer | Database | Purpose |
 | --- | --- | --- |
 | Control-plane | `accounting_erp` (`mysql` connection) | Users, companies, RBAC, `user_company_access`, audit, platform seed data |
-| Tenant | `accounting_tenant_{company_id}` (`tenant_{id}` connection) | A full schema mirror of the app (all 72 tables, FK constraints kept) holding **one** company's rows and its master data |
+| Tenant | `accounting_tenant_{company_name_slug}` — e.g. "Demo Business Ltd"
+→ `accounting_tenant_demo_business_ltd` (`tenant_{id}` connection) | A full schema mirror of the app (all 72 tables, FK constraints kept) holding **one** company's rows and its master data |
 
 A company's tenant database does **not** hold its own `companies` row plus a
 bunch of other companies' rows — it holds only that one company's data, so the
@@ -56,10 +57,18 @@ runs, in order:
    `user_company_access` row. The flash message on the Companies page shows
    these credentials.
 4. **Provision the tenant database** (`TenantManager::provision($company)`):
-   - `CREATE DATABASE accounting_tenant_{id}` via the root `tenant_admin`
-     connection.
-   - `GRANT ALL ON accounting_tenant_{id}.* TO 'accounting'` — without this the
-     app account can't touch the new DB.
+   - The database name is **company-name based**: `accounting_tenant_` +
+     `snake_case(name)` (e.g. "Demo Business Ltd" →
+     `accounting_tenant_demo_business_ltd`, respecting the MySQL 64-char limit,
+     with a numeric suffix ‑2/‑3 on collision). The resolved name is persisted
+     on `companies.database_name` so every later lookup (existence, migration,
+     runtime switching) uses the same mapping. Legacy `{prefix}_{id}` databases
+     are renamed to the convention on next provision (MySQL has no
+     `RENAME DATABASE`; `TenantManager::renameDatabase()` moves every table
+     across).
+   - `CREATE DATABASE` via the root `tenant_admin` connection.
+   - `GRANT ALL ON <db>.* TO 'accounting'` — without this the
+      app account can't touch the new DB.
    - `migrate()` — every migration against the tenant's own `tenant_{id}`
      connection (full schema, foreign keys preserved).
    - `copyPlatformBoilerplate()` — copies this company's rows from the
@@ -156,10 +165,19 @@ How it works:
 Verified live (Docker):
 
 - Super admin under the demo company: creating a customer + its audit row
-  landed in `accounting_tenant_1` only; `accounting_erp.customers` untouched.
+  landed in the demo company's tenant (`accounting_tenant_demo_business_ltd`)
+  only; `accounting_erp.customers` untouched.
 - A provisioned buyer company admin logged in and ran dashboard/journals/
-  customers 100% against `accounting_tenant_{id}`, and correctly 403'd
-  `companies.*` (platform) as an accountant.
+  sales/customers 100% against the company-name-based tenant DB
+  (`accounting_tenant_test_store_pvt_ltd` during validation), and correctly
+  403'd `companies.*` (platform) as an accountant.
+- The two pre-naming legacy databases (`accounting_tenant_1/2`) were renamed
+  to `accounting_tenant_demo_business_ltd` / `accounting_tenant_bootik` and
+  `companies.database_name` populated by re-running `tenant:provision`.
+- The Company Admin (company-scoped) holds **all** permissions and every
+  permission-gated sidebar item works; the cross-company `Companies` platform
+  registry item is hidden for non-super-admins (`superAdminOnly: true`) so no
+  menu shows that would 403 for them.
 
 Tenant DBs are still dropped only manually. Platform cleanup in a demo
 environment: soft-delete the company, delete its users/roles/UCA, drop the

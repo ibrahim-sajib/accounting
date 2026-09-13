@@ -7,6 +7,7 @@ use App\Models\User;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Str;
 use Throwable;
 
 /**
@@ -31,9 +32,52 @@ class TenantManager
             && config('database.default') === 'mysql';
     }
 
+    /**
+     * Resolve the company's database name. Persisted at provision time on the
+     * company record (company-name based); falls back to the legacy
+     * {prefix}{id} convention for databases created before name-based naming.
+     */
     public function databaseName(Company $company): string
     {
+        return $company->database_name
+            ?: $this->legacyDatabaseName($company);
+    }
+
+    public function legacyDatabaseName(Company $company): string
+    {
         return config('tenancy.database_prefix').$company->id;
+    }
+
+    /**
+     * Build a company-name-based database identifier, e.g. company "Demo
+     * Business Ltd" -> `accounting_tenant_demo_business_ltd`. Respects the
+     * MySQL 64-char identifier limit and stays unique by appending a numeric
+     * suffix on collision.
+     */
+    public function buildDatabaseName(Company $company): string
+    {
+        $prefix = config('tenancy.database_prefix');
+        $slug = Str::slug($company->name, '_');
+
+        if ($slug === '') {
+            $slug = 'company_'.$company->id;
+        }
+
+        $maxSlugLength = 64 - strlen($prefix);
+        if (strlen($slug) > $maxSlugLength) {
+            $slug = substr($slug, 0, $maxSlugLength);
+        }
+
+        $candidate = $prefix.$slug;
+        $i = 2;
+
+        while ($this->nameTaken($candidate)) {
+            $suffix = (string) $i;
+            $candidate = substr($prefix.$slug, 0, 64 - strlen($suffix)).$suffix;
+            $i++;
+        }
+
+        return $candidate;
     }
 
     public function connectionName(Company $company): string
@@ -91,25 +135,65 @@ class TenantManager
         );
     }
 
-    /**
-     * Create, migrate and seed the company's dedicated database. Idempotent:
-     * returns false when the database already exists or tenancy is disabled.
-     */
-    public function provision(Company $company): bool
+    protected function nameTaken(string $name): bool
     {
-        if (! $this->enabled() || $this->exists($company)) {
+        return (bool) DB::connection('mysql')->selectOne(
+            'select SCHEMA_NAME from information_schema.SCHEMATA where SCHEMA_NAME = ?',
+            [$name]
+        );
+    }
+
+    public function legacyExists(Company $company): bool
+    {
+        if (! $this->enabled()) {
             return false;
         }
 
-        $this->createDatabase($company);
+        return (bool) DB::connection('mysql')->selectOne(
+            'select SCHEMA_NAME from information_schema.SCHEMATA where SCHEMA_NAME = ?',
+            [$this->legacyDatabaseName($company)]
+        );
+    }
+
+    /**
+     * Create, migrate and seed the company's dedicated database. Idempotent:
+     * returns false when the database already exists or tenancy is disabled.
+     *
+     * Legacy databases created under the old {prefix}{id} naming are renamed
+     * to the company-name-based convention here (MySQL has no RENAME DATABASE,
+     * so the tables are moved across into a freshly created database).
+     */
+    public function provision(Company $company): bool
+    {
+        if (! $this->enabled()) {
+            return false;
+        }
+
+        if (! $company->database_name && $this->legacyExists($company)) {
+            $newName = $this->buildDatabaseName($company);
+            $this->renameDatabase($this->legacyDatabaseName($company), $newName);
+            $company->forceFill(['database_name' => $newName])->save();
+
+            return true;
+        }
+
+        if ($this->exists($company)) {
+            return false;
+        }
+
+        $name = $this->buildDatabaseName($company);
+        $this->createDatabase($company, $name);
+        // Persist the name <-> database mapping so every later lookup
+        // (existence, migration, runtime connection selection) resolves it.
+        $company->forceFill(['database_name' => $name])->save();
         $this->migrate($company, true);
 
         return true;
     }
 
-    public function createDatabase(Company $company): void
+    public function createDatabase(Company $company, ?string $name = null): void
     {
-        $name = $this->databaseName($company);
+        $name = $name ?? $this->databaseName($company);
 
         try {
             $admin = DB::connection('tenant_admin');
@@ -120,6 +204,49 @@ class TenantManager
             Log::error('Failed to create tenant database.', [
                 'company_id' => $company->id,
                 'database' => $name,
+                'error' => $e->getMessage(),
+            ]);
+            throw $e;
+        } finally {
+            DB::purge('tenant_admin');
+        }
+    }
+
+    /**
+     * MySQL has no RENAME DATABASE statement: create the destination schema,
+     * move every table across, re-grant the app user and drop the source.
+     */
+    protected function renameDatabase(string $from, string $to): void
+    {
+        try {
+            $admin = DB::connection('tenant_admin');
+
+            $meta = DB::connection('mysql')->selectOne(
+                'select DEFAULT_CHARACTER_SET_NAME charset, DEFAULT_COLLATION_NAME collation from information_schema.SCHEMATA where SCHEMA_NAME = ?',
+                [$from]
+            );
+
+            $charset = $meta->charset ?? 'utf8mb4';
+            $collation = $meta->collation ?? 'utf8mb4_unicode_ci';
+
+            $admin->statement("CREATE DATABASE `{$to}` CHARACTER SET {$charset} COLLATE {$collation}");
+
+            $tables = DB::connection('mysql')->select(
+                'select TABLE_NAME t from information_schema.TABLES where TABLE_SCHEMA = ?',
+                [$from]
+            );
+
+            foreach ($tables as $table) {
+                $admin->statement("RENAME TABLE `{$from}`.`{$table->t}` TO `{$to}`.`{$table->t}`");
+            }
+
+            $admin->statement("GRANT ALL PRIVILEGES ON `{$to}`.* TO '".config('database.connections.mysql.username')."'@'%'");
+            $admin->statement('FLUSH PRIVILEGES');
+            $admin->statement("DROP DATABASE `{$from}`");
+        } catch (Throwable $e) {
+            Log::error('Failed to rename tenant database.', [
+                'from' => $from,
+                'to' => $to,
                 'error' => $e->getMessage(),
             ]);
             throw $e;
