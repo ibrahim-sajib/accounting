@@ -1,5 +1,12 @@
+<script lang="ts">
+// Module-scope cache: the sidebar <nav> is recreated on every Inertia navigation
+// (the layout remounts per page), so this state must live OUTSIDE <script setup>
+// (which is per-instance) to survive remounts. Restored in onMounted below.
+let savedSidebarScroll = 0;
+</script>
+
 <script setup lang="ts">
-import { computed, ref, watch } from 'vue';
+import { computed, nextTick, onBeforeUnmount, ref, watch } from 'vue';
 import { Link, router, usePage } from '@inertiajs/vue3';
 import AppIcon from '@/Components/AppIcon.vue';
 import Breadcrumbs from '@/Components/Breadcrumbs.vue';
@@ -23,6 +30,90 @@ watch(darkMode, (value) => {
     document.documentElement.classList.toggle('dark', value);
     localStorage.setItem('theme', value ? 'dark' : 'light');
 }, { immediate: true });
+
+let navElement: HTMLElement | null = null;
+
+const onNavScroll = (event: Event) => {
+    savedSidebarScroll = (event.target as HTMLElement).scrollTop;
+};
+
+onBeforeUnmount(() => {
+    if (navElement) {
+        savedSidebarScroll = navElement.scrollTop;
+        navElement.removeEventListener('scroll', onNavScroll);
+    }
+});
+
+const initGroupOpen = (label: string): boolean => {
+    const key = `sidebar-open-${label}`;
+    const saved = localStorage.getItem(key);
+    if (saved !== null) {
+        return saved === '1';
+    }
+
+    return label === 'Overview' || navGroups.value.some((group) =>
+        group.label === label && group.items.some((item) => itemVisible(item) && isActive(item.routeName)),
+    );
+};
+
+const openGroups = ref<Record<string, boolean>>({});
+
+const toggleGroup = (label: string) => {
+    const next = !(openGroups.value[label] ?? false);
+    openGroups.value = { ...openGroups.value, [label]: next };
+    localStorage.setItem(`sidebar-open-${label}`, next ? '1' : '0');
+};
+
+function itemVisible(item: { permission?: string | null }): boolean {
+    return !item.permission || can(item.permission);
+}
+
+const isActive = (routeName: string) => {
+    const current = route().current() ?? null;
+
+    if (current === null) {
+        return routeName === 'dashboard';
+    }
+
+    const base = routeName.split('.')[0];
+
+    return current === base || current.startsWith(base + '.');
+};
+
+const navRef = ref<HTMLElement | null>(null);
+
+watch(navRef, (el) => {
+    if (navElement === el) {
+        return;
+    }
+    navElement?.removeEventListener('scroll', onNavScroll);
+    navElement = el;
+    if (navElement) {
+        navElement.addEventListener('scroll', onNavScroll, { passive: true });
+        // The layout remounts per navigation; restore the pre-navigation scroll
+        // position once the fresh <nav> element is available.
+        nextTick(() => {
+            if (navElement && savedSidebarScroll > 0 && navElement.scrollTop === 0) {
+                navElement.scrollTop = savedSidebarScroll;
+            }
+        });
+    }
+});
+
+// computed watch that guarantees openGroups has at least the defaults for all groups,
+// and the group containing the active route is expanded.
+const ensureOpen = () => {
+    const next = { ...openGroups.value };
+    for (const group of navGroups.value) {
+        if (!(group.label in next)) {
+            next[group.label] = initGroupOpen(group.label) || group.items.some((i) => itemVisible(i) && isActive(i.routeName));
+        }
+    }
+    if (!Object.values(next).some(Boolean)) {
+        next.Overview = true;
+    }
+    openGroups.value = next;
+};
 
 const navGroups = computed(() => [
     {
@@ -156,22 +247,15 @@ const navGroups = computed(() => [
     },
 ]);
 
+const visibleGroups = computed(() => navGroups.value
+    .filter((group) => group.items.some((item) => itemVisible(item))));
+
+ensureOpen();
+
 const switchCompany = (id: number) => {
     router.post(route('companies.switch'), { company_id: id }, {
         preserveScroll: true,
     });
-};
-
-const isActive = (routeName: string) => {
-    const current = route().current() ?? null;
-
-    if (current === null) {
-        return routeName === 'dashboard';
-    }
-
-    const base = routeName.split('.')[0];
-
-    return current === base || current.startsWith(base + '.');
 };
 </script>
 
@@ -209,19 +293,39 @@ const isActive = (routeName: string) => {
             </div>
 
             <!-- Navigation -->
-            <nav class="flex-1 space-y-6 overflow-y-auto px-3 py-4">
-                <div v-for="group in navGroups" :key="group.label">
-                    <div class="px-3 pb-2 text-[11px] font-semibold uppercase tracking-wider text-gray-400 dark:text-gray-500">
-                        {{ group.label }}
-                    </div>
-                    <ul class="space-y-0.5">
-                        <li v-for="item in group.items.filter((i) => !i.permission || can(i.permission))" :key="item.routeName">
+            <nav ref="navRef" class="flex-1 overflow-y-auto px-3 py-4">
+                <div v-for="group in visibleGroups" :key="group.label" class="mb-1">
+                    <!-- Collapsible topic header -->
+                    <button
+                        type="button"
+                        class="flex w-full items-center justify-between rounded-lg px-3 py-2 text-[11px] font-semibold uppercase tracking-wider text-gray-400 transition-colors hover:bg-gray-100 hover:text-gray-600 dark:text-gray-500 dark:hover:bg-gray-800 dark:hover:text-gray-300"
+                        @click="toggleGroup(group.label)"
+                    >
+                        <span>{{ group.label }}</span>
+                        <svg
+                            class="h-3.5 w-3.5 transition-transform duration-200"
+                            :class="openGroups[group.label] ? 'rotate-180' : ''"
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                        >
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                        </svg>
+                    </button>
+
+                    <!-- Submenu -->
+                    <ul v-show="openGroups[group.label]" class="space-y-0.5">
+                        <li
+                            v-for="item in group.items.filter((i) => !i.permission || can(i.permission))"
+                            :key="item.routeName"
+                        >
                             <Link
                                 :href="route(item.routeName)"
                                 :class="isActive(item.routeName) ? 'active-nav' : 'nav-item'"
-                                class="flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors"
+                                class="flex items-center gap-2.5 rounded-lg py-2 pl-3 pr-3 text-sm font-medium transition-colors"
+                                @click="sidebarOpen = false"
                             >
-                                <component :is="AppIcon" :name="item.icon" class="h-4 w-4" />
+                                <span class="h-1.5 w-1.5 shrink-0 rounded-full bg-current opacity-40" />
                                 {{ item.label }}
                             </Link>
                         </li>
@@ -232,7 +336,7 @@ const isActive = (routeName: string) => {
             <!-- Sidebar footer -->
             <div class="border-t border-gray-200 p-3 dark:border-gray-800">
                 <div class="rounded-lg bg-gray-50 px-3 py-2 text-xs text-gray-500 dark:bg-gray-800/60 dark:text-gray-400">
-                    Phase 7 · Inventory + Payroll
+                    Phase 10 · Complete accounting ERP
                 </div>
             </div>
         </aside>

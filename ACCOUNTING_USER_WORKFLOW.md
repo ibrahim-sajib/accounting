@@ -43,6 +43,7 @@
 33. মডিউল ডিপেন্ডেন্সি ম্যাপ
 34. ইউজার রোল জার্নি
 35. দৈনিক / মাসিক / বার্ষিক ওয়ার্কফ্লো
+36. হাতে-কলমে ডেটা এন্ট্রি টেস্ট গাইড (Manual Data-Entry Workbook)
 
 ---
 
@@ -1322,6 +1323,173 @@ Login → Dashboard (শুধু পঠনযোগ্য) → অনুমো�
 - নতুন Fiscal Year তৈরি করা এবং Opening Balance স্বয়ংক্রিয়ভাবে বহন করা।
 - নতুন বছরের জন্য Budget প্রস্তুত করা।
 - বার্ষিক নিরীক্ষা (External Audit) থাকলে Audit Trail ও সব Attachment প্রস্তুত রাখা।
+
+---
+
+# হাতে-কলমে ডেটা এন্ট্রি টেস্ট গাইড (Manual Data-Entry Workbook)
+
+> এই অধ্যায়টি **সাধারণ ব্যবহারকারীর জন্য ধাপে-ধাপে হাতে-কলমে পরীক্ষা-পদ্ধতি**। ধরুন আপনি একটি
+> ডেমো কোম্পানিতে (যেমন `Admin Business`) বসে আছেন এবং ডেমো সুপার-অ্যাডমিন লগইন করেছেন:
+> **ইমেইল:** `admin@demobusiness.local`, **পাসওয়ার্ড:** `password`, **URL:** `http://localhost:8000`।
+>
+> প্রতিটি ধাপে বলা আছে — **কোন মেনুতে ক্লিক করবেন**, **কী টাইপ করবেন**, **কোন বাটন চাপবেন**, এবং
+> **কীভাবে মিলিয়ে দেখবেন সঠিক হয়েছে কিনা**। বক্সে `[x]` চিহ্ন দেওয়ার সাথে সাথে এগিয়ে যান।
+> (নতুন সাইডবার টপিক-গ্রুপ ভাঁজ করা/খোলা যায় — কোনো মেনু না পাওয়া গেলে উপরের গ্রুপ টাইটেলে ক্লিক করুন।)
+
+---
+
+## পর্ব ১ — লগইন ও ড্যাশবোর্ড যাচাই
+
+1. [ ] ব্রাউজারে `http://localhost:8000/login` খুলুন।
+2. [ ] ইমেইল ফিল্ডে `admin@demobusiness.local`, পাসওয়ার্ড ফিল্ডে `password` দিন। **Login** বাটনে ক্লিক করুন।
+3. [ ] ড্যাশবোর্ড খুলবে — উপরে কোম্পানির নাম ও মুদ্রা (`Admin Business • BDT`) দেখা যাবে।
+4. [ ] শীর্ষে ৬টি KPI কার্ড থাকবে: Income, Expense, Net, Cash Balance, AR, AP — সব `0.00` বা সিডার ডেটা অনুযায়ী।
+5. [ ] বাম সাইডবার **Overview** গ্রুপ খোলা আছে, **Dashboard** আইটেমে ক্লিক করুন — URL `/dashboard`।
+6. [ ] সাইডবার স্ক্রল করে নিচে যান, অন্য মেনুতে ক্লিক করুন — স্ক্রল পজিশন আগের মতোই থাকবে (ছোটখাটো UX ফিক্স)।
+
+## পর্ব ২ — মাস্টার ডেটা তৈরি
+
+### গ্রাহক তৈরি
+
+1. [ ] সাইডবার **Master Data → Customers**-এ ক্লিক করুন (`/customers`)।
+2. [ ] **New Customer** বাটনে ক্লিক করুন (`/customers/create`)।
+3. [ ] ম্যানুয়াল ফিল্ড — নাম: `Alpha Traders`, ইমেইল: `alpha@example.com`, ফোন: `01700000001`।
+4. [ ] **Save** বাটনে ক্লিক করুন। তালিকায় `Alpha Traders` দেখা যাবে।
+
+### সরবরাহকারী তৈরি
+
+5. [ ] **Suppliers** → **New Supplier** → নাম: `Omega Supplies`, ইমেইল: `omega@example.com`, **Save**।
+
+### পণ্য ও সার্ভিস
+
+6. [ ] **Products & Services** → **New Product** → নাম: `Widget A`, ধরন: `Product`, কোড: `WID-001`।
+7. [ ] বিক্রয় মূল্য (Sales Price): `150.00`, ক্রয় মূল্য (Purchase Price): `100.00`।
+8. [ ] **Track Inventory** চেকবক্সে **পূর্বে** টিক দিন → একক ও গুদাম ফিল্ড আসবে → একক: `pc`, গুদাম: প্রথম সক্রিয় গুদাম।
+9. [ ] **Create** → তালিকায় `Widget A` (কোড `WID-001`)।
+
+## পর্ব ৩ — চার্ট অব অ্যাকাউন্টস ও ট্যাক্স যাচাই
+
+1. [ ] **Accounting → Chart of Accounts** (`/accounts`) — ডেফল্ট COA লোড হয়েছে (কোড 1111 ক্যাশ, 1201 AR, 4111 বিক্রয় পূর্ব পর্যন্ত খোলে/ভাঁজ হয়)।
+2. [ ] **Tax & VAT** (`/tax`) — `VAT 15%` ধরনের ট্যাক্স আছে; এটির আউটপুট অ্যাকাউন্ট `VAT Payable`, ইনপুট অ্যাকাউন্ট `VAT Receivable` বলে যাচাই করুন।
+3. [ ] **Accounting Settings** (`/accounting-settings`) — Default AR, AP, Cash, Bank, Inventory, Sales, Purchase অ্যাকাউন্ট সব নন-শূন্য কী না দেখুন।
+
+## পর্ব ৪ — চার্টে লেনদেন: Purchase Bill (ক্রয়)
+
+> পরীক্ষা-মূল্য: ২০ পিস `Widget A` @ ১০০ = **২,০০০** + ১৫% ভ্যাট = **৩০০** → মোট **২,৩০০**।
+
+1. [ ] **Purchase → Purchase Bills** (`/purchase/bills`) → **New Bill**।
+2. [ ] সরবরাহকারী: `Omega Supplies`; তারিখ: সক্রিয় পিরিয়ডের ভেতরে (যেমন চলতি মাসের যেকোনো দিন)।
+3. [ ] পণ্য: `Widget A` — ইউনিট কস্ট `100.00` নিজে আসবে; পরিমাণ `20`; ট্যাক্স `VAT 15%`; লাইন টোটাল `2,300.00` (ফর্ম নিজে হিসাব করে)।
+4. [ ] **Save as Draft** → নম্বর খালি (ড্রাফট) থাকবে, স্ট্যাটাস `Draft`।
+5. [ ] **Post** বাটনে ক্লিক করুন → স্ট্যাটাস `Posted`, বিল নম্বর `PB-{বছর}-0001`।
+6. [ ] **View Bill** লিঙ্কে ক্লিক করে পোস্টেড জার্নাল দেখুন — ৩টি লাইন:
+   | ডেবিট | ক্রেডিট |
+   |---|---|
+   | Inventory ড্র 2,000 | |
+   | Input VAT ড্র 300 | |
+   | | Accounts Payable ক্র 2,300 |
+7. [ ] **Inventory → Stock** (`/inventory/stock`) — `Widget A`-এর On-hand **20**, গড় খরচ **100.00**, মূল্য **2,000.00**।
+
+## পর্ব ৫ — Sales Invoice (বিক্রয়) ও Receipt (আদায়)
+
+> পরীক্ষা-মূল্য: ১০ পিস `Widget A` @ ১৫০ = **১,৫০০** + ১৫% ভ্যাট = **২২৫** → মোট **১,৭২৫**।
+
+1. [ ] **Sales → Sales Invoices** (`/sales/invoices`) → **New Invoice**।
+2. [ ] গ্রাহক: `Alpha Traders`; তারিখ: সক্রিয় পিরিয়ডের ভেতরে।
+3. [ ] পণ্য: `Widget A` — ইউনিট মূল্য `150.00` নিজে আসবে; পরিমাণ `10`; ট্যাক্স `VAT 15%`; মোট `1,725.00`।
+4. [ ] **Save as Draft** → স্ট্যাটাস `Draft`। **Post** → `Posted`, নম্বর `SL-{বছর}-0001`।
+5. [ ] **View Invoice** লিঙ্ক থেকে পোস্টেড জার্নাল যাচাই করুন:
+   | ডেবিট | ক্রেডিট |
+   |---|---|
+   | AR ড্র 1,725 | |
+   | | Sales Revenue ক্র 1,500 |
+   | | Output VAT ক্র 225 |
+   | COGS ড্র 1,000 | |
+   | | Inventory ক্র 1,000 |
+6. [ ] **Inventory → Stock** — On-hand **10** (২০ − ১০), মূল্য **1,000.00**, গড় খরচ **100.00** (ওজন গড় পদ্ধতি)।
+7. [ ] ইনভয়েস **Show** পেজে **Record Payment** বাটন → মডালে: পেমেন্ট অ্যাকাউন্ট `1111 Cash`, পরিমাণ `1,725.00`, তারিখ আজ → **Save**। স্ট্যাটাস `Paid` হয়ে যাবে, `amount_paid` = 1,725।
+8. [ ] **Receivables → Outstanding** (`/receivables/outstanding`) — Alpha Traders-এর ব্যালেন্স `0.00` (পেইড)।
+
+## পর্ব ৬ — Supplier Payment (পরিশোধ)
+
+1. [ ] **Payables → Record Payment** (`/payables/record-payment`)।
+2. [ ] সরবরাহকারী: `Omega Supplies`; পেমেন্ট অ্যাকাউন্ট `1111 Cash`; পরিমাণ `2,300.00` (ব্যালেন্স ডিউ) → **Record Payment**।
+3. [ ] **Journals** (`/journals`) খুলে সর্বশেষ PMT জার্নাল দেখুন — AP ড্র 2,300 | Cash ক্র 2,300।
+4. [ ] **Payables → Outstanding** — Omega Supplies ব্যালেন্স `0.00`।
+
+## পর্ব ৭ — Expense ও Cash/Bank
+
+### এক্সপেন্স
+
+1. [ ] **Expenses** (`/expenses`) → **New Expense**।
+2. [ ] পেমেন্ট মেথড **প্রথমে** `Cash` বাছুন → ক্যাশ অ্যাকাউন্ট আসবে।
+3. [ ] ক্যাটাগরি: `Office Supplies`; পেয়ি: `Office Depot`; তারিখ আজ; পরিমাণ `500.00` → **Save as Draft**।
+4. [ ] **Post** → নম্বর `EXP-{বছর}-0001`; জার্নাল: Office Supplies ড্র 500 | Cash ক্র 500।
+5. [ ] **Cash & Bank** (`/cash-bank`) → **Transactions** ট্যাবে — Cash-এ ক্রেডিট 500, ব্যাংক ব্যালেন্স অপরিবর্তিত।
+
+### সরাসরি ব্যাংক লেনদেন
+
+6. [ ] **Cash & Bank → Transactions** → **New Transaction** → ধরন `Bank Deposit`, ক্যাশ থেকে ব্যাংক `1112`-এ ২,০০০ দিন → **Save**। CBT নম্বর ও জার্নাল (Bank ড্র 2000 | Cash ক্র 2000) দেখুন।
+
+## পর্ব ৮ — Fixed Asset ও Depreciation
+
+1. [ ] **Fixed Assets** (`/fixed-assets`) → **New Asset** → নাম: `Office Desk`, ক্যাটাগরি: `Furniture, Fixtures & Computers`, ক্রয় মূল্য `50,000`, তারিখ আজ, মেথড: ক্যাটাগরি থেকে আসবে → **Save**।
+2. [ ] Show পেজে **Capitalize** → `FA-{বছর}-0001` জার্নাল: Fixed Asset ড্র 50,000 | Cash ক্র 50,000।
+3. [ ] Index পেজে **Run Depreciation** → পিরিয়ড বাছুন → **Run** → DEP জার্নাল তৈরি: Dep Expense ড্র | Accumulated Depreciation ক্র (২৪ মাসের স্ট্রেইট-লাইন = 50,000/36)।
+
+## পর্ব ৯ — Payroll (বেতন)
+
+1. [ ] **Payroll** (`/payroll`) → **Employees** ট্যাব → **Add Employee**: নাম `Rahim`, ডিপার্টমেন্ট `Admin`, ডিজাইনেশন `Manager`, যোগদান আজ।
+2. [ ] কর্মচারীর কার্ডে **Salary Structure**: Basic 30,000; HRA 10,000; Medical 5,000; Travel 5,000; Income Tax 2,000; PF 1,500 → Gross **50,000**, Net **46,500** (ফর্মে নিজে আসবে)।
+3. [ ] **Payroll Runs** ট্যাবে ফেরত → পিরিয়ড বাছুন → **Process Payroll** → ড্রাফট রান। **Post** → `PR-{বছর}-0001`।
+4. [ ] জার্নাল যাচাই (View Payroll Run → View Journal): Salary Expense ড্র 50,000 | Salary Payable ক্র 46,500 | Deductions Payable ক্র 3,500।
+5. [ ] **Record Salary Payment**: মেথড `Cash`, পরিমাণ `46,500` → `SP-{বছর}-0001`।
+
+## পর্ব ১০ — জেনারেল জার্নাল ও Budget
+
+1. [ ] **Transactions → Journals** (`/journals`) → **New Journal** → ২টি লাইন: তারিখ আজ; (ক) Debit `Advertising Expense` ১,০০০; (খ) Credit `Cash` ১,০০০ → **Save Draft** → **Post** → `GJ-{বছর}-0001`।
+2. [ ] **Budgets** (`/budgets`) → **New Budget** → নাম `FY-2026 Operating`, ফিসক্যাল ইয়ার বাছুন → লাইন যোগ করুন: অ্যাকাউন্ট `Advertising Expense`, পিরিয়ড ১, পরিমাণ `12,000` → **Save** → **Post** (লক হয়ে যাবে, Edit বন্ধ)।
+3. [ ] Budget Show পেজে Variance টেবিল — Actual = পোস্টেড জার্নাল অনুযায়ী।
+
+## পর্ব ১১ — AR/AP রিপোর্ট ও ক্যাশ রিকনসিলিয়েশন
+
+1. [ ] **Receivables → Aging** — Alpha Traders (পেইড) ০। নতুন করে ৫০০-এর অন-পেইড ইনভয়েস করলে Current কলামে ৫০০ দেখাবে।
+2. [ ] **Payables → Aging** — একইভাবে যাচাই।
+3. [ ] **Cash & Bank → Reconciliation**: ব্যাংক 1112-এর ব্যালেন্সে ডিপোজিট ২,০০০ প্রতিফলিত; স্টেটমেন্ট CSV আপলোড করে `date,description,amount` ফরম্যাটে ২,০০০-এর লাইন দিলে Auto-match হবে → **Complete Reconciliation** (সব লাইন Match) → ব্যাংক Last Reconciled আপডেট।
+
+## পর্ব ১২ — রিপোর্ট ও ফাইন্যান্সিয়াল স্টেটমেন্ট
+
+1. [ ] **Reporting → Reports** (`/reports`) — **General Ledger** ট্যাব: অ্যাকাউন্ট বাছুন `Cash` → পোস্টেড এন্ট্রিগুলো লাইনের পর লাইন। **Trial Balance** ট্যাব: Debit/Credit দুই পাশ **সমান** (Balanced ব্যাজ)।
+2. [ ] **Reporting → Statements** (`/statements`) —
+   - **Profit & Loss**: Net Income = Sales 1,500 − COGS 1,000 − Office Supplies 500 − Advertising 1,000 − Depreciation (50,000/36≈1,389) = **−1,389** (ক্ষতি)।
+   - **Balance Sheet**: Assets = Liabilities + Equity (Difference ±০.০১)।
+   - **Cash Flow** ও **Equity** ট্যাবও রেন্ডার হচ্ছে কিনা দেখুন।
+
+## পর্ব ১৩ — অ্যাপ্রুভাল (গেটেড পোস্টিং) টেস্ট
+
+1. [ ] **Governance → Approval Workflows** (`/approval-workflows`) → **New Workflow**: মডিউল `expense`, মিন অ্যামাউন্ট `0`, ম্যাক্স `999999`, অ্যাপ্রুভার রোল `Accountant`, সিকোয়েন্স `1`, সক্রিয় → **Save**।
+2. [ ] নতুন Expense ড্রাফ্ট তৈরি করুন (যেমন ২৫০) এবং **Post** চাপুন → **ব্লকড**, ফ্ল্যাশে মেসেজ: অ্যাপ্রুভে পাঠানো হয়েছে।
+3. [ ] **Governance → Approvals** (`/approvals`) → pending ক্যাশ সারি → **Approve** → Expense আবার **Post** করলে এবার সফল।
+4. [ ] (ঐচ্ছিক) **Reject** পথে: আরেকটি expense → **Reject** → আবার Submit করলে নতুন request তৈরি হয়।
+5. [ ] **Notifications** (বেল আইকনে আনরিড ব্যাজ) — অ্যাপ্রুভের সাথে সাথে ব্যবহারকারীকে নোটিফিকেশনে তথ্য দেখাবে।
+
+## পর্ব ১৪ — অডিট, ডকুমেন্ট ও ক্লোজিং
+
+1. [ ] **Governance → Audit Log** (`/audit`) — উপরের সব Create/Post-এর লগ আছে; Details-এ Before/After ডিফ।
+2. [ ] যে-কোনো Posted Invoice-এ **Attachments** — ফাইল আপলোড (যেমন `invoice.pdf`) → Download/Remove যাচাই।
+3. [ ] **Accounting → Accounting Periods** — সক্রিয় পিরিয়ডের **Close** >> **Lock**: আগে আগের পিরিয়ড খোলা থাকলে "Close earlier periods first" সতর্কবার্তা।
+4. [ ] সব পিরিয়ড বন্ধ করে **Fiscal Years** → **Close Fiscal Year** → YEC জার্নাল (Retained Earnings-এ Net P&L বহন) তৈরি; পরের FY থাকলে OB জার্নালে Asset/Liability বহন।
+5. [ ] **Journals**-এ `YEC`, `OB`, `GJ`, `SINV`, `PUR`, `RCT`, `PMT`, `EXP`, `CBT`, `FA`, `DEP`, `PYR` প্রিফিক্সের জার্নালগুলো ধাপে ধাপে দেখা যায়।
+
+## পর্ব ১৫ — চূড়ান্ত যাচাই চেকলিস্ট
+
+- [ ] সব পোস্ট জার্নাল **Debit = Credit** (Trial Balance Balanced)।
+- [ ] Inventory ট্র্যাকিংয়ে **Stock Value** = GL-এর Inventory জার্নাল ব্যালেন্স।
+- [ ] AR ব্যালেন্স = সব Posted Invoice বাকি; AP ব্যালেন্স = সব Posted Bill বাকি।
+- [ ] Cash & Bank অ্যাকাউন্ট ব্যালেন্স = সংগৃহীত সব CBT লেনদেনের নিট।
+- [ ] Payroll Payable, VAT Payable/Receivable ব্যালেন্স ট্রায়াল ব্যালেন্সে প্রতিফলিত।
+- [ ] সব গুরুত্বপূর্ণ অ্যাকশন Audit Log-এ নথিভুক্ত।
+- [ ] সাইডবারে কোনো ভাঙা লিংক নেই; পেজ ঘুরতে কোনো ভুল/ক্র্যাশ নেই (কনসোলে ০ এরর)।
 
 ---
 

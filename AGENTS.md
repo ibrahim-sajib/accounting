@@ -1009,6 +1009,23 @@ Safe to rename a migration's column BEFORE it has run in MySQL (SQLite runs from
     closed blocks reopen, reopen works, accountant close vs viewer 403. Test gotcha: `POST
     /journals` only creates a DRAFT (store never posts) — the helper must ALSO hit
     `journals.post` before balances exist.
+- **Phase 11 UI hardening (sidebar + pagination, no new modules)**:
+  - §1.9-style silent bug: Every page template wraps `AuthenticatedLayout`, so the layout (and its
+    overflow-scroll `<nav>`) unmounts/remounts on EVERY Inertia navigation → the sidebar's
+    `scrollTop` silently reset to the top. **Module-scope state dev trick**: state that must survive
+    remounts cannot live in `<script setup>` (per-instance!) — declare it in a plain module-level
+    `<script lang="ts">{ let savedSidebarScroll = 0; }</script>` BLOCK, and restore in the template-ref
+    `watch(navRef, ...)` callback (NOT `onMounted`, which can run before the ref watcher binds).
+  - Sidebar is now **collapsible topic groups** (`visibleGroups` computed filters per-permission;
+    `initGroupOpen` reads `localStorage` `sidebar-open-{label}`, defaults open for Overview or the
+    group containing the active route via `isActive`; `toggleGroup` persists). Submenu items use
+    `v-show` (not `v-if`) so the DOM keeps links for CDP nav scripts and keep-visible nav.
+  - `Pagination.vue` renders Laravel's `&laquo; Previous`/`Next &raquo;` labels as pure **chevron
+    icons** (disabled spans when `url` is null), numeric page buttons, and "Page X of Y" where the
+    total is derived from the LAST numeric page label (scanning left past the `...` separator) — never
+    `links.length - 2` (breaks with ellipses).
+  - Headless verification: 44-route sidebar click pass + pagination render + scroll-preservation
+    assertions (`nav-sidebar.cjs`/`nav-all.cjs`/`nav-pager.cjs` patterns in the temp dir).
 
 - **Aliases in `bootstrap/app.php`**: `'permission' => EnsurePermission::class`; Inertia header
   middleware appended to the `web` group.
