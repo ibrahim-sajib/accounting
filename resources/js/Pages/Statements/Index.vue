@@ -197,8 +197,8 @@ const bsSections: { key: 'assets' | 'liabilities' | 'equity'; title: string }[] 
                     </div>
                 </div>
 
-                <div class="overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm dark:border-gray-800 dark:bg-gray-900">
-                    <table class="w-full divide-y divide-gray-200 text-sm dark:divide-gray-800">
+                <div class="overflow-x-auto rounded-xl border border-gray-200 bg-white shadow-sm dark:border-gray-800 dark:bg-gray-900">
+                    <table class="min-w-[1080px] w-full divide-y divide-gray-200 text-sm dark:divide-gray-800">
                         <thead class="bg-gray-50 dark:bg-gray-800/50">
                             <tr class="text-left text-xs uppercase tracking-wide text-gray-500 dark:text-gray-400">
                                 <th class="px-4 py-3 font-semibold">Account</th>
@@ -262,11 +262,11 @@ const bsSections: { key: 'assets' | 'liabilities' | 'equity'; title: string }[] 
                 </div>
 
                 <div class="space-y-6">
-                    <div v-for="sec in bsSections" :key="sec.key" class="overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm dark:border-gray-800 dark:bg-gray-900">
+                    <div v-for="sec in bsSections" :key="sec.key" class="overflow-x-auto rounded-xl border border-gray-200 bg-white shadow-sm dark:border-gray-800 dark:bg-gray-900">
                         <div class="border-b border-gray-100 px-5 py-3 dark:border-gray-800">
                             <h2 class="text-sm font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">{{ sec.title }}</h2>
                         </div>
-                        <table class="w-full divide-y divide-gray-200 text-sm dark:divide-gray-800">
+                        <table class="min-w-[1080px] w-full divide-y divide-gray-200 text-sm dark:divide-gray-800">
                             <tbody class="divide-y divide-gray-100 dark:divide-gray-800">
                                 <template v-for="(row, idx) in (sections?.[sec.key] ?? []) as StatementRow[]" :key="idx">
                                     <tr v-if="row.is_group" class="bg-gray-50/70 dark:bg-gray-800/40">
@@ -316,8 +316,8 @@ const bsSections: { key: 'assets' | 'liabilities' | 'equity'; title: string }[] 
                     </div>
                 </div>
 
-                <div class="overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm dark:border-gray-800 dark:bg-gray-900">
-                    <table class="w-full divide-y divide-gray-200 text-sm dark:divide-gray-800">
+                <div class="overflow-x-auto rounded-xl border border-gray-200 bg-white shadow-sm dark:border-gray-800 dark:bg-gray-900">
+                    <table class="min-w-[1080px] w-full divide-y divide-gray-200 text-sm dark:divide-gray-800">
                         <thead class="bg-gray-50 dark:bg-gray-800/50">
                             <tr class="text-left text-xs uppercase tracking-wide text-gray-500 dark:text-gray-400">
                                 <th class="px-4 py-3 font-semibold">Activity</th>
@@ -344,8 +344,8 @@ const bsSections: { key: 'assets' | 'liabilities' | 'equity'; title: string }[] 
 
             <!-- ── Statement of Equity ── -->
             <div v-else>
-                <div class="overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm dark:border-gray-800 dark:bg-gray-900">
-                    <table class="w-full divide-y divide-gray-200 text-sm dark:divide-gray-800">
+                <div class="overflow-x-auto rounded-xl border border-gray-200 bg-white shadow-sm dark:border-gray-800 dark:bg-gray-900">
+                    <table class="min-w-[1080px] w-full divide-y divide-gray-200 text-sm dark:divide-gray-800">
                         <thead class="bg-gray-50 dark:bg-gray-800/50">
                             <tr class="text-left text-xs uppercase tracking-wide text-gray-500 dark:text-gray-400">
                                 <th class="px-4 py-3 font-semibold">Account</th>

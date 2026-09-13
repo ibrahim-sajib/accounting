@@ -1026,6 +1026,28 @@ Safe to rename a migration's column BEFORE it has run in MySQL (SQLite runs from
     `links.length - 2` (breaks with ellipses).
   - Headless verification: 44-route sidebar click pass + pagination render + scroll-preservation
     assertions (`nav-sidebar.cjs`/`nav-all.cjs`/`nav-pager.cjs` patterns in the temp dir).
+  - **Full-project responsive pass (390/768/1024/1440 verified)**: every `<table>` in
+    `Pages/`/`Components/` got a horizontal-scroll min-width — `class="w-full divide-y …"` →
+    `class="min-w-[760px] w-full divide-y …"` (dense audit/aging/statement tables use
+    `min-w-[1080px]`; old `min-w-full` variants → `min-w-[760px] lg:min-w-full`) and its wrapper
+    `overflow-hidden rounded-* … shadow-sm` → `overflow-x-auto …`. MAJOR trap: a naive
+    string-transform script silently SKIPS files whose class attr has extra classes between
+    `class="` and the table tokens (e.g. `<table v-else class="mt-5 w-full divide-y …">`) —
+    grep-verify with `grep -rn '<table' … | grep 'w-full divide' | grep -v min-w` AND re-run the
+    transform till it reports 0 pending files, never trust "changed files: N" once.
+  - Form/modal grids inside shared `Modal.vue` use `grid-cols-1 … sm:grid-cols-2` (bare
+    `grid grid-cols-2 gap-4` in a `<dialog>` crushes the form on a phone); totals rows
+    (`grid-cols-3`/`grid-cols-4`) and 3-stat-card rows (`grid-cols-3 gap-3`) collapse to one
+    column below `sm`. `Modal.vue` was upgraded to the Jetstream flex-centering pattern —
+    `flex min-h-full items-center justify-center` inside a `md:flex` scroll-region wrapper — so
+    modals are vertically centered on every device.
+  - Topbar: company-switcher text is `hidden sm:inline` (icon-only on xs); `<main>` is
+    `px-4 py-6 sm:px-6` (was `ml-4 mr-2 py-6 sm:px-6 lg:max-w-full`). Verified via a 390px/768px
+    headless pass (`nav-mobile.cjs`): `document.documentElement.scrollWidth - clientWidth` must be
+    ≤ 1 px on EVERY route (tables scroll inside their containers, never the page body) plus the
+    approval modal opens centered (`left≥0`, `right≤vw`, `top≥0`, `bottom≤vh`). A `col-span-2`
+    first field makes a "fields[0].top > fields[1].bottom" stacked-check a false positive — compare
+    a field pair that genuinely shares a row.
 
 - **Aliases in `bootstrap/app.php`**: `'permission' => EnsurePermission::class`; Inertia header
   middleware appended to the `web` group.

@@ -63,11 +63,11 @@ const submitReject = () => {
             />
 
             <div class="mt-6 space-y-6">
-                <div class="overflow-hidden bg-white shadow-sm dark:bg-gray-900 sm:rounded-lg">
+                <div class="overflow-x-auto bg-white shadow-sm dark:bg-gray-900 sm:rounded-lg">
                     <div class="border-b border-gray-200 px-4 py-3 text-sm font-semibold text-gray-700 dark:border-gray-700 dark:text-gray-200">
                         Pending requests
                     </div>
-                    <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+                    <table class="min-w-[760px] lg:min-w-full divide-y divide-gray-200 dark:divide-gray-700">
                         <thead class="bg-gray-50 dark:bg-gray-800">
                             <tr>
                                 <th class="px-4 py-2 text-left text-xs font-medium uppercase tracking-wide text-gray-500 dark:text-gray-400">Document</th>
@@ -110,11 +110,11 @@ const submitReject = () => {
                     </table>
                 </div>
 
-                <div class="overflow-hidden bg-white shadow-sm dark:bg-gray-900 sm:rounded-lg">
+                <div class="overflow-x-auto bg-white shadow-sm dark:bg-gray-900 sm:rounded-lg">
                     <div class="border-b border-gray-200 px-4 py-3 text-sm font-semibold text-gray-700 dark:border-gray-700 dark:text-gray-200">
                         Recent decisions
                     </div>
-                    <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+                    <table class="min-w-[760px] lg:min-w-full divide-y divide-gray-200 dark:divide-gray-700">
                         <thead class="bg-gray-50 dark:bg-gray-800">
                             <tr>
                                 <th class="px-4 py-2 text-left text-xs font-medium uppercase tracking-wide text-gray-500 dark:text-gray-400">Document</th>

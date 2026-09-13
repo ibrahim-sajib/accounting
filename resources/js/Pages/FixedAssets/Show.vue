@@ -176,7 +176,7 @@ const destroy = () => {
                             <span class="text-xs text-gray-400">{{ lifeUsed }} / {{ asset.useful_life_months }} months · {{ lifeRemaining }} remaining</span>
                         </div>
                         <div v-if="asset.depreciation_entries?.length" class="mt-4 max-h-64 overflow-y-auto">
-                            <table class="w-full divide-y divide-gray-100 text-xs dark:divide-gray-800">
+                            <table class="min-w-[760px] w-full divide-y divide-gray-100 text-xs dark:divide-gray-800">
                                 <thead>
                                     <tr class="text-left text-gray-500 dark:text-gray-400">
                                         <th class="pb-2 font-semibold">Period</th>
@@ -199,7 +199,7 @@ const destroy = () => {
                     <div v-if="isActive && schedule.length" class="rounded-xl border border-gray-200 bg-white p-6 shadow-sm dark:border-gray-800 dark:bg-gray-900">
                         <h2 class="text-sm font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">Depreciation Schedule (future)</h2>
                         <div class="mt-4 max-h-48 overflow-y-auto">
-                            <table class="w-full divide-y divide-gray-100 text-xs dark:divide-gray-800">
+                            <table class="min-w-[760px] w-full divide-y divide-gray-100 text-xs dark:divide-gray-800">
                                 <thead>
                                     <tr class="text-left text-gray-500 dark:text-gray-400">
                                         <th class="pb-2 font-semibold">#</th>

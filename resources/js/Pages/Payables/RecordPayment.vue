@@ -222,7 +222,7 @@ const selectedSupplier = computed(() =>
                             {{ selectedSupplier.label }} has no outstanding bills.
                         </p>
 
-                        <table v-else class="w-full divide-y divide-gray-200 text-sm dark:divide-gray-800">
+                        <table v-else class="min-w-[760px] w-full divide-y divide-gray-200 text-sm dark:divide-gray-800">
                             <thead>
                                 <tr class="text-left text-xs uppercase tracking-wide text-gray-500 dark:text-gray-400">
                                     <th class="px-4 py-3 font-semibold">Bill</th>

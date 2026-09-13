@@ -139,8 +139,8 @@ const deleteAdjustment = () => {
                         </p>
                     </div>
 
-                    <div class="overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm dark:border-gray-800 dark:bg-gray-900">
-                        <table class="w-full divide-y divide-gray-200 text-sm dark:divide-gray-800">
+                    <div class="overflow-x-auto rounded-xl border border-gray-200 bg-white shadow-sm dark:border-gray-800 dark:bg-gray-900">
+                        <table class="min-w-[760px] w-full divide-y divide-gray-200 text-sm dark:divide-gray-800">
                             <thead>
                                 <tr class="text-left text-xs uppercase tracking-wide text-gray-500 dark:text-gray-400">
                                     <th class="px-4 py-3 font-semibold">Product</th>

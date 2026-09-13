@@ -53,7 +53,7 @@ const onWarehouseChange = (e: Event) => {
                 :description="`Current on-hand stock · ${records.total ?? 0} product(s)`"
             />
 
-            <div class="mb-4 grid grid-cols-3 gap-3">
+            <div class="mb-4 grid grid-cols-1 gap-3 sm:grid-cols-3">
                 <div class="rounded-xl border border-gray-200 bg-white p-4 shadow-sm dark:border-gray-800 dark:bg-gray-900">
                     <div class="text-xs uppercase tracking-wide text-gray-400">Stock value</div>
                     <div class="mt-1 font-mono text-xl font-bold text-gray-900 dark:text-white">{{ formatMoney(summary.total_value) }}</div>
@@ -93,8 +93,8 @@ const onWarehouseChange = (e: Event) => {
                 <p class="mt-3 text-sm text-gray-500 dark:text-gray-400">No products found.</p>
             </div>
 
-            <div v-else class="overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm dark:border-gray-800 dark:bg-gray-900">
-                <table class="w-full divide-y divide-gray-200 text-sm dark:divide-gray-800">
+            <div v-else class="overflow-x-auto rounded-xl border border-gray-200 bg-white shadow-sm dark:border-gray-800 dark:bg-gray-900">
+                <table class="min-w-[760px] w-full divide-y divide-gray-200 text-sm dark:divide-gray-800">
                     <thead>
                         <tr class="text-left text-xs uppercase tracking-wide text-gray-500 dark:text-gray-400">
                             <th class="px-4 py-3 font-semibold">Product</th>

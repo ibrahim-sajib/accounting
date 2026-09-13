@@ -118,8 +118,8 @@ const destroy = (w: Workflow) => {
                 </template>
             </PageHeader>
 
-            <div class="mt-6 overflow-hidden bg-white shadow-sm dark:bg-gray-900 sm:rounded-lg">
-                <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+            <div class="mt-6 overflow-x-auto bg-white shadow-sm dark:bg-gray-900 sm:rounded-lg">
+                <table class="min-w-[760px] lg:min-w-full divide-y divide-gray-200 dark:divide-gray-700">
                     <thead class="bg-gray-50 dark:bg-gray-800">
                         <tr>
                             <th class="px-4 py-2 text-left text-xs font-medium uppercase tracking-wide text-gray-500 dark:text-gray-400">Name</th>
@@ -172,7 +172,7 @@ const destroy = (w: Workflow) => {
                     {{ editing ? 'Edit workflow' : 'New workflow' }}
                 </h2>
 
-                <div class="mt-4 grid grid-cols-2 gap-4">
+                <div class="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2">
                     <div class="col-span-2">
                         <InputLabel for="wf_name" value="Name" :required="true" />
                         <TextInput id="wf_name" v-model="form.name" class="mt-1 w-full" required />

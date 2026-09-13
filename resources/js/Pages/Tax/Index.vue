@@ -159,7 +159,7 @@ const deleteRate = (rate: TaxRate) => {
             </div>
 
             <div v-else class="space-y-4">
-                <div v-for="taxType in taxTypes" :key="taxType.id" class="overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm dark:border-gray-800 dark:bg-gray-900">
+                <div v-for="taxType in taxTypes" :key="taxType.id" class="overflow-x-auto rounded-xl border border-gray-200 bg-white shadow-sm dark:border-gray-800 dark:bg-gray-900">
                     <div class="flex flex-wrap items-center justify-between gap-3 border-b border-gray-100 px-4 py-3 dark:border-gray-800">
                         <div class="flex items-center gap-3">
                             <AppIcon name="tax" class="h-5 w-5 text-gray-400" />
@@ -196,7 +196,7 @@ const deleteRate = (rate: TaxRate) => {
                         </div>
                     </div>
 
-                    <table v-if="taxType.rates.length" class="w-full divide-y divide-gray-100 text-sm dark:divide-gray-800">
+                    <table v-if="taxType.rates.length" class="min-w-[760px] w-full divide-y divide-gray-100 text-sm dark:divide-gray-800">
                         <thead>
                             <tr class="text-left text-xs uppercase tracking-wide text-gray-500 dark:text-gray-400">
                                 <th class="px-4 py-2 font-semibold">Rate</th>
@@ -272,7 +272,7 @@ const deleteRate = (rate: TaxRate) => {
                         {{ rateModal.mode === 'edit' ? 'Edit Rate' : 'Add Rate' }} — {{ rateModal.taxType.name }}
                     </h2>
                     <form @submit.prevent="submitRate" class="mt-4 space-y-4">
-                        <div class="grid grid-cols-2 gap-4">
+                        <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
                             <div>
                                 <InputLabel for="rate_name" value="Rate Name" required />
                                 <TextInput id="rate_name" v-model="rateForm.name" type="text" class="mt-1 block w-full" placeholder="Standard Rate 15%" required />

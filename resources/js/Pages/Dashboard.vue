@@ -225,7 +225,7 @@ const kpis = computed(() => [
             </div>
 
             <!-- Recent journals -->
-            <div class="overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm dark:border-gray-800 dark:bg-gray-900">
+            <div class="overflow-x-auto rounded-xl border border-gray-200 bg-white shadow-sm dark:border-gray-800 dark:bg-gray-900">
                 <div class="flex items-center justify-between border-b border-gray-100 px-5 py-4 dark:border-gray-800">
                     <h2 class="text-sm font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">Recent Journals</h2>
                     <Link
@@ -235,7 +235,7 @@ const kpis = computed(() => [
                         View all
                     </Link>
                 </div>
-                <table class="w-full divide-y divide-gray-200 text-sm dark:divide-gray-800">
+                <table class="min-w-[760px] w-full divide-y divide-gray-200 text-sm dark:divide-gray-800">
                     <thead class="bg-gray-50 dark:bg-gray-800/50">
                         <tr class="text-left text-xs uppercase tracking-wide text-gray-500 dark:text-gray-400">
                             <th class="px-5 py-3 font-semibold">Date</th>

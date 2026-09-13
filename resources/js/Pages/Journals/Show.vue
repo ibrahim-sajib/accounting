@@ -192,7 +192,7 @@ const sourceTypeLabel: Record<string, string> = {
                         <div class="border-b border-gray-100 px-6 py-4 dark:border-gray-800">
                             <h2 class="text-sm font-semibold text-gray-700 dark:text-gray-200">Journal Lines</h2>
                         </div>
-                        <table class="w-full divide-y divide-gray-100 text-sm dark:divide-gray-800">
+                        <table class="min-w-[760px] w-full divide-y divide-gray-100 text-sm dark:divide-gray-800">
                             <thead>
                                 <tr class="text-left text-xs uppercase tracking-wide text-gray-500 dark:text-gray-400">
                                     <th class="px-6 py-3 font-semibold">Account</th>

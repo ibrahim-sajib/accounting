@@ -172,8 +172,8 @@ const applyFilters = () => {
                 <p class="mt-3 text-sm text-gray-500 dark:text-gray-400">No transactions found.</p>
             </div>
 
-            <div v-else class="overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm dark:border-gray-800 dark:bg-gray-900">
-                <table class="w-full divide-y divide-gray-200 text-sm dark:divide-gray-800">
+            <div v-else class="overflow-x-auto rounded-xl border border-gray-200 bg-white shadow-sm dark:border-gray-800 dark:bg-gray-900">
+                <table class="min-w-[760px] w-full divide-y divide-gray-200 text-sm dark:divide-gray-800">
                     <thead>
                         <tr class="text-left text-xs uppercase tracking-wide text-gray-500 dark:text-gray-400">
                             <th class="px-4 py-3 font-semibold">Type</th>
@@ -227,7 +227,7 @@ const applyFilters = () => {
                 <div class="p-6">
                     <h2 class="text-lg font-semibold text-gray-900 dark:text-white">New Cash / Bank Transaction</h2>
                     <form @submit.prevent="submitCreate" class="mt-4 space-y-4">
-                        <div class="grid grid-cols-2 gap-4">
+                        <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
                             <div>
                                 <InputLabel for="transaction_type" value="Transaction Type" required />
                                 <select id="transaction_type" v-model="form.transaction_type" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-200">
@@ -248,7 +248,7 @@ const applyFilters = () => {
                             <InputError :message="form.errors.amount" class="mt-1" />
                         </div>
 
-                        <div v-if="requiresCash" class="grid grid-cols-2 gap-4">
+                        <div v-if="requiresCash" class="grid grid-cols-1 gap-4 sm:grid-cols-2">
                             <div>
                                 <InputLabel for="cash_account_id" value="Cash Account" required />
                                 <select id="cash_account_id" v-model="form.cash_account_id" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-200" required>
@@ -267,7 +267,7 @@ const applyFilters = () => {
                             </div>
                         </div>
 
-                        <div v-if="requiresBank && !depositOrWithdrawal" class="grid grid-cols-2 gap-4">
+                        <div v-if="requiresBank && !depositOrWithdrawal" class="grid grid-cols-1 gap-4 sm:grid-cols-2">
                             <div>
                                 <InputLabel for="bank_account_id" value="Bank Account" required />
                                 <select id="bank_account_id" v-model="form.bank_account_id" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-200" required>
@@ -294,7 +294,7 @@ const applyFilters = () => {
                             </div>
                         </div>
 
-                        <div v-if="depositOrWithdrawal" class="grid grid-cols-2 gap-4">
+                        <div v-if="depositOrWithdrawal" class="grid grid-cols-1 gap-4 sm:grid-cols-2">
                             <div>
                                 <InputLabel for="cash_account_id" value="Cash Account" required />
                                 <select id="cash_account_id" v-model="form.cash_account_id" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-200" required>
@@ -313,7 +313,7 @@ const applyFilters = () => {
                             </div>
                         </div>
 
-                        <div class="grid grid-cols-2 gap-4">
+                        <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
                             <div>
                                 <InputLabel for="reference" value="Reference" />
                                 <TextInput id="reference" v-model="form.reference" type="text" class="mt-1 block w-full" maxlength="100" placeholder="e.g. cheque # " />

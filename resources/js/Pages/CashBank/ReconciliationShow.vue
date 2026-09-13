@@ -117,14 +117,14 @@ const matchedCount = () => props.import.lines.filter((line) => line.is_reconcile
                 <span class="text-gray-500 dark:text-gray-400">{{ matchedCount() }} / {{ props.import.lines.length }} lines matched</span>
             </div>
 
-            <div class="overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm dark:border-gray-800 dark:bg-gray-900">
+            <div class="overflow-x-auto rounded-xl border border-gray-200 bg-white shadow-sm dark:border-gray-800 dark:bg-gray-900">
                 <div class="border-b border-gray-200 px-5 py-4 dark:border-gray-800">
                     <h3 class="text-sm font-semibold text-gray-900 dark:text-white">Statement Lines</h3>
                 </div>
                 <div v-if="props.import.lines.length === 0" class="px-5 py-8 text-center text-sm text-gray-500 dark:text-gray-400">
                     No lines imported yet.
                 </div>
-                <table v-else class="w-full divide-y divide-gray-200 text-sm dark:divide-gray-800">
+                <table v-else class="min-w-[760px] w-full divide-y divide-gray-200 text-sm dark:divide-gray-800">
                     <thead>
                         <tr class="text-left text-xs uppercase tracking-wide text-gray-500 dark:text-gray-400">
                             <th class="px-4 py-3 font-semibold">Date</th>

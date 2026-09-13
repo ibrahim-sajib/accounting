@@ -47,7 +47,7 @@ const markAllRead = () => {
                 </template>
             </PageHeader>
 
-            <div class="mt-6 overflow-hidden bg-white shadow-sm dark:bg-gray-900 sm:rounded-lg">
+            <div class="mt-6 overflow-x-auto bg-white shadow-sm dark:bg-gray-900 sm:rounded-lg">
                 <ul class="divide-y divide-gray-200 dark:divide-gray-700">
                     <li
                         v-for="n in notifications.data"

@@ -105,8 +105,8 @@ const deleteRate = (rateId: number) => {
                 <p class="mt-3 text-sm text-gray-500 dark:text-gray-400">No currencies found.</p>
             </div>
 
-            <div v-else class="overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm dark:border-gray-800 dark:bg-gray-900">
-                <table class="w-full divide-y divide-gray-200 text-sm dark:divide-gray-800">
+            <div v-else class="overflow-x-auto rounded-xl border border-gray-200 bg-white shadow-sm dark:border-gray-800 dark:bg-gray-900">
+                <table class="min-w-[760px] w-full divide-y divide-gray-200 text-sm dark:divide-gray-800">
                     <thead>
                         <tr class="text-left text-xs uppercase tracking-wide text-gray-500 dark:text-gray-400">
                             <th class="px-4 py-3 font-semibold">Currency</th>
@@ -171,7 +171,7 @@ const deleteRate = (rateId: number) => {
                             <TextInput id="name" v-model="form.name" type="text" class="mt-1 block w-full" placeholder="US Dollar" required />
                             <InputError :message="form.errors.name" class="mt-1" />
                         </div>
-                        <div class="grid grid-cols-2 gap-4">
+                        <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
                             <div>
                                 <InputLabel for="symbol" value="Symbol" />
                                 <TextInput id="symbol" v-model="form.symbol" type="text" class="mt-1 block w-full" maxlength="10" placeholder="$" />

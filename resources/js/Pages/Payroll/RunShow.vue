@@ -222,13 +222,13 @@ const submitPayment = () => {
                 </template>
             </div>
 
-            <div class="overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm dark:border-gray-800 dark:bg-gray-900">
+            <div class="overflow-x-auto rounded-xl border border-gray-200 bg-white shadow-sm dark:border-gray-800 dark:bg-gray-900">
                 <div class="flex items-center justify-between border-b border-gray-100 px-5 py-4 dark:border-gray-800">
                     <h2 class="text-sm font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">Run Lines ({{ lines.length }})</h2>
                     <p v-if="isDraft" class="text-xs text-gray-400">Draft lines are editable — amounts are recomputed server-side on post.</p>
                     <p v-else-if="run.posted_at" class="text-xs text-gray-400">Posted {{ formatDate(run.posted_at) }}</p>
                 </div>
-                <table class="w-full divide-y divide-gray-200 text-sm dark:divide-gray-800">
+                <table class="min-w-[760px] w-full divide-y divide-gray-200 text-sm dark:divide-gray-800">
                     <thead>
                         <tr class="text-left text-xs uppercase tracking-wide text-gray-500 dark:text-gray-400">
                             <th class="px-4 py-3 font-semibold">Employee</th>
@@ -296,11 +296,11 @@ const submitPayment = () => {
                 </table>
             </div>
 
-            <div class="mt-4 overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm dark:border-gray-800 dark:bg-gray-900">
+            <div class="mt-4 overflow-x-auto rounded-xl border border-gray-200 bg-white shadow-sm dark:border-gray-800 dark:bg-gray-900">
                 <div class="border-b border-gray-100 px-5 py-4 dark:border-gray-800">
                     <h2 class="text-sm font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">Salary Payments ({{ payments.length }})</h2>
                 </div>
-                <table class="w-full divide-y divide-gray-200 text-sm dark:divide-gray-800">
+                <table class="min-w-[760px] w-full divide-y divide-gray-200 text-sm dark:divide-gray-800">
                     <thead>
                         <tr class="text-left text-xs uppercase tracking-wide text-gray-500 dark:text-gray-400">
                             <th class="px-4 py-3 font-semibold">Payment</th>
@@ -357,7 +357,7 @@ const submitPayment = () => {
                             <InputError class="mt-2" :message="payForm.errors.bank_account_id" />
                         </div>
 
-                        <div class="grid grid-cols-2 gap-4">
+                        <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
                             <div>
                                 <InputLabel for="pay_amount" value="Amount *" />
                                 <TextInput id="pay_amount" v-model="payForm.amount" type="number" step="0.0001" min="0.0001" class="mt-1 block w-full" required />

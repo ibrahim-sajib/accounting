@@ -126,11 +126,11 @@ const variancePct = computed(() =>
                 </div>
             </div>
 
-            <div class="mt-4 overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm dark:border-gray-800 dark:bg-gray-900">
+            <div class="mt-4 overflow-x-auto rounded-xl border border-gray-200 bg-white shadow-sm dark:border-gray-800 dark:bg-gray-900">
                 <div class="border-b border-gray-100 px-5 py-4 dark:border-gray-800">
                     <h2 class="text-sm font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">Budget vs Actual by Account</h2>
                 </div>
-                <table class="w-full divide-y divide-gray-200 text-sm dark:divide-gray-800">
+                <table class="min-w-[760px] w-full divide-y divide-gray-200 text-sm dark:divide-gray-800">
                     <thead class="bg-gray-50 dark:bg-gray-800/50">
                         <tr class="text-left text-xs uppercase tracking-wide text-gray-500 dark:text-gray-400">
                             <th class="px-4 py-3 font-semibold">Account</th>
@@ -162,12 +162,12 @@ const variancePct = computed(() =>
                 </table>
             </div>
 
-            <div class="mt-4 overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm dark:border-gray-800 dark:bg-gray-900">
+            <div class="mt-4 overflow-x-auto rounded-xl border border-gray-200 bg-white shadow-sm dark:border-gray-800 dark:bg-gray-900">
                 <div class="border-b border-gray-100 px-5 py-4 dark:border-gray-800">
                     <h2 class="text-sm font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">Period Detail</h2>
                 </div>
                 <div class="overflow-x-auto">
-                    <table class="w-full divide-y divide-gray-200 text-sm dark:divide-gray-800">
+                    <table class="min-w-[760px] w-full divide-y divide-gray-200 text-sm dark:divide-gray-800">
                         <thead class="bg-gray-50 dark:bg-gray-800/50">
                             <tr class="text-left text-xs uppercase tracking-wide text-gray-500 dark:text-gray-400">
                                 <th class="px-4 py-3 font-semibold">Account</th>

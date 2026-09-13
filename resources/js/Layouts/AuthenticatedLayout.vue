@@ -397,7 +397,7 @@ const switchCompany = (id: number) => {
                                 type="button"
                                 class="inline-flex items-center rounded-lg border border-gray-200 px-3 py-1.5 text-sm font-medium text-gray-700 hover:bg-gray-50 dark:border-gray-700 dark:text-gray-200 dark:hover:bg-gray-800"
                             >
-                                <span class="max-w-[10rem] truncate">{{ currentCompany?.name ?? 'Select Company' }}</span>
+                                <span class="hidden max-w-[10rem] truncate sm:inline">{{ currentCompany?.name ?? 'Select Company' }}</span>
                                 <svg class="ms-2 h-4 w-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
                                 </svg>
@@ -453,7 +453,7 @@ const switchCompany = (id: number) => {
             <FlashMessage />
 
             <!-- Page content -->
-            <main class="ml-4 mr-2 py-6 sm:px-6 lg:max-w-full">
+            <main class="px-4 py-6 sm:px-6">
                 <Breadcrumbs />
                 <slot />
             </main>

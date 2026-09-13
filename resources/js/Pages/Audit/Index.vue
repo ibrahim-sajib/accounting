@@ -122,8 +122,8 @@ const json = (row: AuditRow) => {
                 </div>
             </div>
 
-            <div class="mt-4 overflow-hidden bg-white shadow-sm dark:bg-gray-900 sm:rounded-lg">
-                <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+            <div class="mt-4 overflow-x-auto bg-white shadow-sm dark:bg-gray-900 sm:rounded-lg">
+                <table class="min-w-[1080px] lg:min-w-full divide-y divide-gray-200 dark:divide-gray-700">
                     <thead class="bg-gray-50 dark:bg-gray-800">
                         <tr>
                             <th class="px-4 py-2 text-left text-xs font-medium uppercase tracking-wide text-gray-500 dark:text-gray-400">When</th>
@@ -189,7 +189,7 @@ const json = (row: AuditRow) => {
 
                     <div v-if="selected.diff.length" class="mt-4">
                         <h3 class="text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">Changed fields</h3>
-                        <table class="mt-2 w-full divide-y divide-gray-200 text-sm dark:divide-gray-700">
+                        <table class="mt-2 min-w-[1080px] w-full divide-y divide-gray-200 text-sm dark:divide-gray-700">
                             <thead>
                                 <tr class="text-left text-xs text-gray-500 dark:text-gray-400">
                                     <th class="py-1 pr-2 font-medium">Field</th>
@@ -207,7 +207,7 @@ const json = (row: AuditRow) => {
                         </table>
                     </div>
 
-                    <div class="mt-4 grid grid-cols-2 gap-4">
+                    <div class="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2">
                         <div>
                             <h3 class="text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">Before</h3>
                             <pre class="mt-2 max-h-64 overflow-auto rounded-md bg-gray-50 p-3 text-[11px] text-gray-700 dark:bg-gray-800 dark:text-gray-300">{{ json(selected).old }}</pre>

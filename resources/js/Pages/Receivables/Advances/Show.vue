@@ -171,7 +171,7 @@ const submitApply = () => {
                             This advance has not been applied to any invoices yet.
                         </p>
 
-                        <table v-else class="w-full divide-y divide-gray-200 text-sm dark:divide-gray-800">
+                        <table v-else class="min-w-[760px] w-full divide-y divide-gray-200 text-sm dark:divide-gray-800">
                             <thead>
                                 <tr class="text-left text-xs uppercase tracking-wide text-gray-500 dark:text-gray-400">
                                     <th class="px-4 py-3 font-semibold">Invoice</th>
@@ -223,7 +223,7 @@ const submitApply = () => {
                     No outstanding invoices available to apply this advance to.
                 </p>
 
-                <table v-else class="mt-5 w-full divide-y divide-gray-200 text-sm dark:divide-gray-800">
+                <table v-else class="mt-5 min-w-[760px] w-full divide-y divide-gray-200 text-sm dark:divide-gray-800">
                     <thead>
                         <tr class="text-left text-xs uppercase tracking-wide text-gray-500 dark:text-gray-400">
                             <th class="py-2 pr-2 font-semibold">Invoice</th>

@@ -175,11 +175,11 @@ const submit = () => {
             <TextInput v-model="form.memo" class="mt-1 block w-full" placeholder="e.g. Damaged goods found during weekly stock check" />
         </div>
 
-        <div class="mt-6 overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm dark:border-gray-800 dark:bg-gray-900">
+        <div class="mt-6 overflow-x-auto rounded-xl border border-gray-200 bg-white shadow-sm dark:border-gray-800 dark:bg-gray-900">
             <div class="border-b border-gray-200 px-4 py-3 text-sm font-semibold text-gray-700 dark:border-gray-800 dark:text-gray-200">
                 Count lines
             </div>
-            <table class="w-full divide-y divide-gray-200 text-sm dark:divide-gray-800">
+            <table class="min-w-[760px] w-full divide-y divide-gray-200 text-sm dark:divide-gray-800">
                 <thead>
                     <tr class="text-left text-xs uppercase tracking-wide text-gray-500 dark:text-gray-400">
                         <th class="px-4 py-3 font-semibold">Product</th>

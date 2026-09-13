@@ -157,7 +157,7 @@ const submit = () => {
             <p v-if="form.errors.lines" class="mt-2 text-sm text-red-600 dark:text-red-400">{{ form.errors.lines }}</p>
 
             <div class="mt-4 overflow-x-auto">
-                <table class="w-full divide-y divide-gray-200 text-sm dark:divide-gray-800">
+                <table class="min-w-[760px] w-full divide-y divide-gray-200 text-sm dark:divide-gray-800">
                     <thead>
                         <tr class="text-left text-xs uppercase tracking-wide text-gray-500 dark:text-gray-400">
                             <th class="py-2 pr-3 font-semibold">Account</th>

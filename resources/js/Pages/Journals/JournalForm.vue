@@ -230,7 +230,7 @@ const submit = () => {
             <div
                 class="mt-5 flex flex-col gap-3 border-t border-gray-100 pt-4 sm:flex-row sm:items-center sm:justify-between dark:border-gray-800"
             >
-                <div class="grid grid-cols-3 gap-6 text-sm">
+                <div class="grid grid-cols-1 gap-6 text-sm sm:grid-cols-3">
                     <div>
                         <div class="text-xs uppercase tracking-wide text-gray-400">Total debit</div>
                         <div class="font-mono font-semibold text-gray-800 dark:text-gray-100">{{ formatMoney(totals.debit) }}</div>

@@ -175,7 +175,7 @@ const postBalances = () => {
                 </div>
 
                 <div v-else class="overflow-x-auto">
-                    <table class="w-full divide-y divide-gray-100 text-sm dark:divide-gray-800">
+                    <table class="min-w-[760px] w-full divide-y divide-gray-100 text-sm dark:divide-gray-800">
                         <thead>
                             <tr class="text-left text-xs uppercase tracking-wide text-gray-500 dark:text-gray-400">
                                 <th class="px-6 py-3 font-semibold">Account</th>

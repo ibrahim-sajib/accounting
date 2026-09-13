@@ -86,7 +86,7 @@ const TYPE_LABELS: Record<string, string> = {
             </div>
 
             <div class="mt-6 grid gap-6 lg:grid-cols-2">
-                <div class="overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm dark:border-gray-800 dark:bg-gray-900">
+                <div class="overflow-x-auto rounded-xl border border-gray-200 bg-white shadow-sm dark:border-gray-800 dark:bg-gray-900">
                     <div class="flex items-center justify-between border-b border-gray-200 px-5 py-4 dark:border-gray-800">
                         <h3 class="text-sm font-semibold text-gray-900 dark:text-white">Cash Accounts</h3>
                         <Link :href="route('cash-bank.accounts')" class="text-xs font-medium text-indigo-600 hover:text-indigo-800 dark:text-indigo-400">Manage</Link>
@@ -105,7 +105,7 @@ const TYPE_LABELS: Record<string, string> = {
                     </div>
                 </div>
 
-                <div class="overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm dark:border-gray-800 dark:bg-gray-900">
+                <div class="overflow-x-auto rounded-xl border border-gray-200 bg-white shadow-sm dark:border-gray-800 dark:bg-gray-900">
                     <div class="flex items-center justify-between border-b border-gray-200 px-5 py-4 dark:border-gray-800">
                         <h3 class="text-sm font-semibold text-gray-900 dark:text-white">Bank Accounts</h3>
                         <Link :href="route('cash-bank.accounts')" class="text-xs font-medium text-indigo-600 hover:text-indigo-800 dark:text-indigo-400">Manage</Link>
@@ -127,7 +127,7 @@ const TYPE_LABELS: Record<string, string> = {
                 </div>
             </div>
 
-            <div class="mt-6 overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm dark:border-gray-800 dark:bg-gray-900">
+            <div class="mt-6 overflow-x-auto rounded-xl border border-gray-200 bg-white shadow-sm dark:border-gray-800 dark:bg-gray-900">
                 <div class="border-b border-gray-200 px-5 py-4 dark:border-gray-800">
                     <h3 class="text-sm font-semibold text-gray-900 dark:text-white">Recent Transactions</h3>
                 </div>
