@@ -90,7 +90,7 @@ php artisan make:migration add_vat_rate_to_tax_settings_table --table=tax_settin
 | Command | Purpose |
 | --- | --- |
 | `php artisan db:seed` | Run the `DatabaseSeeder` |
-| `php artisan db:seed --class=PermissionSeeder` | Run a specific seeder |
+| `php artisan db:seed --class=PermissionSeeder` | Run a specific seeder (use the class name, **not** a file path) |
 | `php artisan db:seed --force` / `-f` | Run without confirmation (Docker boot, production) |
 | `php artisan db:seed --class=PermissionSeeder --force` | Reseed permissions idempotently |
 
@@ -104,6 +104,48 @@ All seeders are idempotent (`firstOrCreate`) and safe to re-run.
 4. `CurrencySeeder` — BDT, USD, EUR, GBP, INR, PKR
 5. `FiscalYearSeeder` — a fiscal year with 12 open monthly periods
 6. `SystemSettingSeeder` — default company settings
+7. `ChartOfAccountsSeeder` — full chart of accounts with postable leaves
+8. `TaxSeeder` — TaxTypes + TaxRates (VAT 15/7.5/0, WHT 3)
+9. `AccountingSettingSeeder` — default AR/AP/inventory/sales/purchase/tax GL accounts
+10. `MasterDataSeeder` — product categories + units
+11. `ExpenseCategorySeeder` — expense categories → expense GL accounts
+12. `AssetCategorySeeder` — asset categories → asset/dep GL accounts
+13. `PayrollSeeder` — departments + designations
+
+### Master data seeding (fresh database)
+
+Fresh databases have **no data**. The master data the system depends on lives in
+seeders, all idempotent — run the whole set with:
+
+```bash
+php artisan migrate:fresh --seed          # drops everything, migrates, seeds all master data
+```
+
+or run the master-data seeders individually as needed:
+
+| Seeder (cli class) | Creates | Command |
+| --- | --- | --- |
+| `PermissionSeeder` | Module permission slugs for every domain | `php artisan db:seed --class=Database\\Seeders\\PermissionSeeder` |
+| `RoleSeeder` | Super Admin, Company Admin, Accountant, Sales/Purchase Executive, Inventory Manager, HR Payroll Manager, Viewer | `php artisan db:seed --class=Database\\Seeders\\RoleSeeder` |
+| `CompanySeeder` | Demo Business Ltd, HQ branch, super admin user `admin@demobusiness.local` / `password` | `php artisan db:seed --class=Database\\Seeders\\CompanySeeder` |
+| `CurrencySeeder` | BDT (base), USD, EUR, GBP, INR, PKR | `php artisan db:seed --class=Database\\Seeders\\CurrencySeeder` |
+| `FiscalYearSeeder` | A fiscal year + 12 open monthly accounting periods | `php artisan db:seed --class=Database\\Seeders\\FiscalYearSeeder` |
+| `SystemSettingSeeder` | Default company settings | `php artisan db:seed --class=Database\\Seeders\\SystemSettingSeeder` |
+| `ChartOfAccountsSeeder` | Full COA (assets/liabilities/equity/income/expense, postable leaves) | `php artisan db:seed --class=Database\\Seeders\\ChartOfAccountsSeeder` |
+| `TaxSeeder` | VAT (Standard 15%, Reduced 7.5%, Zero) + WHT 3% types/rates | `php artisan db:seed --class=Database\\Seeders\\TaxSeeder` |
+| `AccountingSettingSeeder` | Default AR / AP / inventory / sales / purchase / input-tax / output-tax GL accounts | `php artisan db:seed --class=Database\\Seeders\\AccountingSettingSeeder` |
+| `MasterDataSeeder` | Product categories: Goods, Services, Raw Materials; Units: pc, kg, L, bx, hr | `php artisan db:seed --class=Database\\Seeders\\MasterDataSeeder` |
+| `ExpenseCategorySeeder` | Rent, Utilities, Salaries, Office Supplies, Travel → expense GL accounts | `php artisan db:seed --class=Database\\Seeders\\ExpenseCategorySeeder` |
+| `AssetCategorySeeder` | Buildings, Machinery, Furniture/Computers, Vehicles → asset/acc-dep/expense GL accounts | `php artisan db:seed --class=Database\\Seeders\\AssetCategorySeeder` |
+| `PayrollSeeder` | Departments + designations (HR, Finance, Sales, Ops, IT...) | `php artisan db:seed --class=Database\\Seeders\\PayrollSeeder` |
+
+> Note: `--class` takes the **class name with namespace**, never a file path
+> (e.g. `Database\Seeders\PermissionSeeder`, not `database/seeders/PermissionSeeder.php`).
+> In Docker: `docker compose exec app php artisan db:seed --class=Database\\Seeders\\PermissionSeeder`.
+
+**Not seeded automatically** (must be created by the user from the UI): customers,
+suppliers, products, warehouse(s) beyond none (allocate one via Settings → Warehouses),
+users beyond the super admin, chart-of-accounts changes, and any transaction data.
 
 Make a new seeder:
 

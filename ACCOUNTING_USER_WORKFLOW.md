@@ -8,6 +8,7 @@
 
 ## সূচিপত্র
 
+0. **শুরু — ডেটাবেস সেটআপ, সিডিং ও টেস্ট ফ্লো (Fresh Database Guide)**
 1. Phase 1 — কোম্পানি ও সিস্টেম সেটআপ
 2. Phase 2 — অ্যাকাউন্টিং ফাউন্ডেশন
 3. Phase 3 — মাস্টার ডেটা
@@ -44,6 +45,89 @@
 34. ইউজার রোল জার্নি
 35. দৈনিক / মাসিক / বার্ষিক ওয়ার্কফ্লো
 36. হাতে-কলমে ডেটা এন্ট্রি টেস্ট গাইড (Manual Data-Entry Workbook)
+
+---
+
+# শুরু — ডেটাবেস সেটআপ, সিডিং ও টেস্ট ফ্লো (Fresh Database Guide)
+
+> নতুন/খালি ডেটাবেসে কীভাবে সিস্টেমটিকে টেস্ট-রেডি করবেন — কোন মাস্টার ডেটা সিড করা থাকে,
+> কোনটি হাতে বানাতে হয়, এবং পুরো সফটওয়্যারটি শুর থেকে শেষের ফ্লো কীভাবে টেস্ট করবেন।
+
+## ১. ফ্রেশ ডেটাবেস তৈরি
+
+ডেটাবেসে কোনো ডেটা নেই এমন অবস্থা (ফ্রেশ) পেতে **সবকিছু মুছে আবার নতুন করে** মাইগ্রেট করুন:
+
+```bash
+docker compose exec app php artisan migrate:fresh --seed
+```
+
+- `migrate:fresh` → সব টেবিল মুছে, নতুন করে সব মাইগ্রেশন চালায়।
+- `--seed` → সাথে সাথে `DatabaseSeeder` চলে; **সব মাস্টার ডেটা স্বয়ংক্রিয়ভাবে ঢুকে যায়**।
+- **নেটিভ (Docker ছাড়া):** `php artisan migrate:fresh --seed`
+
+## ২. লগইন ও সুপার অ্যাডমিন
+
+সুপার অ্যাডমিন **সিডের মাধ্যমে তৈরি হয়** (`CompanySeeder`) — আপনাকে হাতে বানাতে হবে না:
+
+- **ইমেইল:** `admin@demobusiness.local`
+- **পাসওয়ার্ড:** `password`
+- সিড যা-ও তৈরি করে: **Demo Business Ltd**, শাখা **Head Office (HQ)**, মুদ্রা **BDT**,
+  ফিসক্যাল ইয়ার + ১২টি খোলা মাসিক পিরিয়ড, **Super Admin** রোল (সব `module.action`-এ `*`)।
+
+> নতুন কোম্পানি UI থেকে বানালে (`Organization → Companies`) `CompanyController`
+> কোনো সমস্যা ছাড়াই এর নিজস্ব কারেন্সি/FY/COA/ট্যাক্স/সেটিংস/ক্যাটাগরি সিড করে দেয়।
+
+## ৩. কী কী সিড করা থাকে (Master Data = আলাদা করে ঢোকাতে হবে না)
+
+| মডিউল (সাইডবার) | সিড করা ডেটা | সিডার |
+| --- | --- | --- |
+| Accounting → Chart of Accounts | সম্পূর্ণ COA — অ্যাসেট/দায়/ইকুইটি/আয়/ব্যয়, পোস্টেবল লিফ সহ | `ChartOfAccountsSeeder` |
+| Accounting → Tax & VAT | VAT স্ট্যান্ডার্ড 15%, রিডিউসড 7.5%, জিরো + WHT 3% | `TaxSeeder` |
+| Accounting → Accounting Settings | ডিফল্ট AR / AP / ক্যাশ / ব্যাংক / ইনভেন্টরি / সেলস / পারচেস / ভ্যাট অ্যাকাউন্ট | `AccountingSettingSeeder` |
+| Accounting → Fiscal Years | একটি FY + ১২টি খোলা পিরিয়ড | `FiscalYearSeeder` |
+| Accounting → Currencies | BDT (বেস), USD, EUR, GBP, INR, PKR | `CurrencySeeder` |
+| Master Data → Products (ক্যাটাগরি) | Goods, Services, Raw Materials | `MasterDataSeeder` |
+| Master Data → Products (একক) | pc, kg, L, bx, hr | `MasterDataSeeder` |
+| Expenses → Categories | Rent, Utilities, Salaries, Office Supplies, Travel (+ COA লিঙ্ক) | `ExpenseCategorySeeder` |
+| Fixed Assets → Categories | Buildings, Machinery & Equipment, Furniture Fixtures & Computers, Vehicles (+ COA লিঙ্ক) | `AssetCategorySeeder` |
+| Payroll → Employees (ডিপার্টমেন্ট) | HR, Finance & Accounts, Sales & Marketing, Operations, IT | `PayrollSeeder` |
+| Payroll → Employees (পদবি) | MD, Department Head, Manager, Senior Officer, Officer | `PayrollSeeder` |
+
+## ৪. কী কী সিড করা থাকে না (হাতে বানাতে হবে)
+
+এই ডেটাগুলো **সিড হয় না** — UI থেকে তৈরি করতে হবে:
+
+- **Customer** (Master Data → Customers)
+- **Supplier** (Master Data → Suppliers)
+- **Product/Service** (Master Data → Products) — ক্যাটাগরি/একক আগেই সিড করা আছে
+- **Warehouse** (Master Data → Warehouses) — অন্তত **একটি সক্রিয় গুদাম** লাগবে (ইনভেন্টরি মুভমেন্ট প্রথম যেই সক্রিয় গুদামে যায়)
+- **User** সুপার অ্যাডমিন ছাড়া (Organization → Users)
+- যেকোনো **Transaction ডেটা** — ইনভয়েস, বিল, রসিদ, পেমেন্ট, এক্সপেন্স, জার্নাল ইত্যাদি
+- **Currency Rate** (আগে থেকেই বেস কারেন্সি BDT আছে)
+- **Opening Balance** (Phase 4-এ টেস্ট করা হয়)
+
+## ৫. সম্পূর্ণ টেস্ট ফ্লো (শুরু থেকে শেষ — ধাপ ঠিক মান্যতা)
+
+ফ্রেশ ডেটাবেস থেকে পুরো সফটওয়্যার ঠিকঠাক চলে কিনা, এই ক্রমে টেস্ট করুন:
+
+1. `php artisan migrate:fresh --seed` চালান → `http://localhost:8000/login` দিয়ে
+   `admin@demobusiness.local` / `password` লিখে ঢুকুন। ড্যাশবোর্ডে কোম্পানি + BDT দেখা যাবে — সব KPI `0.00`।
+2. **Verify মাষ্টার ডেটা** (শুধু দেখুন, বানানোর দরকার নেই): COA → ট্যাক্স ও রেট → Accounting Settings → Currencies →
+   Fiscal Years/Periods → Expense Categories → Asset Categories → Payroll departments/designations। প্রতিটিতে সিডার ডেটা আছে।
+3. **হাতে মাস্টার ডেটা বানান:** প্রথমে **Warehouse** (সক্রিয়), তারপর Customer `Alpha Traders`, Supplier `Omega Supplies`,
+   Product `Widget A` (ট্র্যাক-ইনভেন্টরি সহ, খরচ ১০০/বিক্রয় ১৫০)।
+4. **Purchase Bill** → ড্রাফট → Post → স্টক বাড়ে (On-hand 20 @ 100)। **Journals**-এ PUR জার্নাল যাচাই করুন।
+5. **Sales Invoice** → ড্রাফট → Post → স্টক কমে, AR বাড়ে, COGS জার্নাল। **Record Payment** → Paid।
+6. **Supplier Payment** (বহু-বিল) → PMT জার্নাল। **Outstanding** উভয় দিকে `0.00`।
+7. **Expense** (ক্যাশ/ব্যাংক/পেয়েবল) + **Cash & Bank** লেনদেন → ব্যালেন্স মেলান।
+8. **Stock Adjustment / Transfer** (দুটি গুদাম বানানোর পর) → ADJ জার্নাল, TR স্টক মুভ।
+9. **Fixed Asset** → capitalize → **Run Depreciation** → DEP জার্নাল। **Payroll** → run → post → salary payment।
+10. **Budget** → ড্রাফট → Post → **Reports** (GL + Trial Balance) ও **Statements** (P&L, Balance Sheet, Cash Flow) বরাবর থাকা দেখুন।
+11. **Approval Workflow** নিয়ম বানিয়ে একটি নিয়ম-গেটেড পোস্ট টেস্ট করুন → **Notifications**-এ রিকোয়েস্ট → approve → পোস্ট সম্পন্ন।
+12. **Period Closing** → অগ্রিম পিরিয়ড বন্ধ → পোস্ট ব্লক হয়; **Year-End Closing** → RE + ক্যারি-ফরোয়ার্ড OB।
+13. **Audit Log** (+ ডকুমেন্ট অ্যাটাচমেন্ট) পরীক্ষা করে দেখুন প্রতিটি পরিবর্তন লগ হয়েছে।
+
+> প্রতিটি ধাপের বিস্তারিত হাতে-কলমে নির্দেশনা নিচের **"হাতে-কলমে ডেটা এন্ট্রি টেস্ট গাইড"** অধ্যায়ে আছে।
 
 ---
 
@@ -1332,6 +1416,11 @@ Login → Dashboard (শুধু পঠনযোগ্য) → অনুমো�
 > ডেমো কোম্পানিতে (যেমন `Admin Business`) বসে আছেন এবং ডেমো সুপার-অ্যাডমিন লগইন করেছেন:
 > **ইমেইল:** `admin@demobusiness.local`, **পাসওয়ার্ড:** `password`, **URL:** `http://localhost:8000`।
 >
+> **ফ্রেশ ডেটাবেস থেকে শুরু করতে** প্রথমে `php artisan migrate:fresh --seed` চালান (নিচের
+> **"শুরু — ডেটাবেস সেটআপ, সিডিং ও টেস্ট ফ্লো"** অধ্যায় দেখুন) — COA, ট্যাক্স, কারেন্সি, FY/Period,
+> প্রোডাক্ট ক্যাটাগরি ও একক, এক্সপেন্স/অ্যাসেট/পে-রোল ক্যাটাগরি **সিড হয়ে থাকবে**। শুধু গ্রাহক,
+> সরবরাহকারী, পণ্য, গুদাম ও লেনদেন নিচের ধাপে হাতে বানাতে হবে।
+>
 > প্রতিটি ধাপে বলা আছে — **কোন মেনুতে ক্লিক করবেন**, **কী টাইপ করবেন**, **কোন বাটন চাপবেন**, এবং
 > **কীভাবে মিলিয়ে দেখবেন সঠিক হয়েছে কিনা**। বক্সে `[x]` চিহ্ন দেওয়ার সাথে সাথে এগিয়ে যান।
 > (নতুন সাইডবার টপিক-গ্রুপ ভাঁজ করা/খোলা যায় — কোনো মেনু না পাওয়া গেলে উপরের গ্রুপ টাইটেলে ক্লিক করুন।)
@@ -1348,6 +1437,14 @@ Login → Dashboard (শুধু পঠনযোগ্য) → অনুমো�
 6. [ ] সাইডবার স্ক্রল করে নিচে যান, অন্য মেনুতে ক্লিক করুন — স্ক্রল পজিশন আগের মতোই থাকবে (ছোটখাটো UX ফিক্স)।
 
 ## পর্ব ২ — মাস্টার ডেটা তৈরি
+
+> ফ্রেশ ডেটাবেসে ক্যাটাগরি (Goods/Services/Raw Materials), একক (pc/kg/L/bx/hr), FY/Period,
+> COA ও ট্যাক্স ইতিমধ্যে সিড করা — এগুলো বানাতে হবে না। **হাতে বানাতে হবে: গুদাম, গ্রাহক, সরবরাহকারী, পণ্য।**
+
+### গুদাম তৈরি (প্রথমে)
+
+0. [ ] **Master Data → Warehouses** (`/warehouses`) → **New Warehouse** → নাম: `Main Warehouse`, **save** → স্ট্যাটাস `Active`।
+   (ইনভেন্টরি মুভমেন্ট প্রথম সক্রিয় গুদামেই জমা হয় — অন্তত একটি থাকতেই হবে।)
 
 ### গ্রাহক তৈরি
 
