@@ -24,7 +24,7 @@ defineProps<{
 
 <template>
     <AuthenticatedLayout>
-        <div class="mx-auto max-w-7xl">
+        <div>
             <PageHeader
                 title="New Stock Transfer"
                 description="Moving stock between warehouses has no accounting impact — only the warehouse balances change."

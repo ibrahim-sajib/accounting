@@ -50,7 +50,7 @@ const advanced = computed(() => props.dashboard);
 
 <template>
     <AuthenticatedLayout>
-        <div class="mx-auto max-w-7xl">
+        <div>
             <PageHeader
                 title="Accounts Receivable"
                 description="Outstanding balances, collections and customer advances"

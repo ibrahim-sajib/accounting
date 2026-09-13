@@ -39,7 +39,7 @@ const remove = (warehouse: Warehouse) => {
 
 <template>
     <AuthenticatedLayout>
-        <div class="mx-auto max-w-7xl">
+        <div>
             <PageHeader title="Warehouses" :description="`${warehouses.total ?? 0} warehouse(s)`">
                 <template #actions>
                     <Link

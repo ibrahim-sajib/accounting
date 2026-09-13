@@ -113,7 +113,7 @@ const postBalances = () => {
 
 <template>
     <AuthenticatedLayout>
-        <div class="mx-auto max-w-6xl">
+        <div>
             <PageHeader title="Opening Balances" :description="`${fiscalYear.name} · ${formatDate(fiscalYear.start_date)} – ${formatDate(fiscalYear.end_date)}`">
                 <template #actions>
                     <Link

@@ -142,7 +142,7 @@ const submitPayment = () => {
 
 <template>
     <AuthenticatedLayout>
-        <div class="mx-auto max-w-7xl">
+        <div>
             <PageHeader :title="run.run_no ?? 'Draft Run'" :description="`Period ${run.period} · run date ${formatDate(run.run_date)}`">
                 <template #actions>
                     <Link

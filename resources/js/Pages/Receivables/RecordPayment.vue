@@ -103,7 +103,7 @@ const selectedCustomer = computed(() =>
 
 <template>
     <AuthenticatedLayout>
-        <div class="mx-auto max-w-7xl">
+        <div>
             <PageHeader
                 title="Record Customer Payment"
                 description="Allocate a payment across one or more posted invoices"

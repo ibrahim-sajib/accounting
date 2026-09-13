@@ -138,7 +138,7 @@ const sourceTypeLabel: Record<string, string> = {
 
 <template>
     <AuthenticatedLayout>
-        <div class="mx-auto max-w-6xl">
+        <div>
             <PageHeader
                 :title="j.journal_no ?? 'Draft Journal'"
                 description="Journal detail and posting status"

@@ -16,7 +16,7 @@ defineProps<{
 
 <template>
     <AuthenticatedLayout>
-        <div class="mx-auto max-w-4xl">
+        <div>
             <PageHeader title="Edit Fiscal Year" description="Update fiscal year configuration." />
             <FiscalYearForm :fiscal-year="fiscalYear" />
         </div>

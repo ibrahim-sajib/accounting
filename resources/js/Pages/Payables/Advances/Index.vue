@@ -82,7 +82,7 @@ const submit = () => {
 
 <template>
     <AuthenticatedLayout>
-        <div class="mx-auto max-w-7xl">
+        <div>
             <PageHeader
                 title="Supplier Advances"
                 :description="`${advances.total ?? 0} advance payment(s) — payments to suppliers to be applied to future bills`"

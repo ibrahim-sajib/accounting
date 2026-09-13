@@ -50,7 +50,7 @@ const processPayroll = () => {
 
 <template>
     <AuthenticatedLayout>
-        <div class="mx-auto max-w-7xl">
+        <div>
             <PageHeader title="Payroll Runs" :description="`${runs.total ?? 0} run(s)`">
                 <template #actions>
                     <Link

@@ -41,7 +41,7 @@ const remove = (supplier: Supplier) => {
 
 <template>
     <AuthenticatedLayout>
-        <div class="mx-auto max-w-7xl">
+        <div>
             <PageHeader title="Suppliers" :description="`${suppliers.total ?? 0} supplier(s)`">
                 <template #actions>
                     <Link

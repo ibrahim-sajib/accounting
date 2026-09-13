@@ -11,7 +11,7 @@ defineProps<{
 
 <template>
     <AuthenticatedLayout>
-        <div class="mx-auto max-w-4xl">
+        <div>
             <PageHeader title="Create Warehouse" description="Add a new warehouse to the current company." />
             <WarehouseForm :branches="branches" :managers="managers" />
         </div>

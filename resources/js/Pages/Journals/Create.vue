@@ -17,7 +17,7 @@ defineProps<{
 
 <template>
     <AuthenticatedLayout>
-        <div class="mx-auto max-w-6xl">
+        <div>
             <PageHeader title="New Journal Entry" description="Record a manual journal entry. Save it as a draft, review, then post." />
             <JournalForm :periods="periods" :accounts="accounts" :today="today" />
         </div>

@@ -85,7 +85,7 @@ const deleteRate = (rateId: number) => {
 
 <template>
     <AuthenticatedLayout>
-        <div class="mx-auto max-w-7xl">
+        <div>
             <PageHeader title="Currencies" description="Base currency and multi-currency configuration with exchange rates.">
                 <template #actions>
                     <button

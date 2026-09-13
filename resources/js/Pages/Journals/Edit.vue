@@ -31,7 +31,7 @@ defineProps<{
 
 <template>
     <AuthenticatedLayout>
-        <div class="mx-auto max-w-6xl">
+        <div>
             <PageHeader title="Edit Journal Draft" description="Update a draft journal before it is posted." />
             <JournalForm :periods="periods" :accounts="accounts" :journal="journal" :lines="lines" />
         </div>

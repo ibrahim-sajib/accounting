@@ -37,7 +37,7 @@ const markAllRead = () => {
 
 <template>
     <AuthenticatedLayout>
-        <div class="mx-auto max-w-7xl">
+        <div>
             <PageHeader
                 title="Notifications"
                 :description="`In-app alerts from the approval engine and due-date monitoring (${unread_count} unread).`"

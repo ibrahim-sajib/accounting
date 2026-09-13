@@ -50,7 +50,7 @@ const payables = computed(() => props.dashboard);
 
 <template>
     <AuthenticatedLayout>
-        <div class="mx-auto max-w-7xl">
+        <div>
             <PageHeader
                 title="Accounts Payable"
                 description="Outstanding payables, payments and supplier advances"

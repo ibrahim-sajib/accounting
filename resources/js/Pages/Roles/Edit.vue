@@ -22,7 +22,7 @@ defineProps<{
 
 <template>
     <AuthenticatedLayout>
-        <div class="mx-auto max-w-5xl">
+        <div class="w-full">
             <PageHeader title="Edit Role" description="Update role details and configure permissions." />
             <RoleForm
                 :role="role"

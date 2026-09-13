@@ -56,7 +56,7 @@ const submitReject = () => {
 
 <template>
     <AuthenticatedLayout>
-        <div class="mx-auto max-w-7xl">
+        <div>
             <PageHeader
                 title="Approvals"
                 :description="`Documents that exceed the configured posting thresholds (${pending_count} pending).`"

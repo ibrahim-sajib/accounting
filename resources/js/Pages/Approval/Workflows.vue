@@ -103,7 +103,7 @@ const destroy = (w: Workflow) => {
 
 <template>
     <AuthenticatedLayout>
-        <div class="mx-auto max-w-7xl">
+        <div>
             <PageHeader
                 title="Approval Workflows"
                 description="Rules that send documents over an amount threshold through an approval chain before they can be posted."

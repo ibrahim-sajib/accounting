@@ -116,7 +116,7 @@ const remove = (product: Product) => {
 
 <template>
     <AuthenticatedLayout>
-        <div class="mx-auto max-w-7xl">
+        <div>
             <PageHeader title="Products & Services" :description="`${products.total ?? 0} item(s)`">
                 <template #actions>
                     <Link

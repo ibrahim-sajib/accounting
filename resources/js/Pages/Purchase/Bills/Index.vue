@@ -50,7 +50,7 @@ const paymentState = (bill: Bill) => {
 
 <template>
     <AuthenticatedLayout>
-        <div class="mx-auto max-w-7xl">
+        <div>
             <PageHeader title="Purchase Bills" :description="`${bills.total ?? 0} bill(s)`">
                 <template #actions>
                     <Link

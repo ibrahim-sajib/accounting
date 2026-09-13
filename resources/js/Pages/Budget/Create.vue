@@ -19,7 +19,7 @@ defineProps<{
             description="Set an annual operating budget per account and period. Post to freeze it for the fiscal year."
         />
 
-        <div class="mx-auto max-w-5xl">
+        <div class="w-full">
             <BudgetForm
                 :fiscal-years="fiscalYears"
                 :accounts="accounts"

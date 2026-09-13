@@ -38,7 +38,7 @@ defineProps<{
 
 <template>
     <AuthenticatedLayout>
-        <div class="mx-auto max-w-7xl">
+        <div>
             <PageHeader
                 title="Edit Stock Transfer Draft"
                 description="Availability is checked against live stock when this draft is posted."

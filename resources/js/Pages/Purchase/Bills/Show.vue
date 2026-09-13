@@ -152,7 +152,7 @@ const paymentState = computed(() => {
 
 <template>
     <AuthenticatedLayout>
-        <div class="mx-auto max-w-7xl">
+        <div>
             <PageHeader
                 :title="bill.bill_no ?? 'Draft Bill'"
                 :description="`From ${bill.supplier?.name ?? '—'} on ${formatDate(bill.bill_date)}`"

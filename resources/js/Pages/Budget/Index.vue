@@ -48,7 +48,7 @@ const destroyBudget = (b: BudgetRow) => {
             </template>
         </PageHeader>
 
-        <div class="mx-auto max-w-6xl">
+        <div>
             <div class="mb-4 flex items-center gap-3">
                 <div class="w-56">
                     <InputLabel for="status_filter" value="Status" />

@@ -48,7 +48,7 @@ const onStatus = (e: Event) => {
 
 <template>
     <AuthenticatedLayout>
-        <div class="mx-auto max-w-7xl">
+        <div>
             <PageHeader title="Journals" :description="`${journals.total ?? 0} journal entrie(s)`">
                 <template #actions>
                     <Link

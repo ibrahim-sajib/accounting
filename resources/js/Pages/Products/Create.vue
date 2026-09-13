@@ -15,7 +15,7 @@ defineProps<{
 
 <template>
     <AuthenticatedLayout>
-        <div class="mx-auto max-w-4xl">
+        <div>
             <PageHeader title="Create Product / Service" description="Add a new product or service to the catalog." />
             <ProductForm
                 :defaults="defaults"

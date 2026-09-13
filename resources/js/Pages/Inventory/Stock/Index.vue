@@ -47,7 +47,7 @@ const onWarehouseChange = (e: Event) => {
 
 <template>
     <AuthenticatedLayout>
-        <div class="mx-auto max-w-7xl">
+        <div>
             <PageHeader
                 title="Stock"
                 :description="`Current on-hand stock · ${records.total ?? 0} product(s)`"

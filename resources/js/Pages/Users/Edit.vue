@@ -25,7 +25,7 @@ defineProps<{
 
 <template>
     <AuthenticatedLayout>
-        <div class="mx-auto max-w-4xl">
+        <div>
             <PageHeader title="Edit User" description="Update team member details and access." />
             <UserForm
                 :user="user"

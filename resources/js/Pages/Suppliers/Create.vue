@@ -11,7 +11,7 @@ defineProps<{
 
 <template>
     <AuthenticatedLayout>
-        <div class="mx-auto max-w-4xl">
+        <div>
             <PageHeader title="Create Supplier" description="Add a new supplier to the current company." />
             <SupplierForm :default-ap-account-id="defaultApAccountId" :account-options="accountOptions" />
         </div>

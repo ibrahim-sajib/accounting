@@ -30,7 +30,7 @@ const props = defineProps<{
 
 <template>
     <AuthenticatedLayout>
-        <div class="mx-auto max-w-4xl">
+        <div>
             <PageHeader title="Edit Company" description="Update organization configuration." />
             <CompanyForm
                 :company="company"

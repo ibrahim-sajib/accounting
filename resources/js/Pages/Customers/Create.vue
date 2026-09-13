@@ -11,7 +11,7 @@ defineProps<{
 
 <template>
     <AuthenticatedLayout>
-        <div class="mx-auto max-w-4xl">
+        <div>
             <PageHeader title="Create Customer" description="Add a new customer to the current company." />
             <CustomerForm :default-ar-account-id="defaultArAccountId" :account-options="accountOptions" />
         </div>

@@ -57,7 +57,7 @@ const TYPE_LABELS: Record<string, string> = {
 
 <template>
     <AuthenticatedLayout>
-        <div class="mx-auto max-w-7xl">
+        <div>
             <PageHeader title="Cash & Bank" description="Cash and bank balances, direct receipts/payments, deposits, transfers and reconciliation." />
 
             <CashBankTabs active="overview" />

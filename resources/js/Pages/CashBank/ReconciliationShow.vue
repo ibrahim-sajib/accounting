@@ -92,7 +92,7 @@ const matchedCount = () => props.import.lines.filter((line) => line.is_reconcile
 
 <template>
     <AuthenticatedLayout>
-        <div class="mx-auto max-w-7xl">
+        <div>
             <PageHeader title="Reconciliation Detail" description="Review statement lines, match them to system transactions, then complete to lock the period.">
                 <template #actions>
                     <div v-if="!isCompleted()" class="flex gap-2">

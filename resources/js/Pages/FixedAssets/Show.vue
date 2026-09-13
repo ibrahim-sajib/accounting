@@ -93,7 +93,7 @@ const destroy = () => {
 
 <template>
     <AuthenticatedLayout>
-        <div class="mx-auto max-w-7xl">
+        <div>
             <PageHeader :title="asset.name" :description="asset.asset_code">
                 <template #actions>
                     <Link

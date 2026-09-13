@@ -103,7 +103,7 @@ const variancePct = computed(() =>
             </template>
         </PageHeader>
 
-        <div class="mx-auto max-w-6xl">
+        <div>
             <div class="grid grid-cols-1 gap-4 sm:grid-cols-4">
                 <div class="rounded-xl border border-gray-200 bg-white p-4 shadow-sm dark:border-gray-800 dark:bg-gray-900">
                     <div class="text-xs uppercase tracking-wide text-gray-400">Status</div>

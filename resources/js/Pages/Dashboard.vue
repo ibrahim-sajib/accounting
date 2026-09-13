@@ -102,7 +102,7 @@ const kpis = computed(() => [
 
 <template>
     <AuthenticatedLayout>
-        <div class="mx-auto max-w-7xl space-y-6">
+        <div class="space-y-6">
             <!-- Hero -->
             <div class="overflow-hidden rounded-2xl bg-gradient-to-br from-indigo-600 via-indigo-600 to-violet-700 p-6 text-white shadow-sm">
                 <div class="flex flex-col justify-between gap-4 sm:flex-row sm:items-center">

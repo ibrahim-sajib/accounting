@@ -35,7 +35,7 @@ const props = defineProps<{
 
 <template>
     <AuthenticatedLayout>
-        <div class="mx-auto max-w-7xl">
+        <div>
             <PageHeader title="Stock Transfers" :description="`${transfers.total ?? 0} transfer(s)`">
                 <template #actions>
                     <Link

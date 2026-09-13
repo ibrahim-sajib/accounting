@@ -33,7 +33,7 @@ defineProps<{
 
 <template>
     <AuthenticatedLayout>
-        <div class="mx-auto max-w-7xl">
+        <div>
             <PageHeader title="Users" description="Manage team members, roles and company access.">
                 <template #actions>
                     <Link

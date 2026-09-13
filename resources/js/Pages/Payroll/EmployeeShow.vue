@@ -73,7 +73,7 @@ const destroyEmployee = () => {
 
 <template>
     <AuthenticatedLayout>
-        <div class="mx-auto max-w-6xl">
+        <div>
             <PageHeader :title="employee.name" :description="`Joined ${formatDate(employee.join_date)}`">
                 <template #actions>
                     <Link

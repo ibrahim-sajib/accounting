@@ -92,7 +92,7 @@ const methodLabel = computed(() => {
 
 <template>
     <AuthenticatedLayout>
-        <div class="mx-auto max-w-7xl">
+        <div>
             <PageHeader
                 :title="expense.expense_no ?? 'Draft Expense'"
                 :description="`${expense.payee} · Paid by ${methodLabel} on ${formatDate(expense.expense_date)}`"

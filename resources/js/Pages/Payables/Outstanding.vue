@@ -52,7 +52,7 @@ const onSupplierChange = (e: Event) => {
 
 <template>
     <AuthenticatedLayout>
-        <div class="mx-auto max-w-7xl">
+        <div>
             <PageHeader
                 title="Outstanding Payables"
                 :description="`${totals.count} bill(s) with ${formatMoney(totals.balance_due)} owed`"

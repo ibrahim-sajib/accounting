@@ -30,7 +30,7 @@ defineProps<{
 
 <template>
     <AuthenticatedLayout>
-        <div class="mx-auto max-w-7xl">
+        <div>
             <PageHeader
                 title="New Stock Adjustment"
                 description="Count differences are posted to the Inventory and Inventory Adjustment Expense accounts."

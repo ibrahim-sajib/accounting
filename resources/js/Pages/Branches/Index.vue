@@ -35,7 +35,7 @@ const props = defineProps<{
 
 <template>
     <AuthenticatedLayout>
-        <div class="mx-auto max-w-7xl">
+        <div>
             <PageHeader title="Branches" :description="`${branches.total ?? 0} branch(es)`">
                 <template #actions>
                     <Link

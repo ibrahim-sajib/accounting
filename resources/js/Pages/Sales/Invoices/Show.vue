@@ -175,7 +175,7 @@ const paymentState = computed(() => {
 
 <template>
     <AuthenticatedLayout>
-        <div class="mx-auto max-w-7xl">
+        <div>
             <PageHeader
                 :title="invoice.invoice_no ?? 'Draft Invoice'"
                 :description="`Issued to ${invoice.customer?.name ?? '—'} on ${formatDate(invoice.invoice_date)}`"

@@ -71,7 +71,7 @@ const indentClass = (level: number) => `padding-left: ${level * 24}px`;
 
 <template>
     <AuthenticatedLayout>
-        <div class="mx-auto max-w-7xl">
+        <div>
             <PageHeader title="Chart of Accounts" description="Hierarchical ledger accounts by type.">
                 <template #actions>
                     <Link

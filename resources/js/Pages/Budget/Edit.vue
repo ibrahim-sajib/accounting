@@ -24,7 +24,7 @@ defineProps<{
     <AuthenticatedLayout>
         <PageHeader title="Edit Budget" description="Update budget lines while the budget is still a draft." />
 
-        <div class="mx-auto max-w-5xl">
+        <div class="w-full">
             <BudgetForm
                 :fiscal-years="fiscalYears"
                 :accounts="accounts"

@@ -67,7 +67,7 @@ const json = (row: AuditRow) => {
 
 <template>
     <AuthenticatedLayout>
-        <div class="mx-auto max-w-7xl">
+        <div>
             <PageHeader
                 title="Audit Log"
                 description="Append-only record of every action taken across the system — searchable, filterable, and tamper-evident."

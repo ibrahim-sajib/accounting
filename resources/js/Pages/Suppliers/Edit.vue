@@ -24,7 +24,7 @@ defineProps<{
 
 <template>
     <AuthenticatedLayout>
-        <div class="mx-auto max-w-4xl">
+        <div>
             <PageHeader title="Edit Supplier" description="Update supplier information and terms." />
             <SupplierForm :supplier="supplier" :default-ap-account-id="defaultApAccountId" :account-options="accountOptions" />
         </div>

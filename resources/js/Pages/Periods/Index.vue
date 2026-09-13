@@ -59,7 +59,7 @@ const doSetActive = (period: Period) => {
 
 <template>
     <AuthenticatedLayout>
-        <div class="mx-auto max-w-7xl">
+        <div>
             <div class="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
                 <div>
                     <h1 class="text-xl font-bold text-gray-900 dark:text-white">Accounting Periods</h1>

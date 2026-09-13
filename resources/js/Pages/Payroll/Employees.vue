@@ -134,7 +134,7 @@ const createDesig = () => {
 
 <template>
     <AuthenticatedLayout>
-        <div class="mx-auto max-w-7xl">
+        <div>
             <PageHeader title="Employees" :description="`${employees.total ?? 0} employee(s)`">
                 <template #actions>
                     <button

@@ -36,7 +36,7 @@ const labelFor = (status: FiscalYearRow['opening_status']) =>
 
 <template>
     <AuthenticatedLayout>
-        <div class="mx-auto max-w-5xl">
+        <div class="w-full">
             <PageHeader title="Opening Balances" description="Enter the opening debit/credit balances for each fiscal year. Posting creates a single opening journal dated the first day of the year." />
 
             <div v-if="fiscalYears.length === 0" class="rounded-xl border border-dashed border-gray-300 py-16 text-center dark:border-gray-700">

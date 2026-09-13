@@ -46,7 +46,7 @@ const reopenYear = (fiscalYear: FiscalYear) => {
 
 <template>
     <AuthenticatedLayout>
-        <div class="mx-auto max-w-7xl">
+        <div>
             <PageHeader title="Fiscal Years" description="Accounting years and their open/closed state.">
                 <template #actions>
                     <Link

@@ -26,7 +26,7 @@ defineProps<{
 
 <template>
     <AuthenticatedLayout>
-        <div class="mx-auto max-w-4xl">
+        <div>
             <PageHeader title="Edit Branch" description="Update branch details." />
             <BranchForm :branch="branch" :company="company" :managers="managers" :status-options="statusOptions" />
         </div>

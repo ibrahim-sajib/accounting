@@ -53,7 +53,7 @@ const runDepreciation = () => {
 
 <template>
     <AuthenticatedLayout>
-        <div class="mx-auto max-w-7xl">
+        <div>
             <PageHeader title="Fixed Assets" :description="`${assets.total ?? 0} asset(s)`">
                 <template #actions>
                     <Link

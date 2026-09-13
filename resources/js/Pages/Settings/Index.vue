@@ -57,7 +57,7 @@ watch(() => props.groups, resetDirty);
 
 <template>
     <AuthenticatedLayout>
-        <div class="mx-auto max-w-5xl">
+        <div class="w-full">
             <PageHeader title="System Settings" description="Company-wide configuration for localization, numbering, and accounting behavior.">
                 <template #actions>
                     <SecondaryButton @click="resetDirty" :disabled="!dirty">Reset</SecondaryButton>

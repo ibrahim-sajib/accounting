@@ -46,7 +46,7 @@ const totalOf = (expense: ExpenseRow) => Number(expense.amount) + Number(expense
 
 <template>
     <AuthenticatedLayout>
-        <div class="mx-auto max-w-7xl">
+        <div>
             <PageHeader title="Expenses" :description="`${expenses.total ?? 0} expense(s)`">
                 <template #actions>
                     <Link

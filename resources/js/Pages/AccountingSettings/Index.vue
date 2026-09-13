@@ -59,7 +59,7 @@ const submit = () => {
 
 <template>
     <AuthenticatedLayout>
-        <div class="mx-auto max-w-5xl">
+        <div class="w-full">
             <PageHeader title="Accounting Settings" description="Default posting accounts and voucher numbering used by the accounting modules." />
 
             <form class="mt-8 space-y-8" @submit.prevent="submit">

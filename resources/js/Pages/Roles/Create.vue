@@ -13,7 +13,7 @@ defineProps<{
 
 <template>
     <AuthenticatedLayout>
-        <div class="mx-auto max-w-5xl">
+        <div class="w-full">
             <PageHeader title="Create Role" description="Define a new role and its module permissions." />
             <RoleForm :permission-groups="permissionGroups" />
         </div>

@@ -61,7 +61,7 @@ const deleteTransfer = () => {
 
 <template>
     <AuthenticatedLayout>
-        <div class="mx-auto max-w-7xl">
+        <div>
             <PageHeader
                 :title="transfer.transfer_no ?? 'Draft Transfer'"
                 :description="`${transfer.from_warehouse?.name ?? '—'} → ${transfer.to_warehouse?.name ?? '—'} on ${formatDate(transfer.transfer_date)}`"

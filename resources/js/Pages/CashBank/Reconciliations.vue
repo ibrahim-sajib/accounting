@@ -68,7 +68,7 @@ const submit = () => {
 
 <template>
     <AuthenticatedLayout>
-        <div class="mx-auto max-w-7xl">
+        <div>
             <PageHeader title="Bank Reconciliation" description="Import your bank statement CSV, match lines to system transactions, and lock the reconciled period.">
                 <template #actions>
                     <button

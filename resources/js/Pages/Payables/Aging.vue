@@ -57,7 +57,7 @@ const totalFor = (bucket: string) => props.rows.reduce((sum, row) => sum + Numbe
 
 <template>
     <AuthenticatedLayout>
-        <div class="mx-auto max-w-7xl">
+        <div>
             <PageHeader
                 title="Payables Aging Report"
                 description="Outstanding balances bucketed by days past due"

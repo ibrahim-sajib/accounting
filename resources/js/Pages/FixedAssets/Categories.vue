@@ -104,7 +104,7 @@ const destroyCategory = (category: CategoryRow) => {
 
 <template>
     <AuthenticatedLayout>
-        <div class="mx-auto max-w-7xl">
+        <div>
             <PageHeader title="Asset Categories" :description="`${categories.total ?? 0} category(ies)`">
                 <template #actions>
                     <Link

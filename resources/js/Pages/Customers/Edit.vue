@@ -25,7 +25,7 @@ defineProps<{
 
 <template>
     <AuthenticatedLayout>
-        <div class="mx-auto max-w-4xl">
+        <div>
             <PageHeader title="Edit Customer" description="Update customer information and terms." />
             <CustomerForm :customer="customer" :default-ar-account-id="defaultArAccountId" :account-options="accountOptions" />
         </div>

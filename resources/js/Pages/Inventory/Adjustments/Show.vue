@@ -59,7 +59,7 @@ const deleteAdjustment = () => {
 
 <template>
     <AuthenticatedLayout>
-        <div class="mx-auto max-w-7xl">
+        <div>
             <PageHeader
                 :title="adjustment.adjustment_no ?? 'Draft Adjustment'"
                 :description="`${adjustment.reason ?? 'Adjustment'} on ${formatDate(adjustment.adjustment_date)}`"

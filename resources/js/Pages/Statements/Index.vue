@@ -131,7 +131,7 @@ const bsSections: { key: 'assets' | 'liabilities' | 'equity'; title: string }[] 
             description="Income statement, balance sheet, cash flow and equity — derived directly from posted journal lines."
         />
 
-        <div class="mx-auto max-w-6xl">
+        <div>
             <div class="mb-4 flex flex-wrap gap-1 rounded-xl border border-gray-200 bg-white p-1 shadow-sm dark:border-gray-800 dark:bg-gray-900">
                 <button
                     v-for="t in tabs"

@@ -42,7 +42,7 @@ const remove = (customer: Customer) => {
 
 <template>
     <AuthenticatedLayout>
-        <div class="mx-auto max-w-7xl">
+        <div>
             <PageHeader title="Customers" :description="`${customers.total ?? 0} customer(s)`">
                 <template #actions>
                     <Link

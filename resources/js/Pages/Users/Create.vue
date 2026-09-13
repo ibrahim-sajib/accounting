@@ -14,7 +14,7 @@ defineProps<{
 
 <template>
     <AuthenticatedLayout>
-        <div class="mx-auto max-w-4xl">
+        <div>
             <PageHeader title="Create User" description="Add a new team member with roles and company access." />
             <UserForm :companies="companies" :roles="roles" :status-options="statusOptions" />
         </div>

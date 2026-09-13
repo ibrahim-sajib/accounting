@@ -101,7 +101,7 @@ const submitApply = () => {
 
 <template>
     <AuthenticatedLayout>
-        <div class="mx-auto max-w-7xl">
+        <div>
             <PageHeader
                 :title="advance.receipt_no ?? 'Advance'"
                 :description="`Received from ${advance.customer?.name ?? '—'} on ${formatDate(advance.receipt_date)}`"

@@ -44,7 +44,7 @@ const total = computed(() => props.companies.total ?? 0);
 
 <template>
     <AuthenticatedLayout>
-        <div class="mx-auto max-w-7xl">
+        <div>
             <PageHeader title="Companies" :description="`${total} organization(s) managed in this installation`">
                 <template #actions>
                     <Link

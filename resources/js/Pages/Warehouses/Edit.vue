@@ -20,7 +20,7 @@ defineProps<{
 
 <template>
     <AuthenticatedLayout>
-        <div class="mx-auto max-w-4xl">
+        <div>
             <PageHeader title="Edit Warehouse" description="Update warehouse details and assignment." />
             <WarehouseForm :warehouse="warehouse" :branches="branches" :managers="managers" />
         </div>

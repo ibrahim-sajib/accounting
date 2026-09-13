@@ -136,7 +136,7 @@ const applyFilters = () => {
 
 <template>
     <AuthenticatedLayout>
-        <div class="mx-auto max-w-7xl">
+        <div>
             <PageHeader title="Cash & Bank Transactions" description="Direct cash receipts/payments, bank deposits, withdrawals, transfers, charges and interest.">
                 <template #actions>
                     <button

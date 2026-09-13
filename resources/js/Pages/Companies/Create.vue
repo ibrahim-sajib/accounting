@@ -11,7 +11,7 @@ const props = defineProps<{
 
 <template>
     <AuthenticatedLayout>
-        <div class="mx-auto max-w-4xl">
+        <div>
             <PageHeader title="Create Company" description="Set up a new organization and its base configuration." />
             <CompanyForm
                 :status-options="statusOptions"

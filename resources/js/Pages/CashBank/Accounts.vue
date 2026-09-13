@@ -154,7 +154,7 @@ const destroyBank = (account: BankAccount) => {
 
 <template>
     <AuthenticatedLayout>
-        <div class="mx-auto max-w-7xl">
+        <div>
             <PageHeader title="Cash & Bank Accounts" description="Register cash registers and bank accounts, each mapped to a GL account.">
                 <template #actions>
                     <div v-if="canCreate" class="flex gap-2">

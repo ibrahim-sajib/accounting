@@ -138,7 +138,7 @@ const deleteRate = (rate: TaxRate) => {
 
 <template>
     <AuthenticatedLayout>
-        <div class="mx-auto max-w-7xl">
+        <div>
             <PageHeader title="Tax & VAT" description="Tax types (e.g. VAT) and their effective percentage rates.">
                 <template #actions>
                     <button

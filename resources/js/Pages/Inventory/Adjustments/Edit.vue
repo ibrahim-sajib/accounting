@@ -43,7 +43,7 @@ defineProps<{
 
 <template>
     <AuthenticatedLayout>
-        <div class="mx-auto max-w-7xl">
+        <div>
             <PageHeader
                 title="Edit Stock Adjustment Draft"
                 description="Counts will be re-checked against current stock when this draft is posted."

@@ -33,7 +33,7 @@ defineProps<{
 
 <template>
     <AuthenticatedLayout>
-        <div class="mx-auto max-w-4xl">
+        <div>
             <PageHeader title="Edit Product / Service" description="Update product details, pricing, and posting accounts." />
             <ProductForm
                 :product="product"

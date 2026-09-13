@@ -30,7 +30,7 @@ defineProps<{
 
 <template>
     <AuthenticatedLayout>
-        <div class="mx-auto max-w-7xl">
+        <div>
             <PageHeader title="Roles & Permissions" description="Define role-based access control across modules.">
                 <template #actions>
                     <Link

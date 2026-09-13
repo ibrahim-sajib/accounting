@@ -103,7 +103,7 @@ const selectedSupplier = computed(() =>
 
 <template>
     <AuthenticatedLayout>
-        <div class="mx-auto max-w-7xl">
+        <div>
             <PageHeader
                 title="Record Supplier Payment"
                 description="Allocate a payment across one or more posted bills"
