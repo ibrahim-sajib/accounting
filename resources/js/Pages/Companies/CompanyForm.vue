@@ -77,8 +77,8 @@ const onLogoChange = (e: Event) => {
             <h3 class="mb-4 text-sm font-semibold text-gray-900 dark:text-white">General Information</h3>
             <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
                 <div>
-                    <InputLabel for="name" value="Company Name" required />
-                    <TextInput id="name" v-model="form.name" type="text" class="mt-1 block w-full" required />
+                    <InputLabel for="name" value="Company Name" :required="!company" />
+                    <TextInput id="name" v-model="form.name" type="text" class="mt-1 block w-full" :required="!company" />
                     <InputError :message="form.errors.name" class="mt-1" />
                 </div>
                 <div>
@@ -107,8 +107,8 @@ const onLogoChange = (e: Event) => {
                     <InputError :message="form.errors.currency_code" class="mt-1" />
                 </div>
                 <div>
-                    <InputLabel for="accounting_basis" value="Accounting Basis" required />
-                    <select id="accounting_basis" v-model="form.accounting_basis" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-200">
+                    <InputLabel for="accounting_basis" value="Accounting Basis" :required="!company" />
+                    <select id="accounting_basis" v-model="form.accounting_basis" :required="!company" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-200">
                         <option v-for="option in accountingBasisOptions" :key="option.value" :value="option.value">
                             {{ option.label }}
                         </option>
@@ -116,8 +116,8 @@ const onLogoChange = (e: Event) => {
                     <InputError :message="form.errors.accounting_basis" class="mt-1" />
                 </div>
                 <div>
-                    <InputLabel for="status" value="Status" required />
-                    <select id="status" v-model="form.status" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-200">
+                    <InputLabel for="status" value="Status" :required="!company" />
+                    <select id="status" v-model="form.status" :required="!company" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-200">
                         <option v-for="option in statusOptions" :key="option.value" :value="option.value">
                             {{ option.label }}
                         </option>
