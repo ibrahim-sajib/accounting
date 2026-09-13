@@ -4,6 +4,11 @@ How the sellable accounting product isolates each company in its own MySQL
 database, and the exact flow from "super admin creates a company" to "the
 buyer manages everything inside that tenant".
 
+> **Bangla end-to-end walkthrough:** the full workflow, from super-admin login
+> through company creation to daily operations inside the tenant, is narrated
+> step-by-step in `TENANT_USER_WORKFLOW.md`. This file is the technical/ops
+> companion (provisioning internals, CLI, runtime connection switching).
+
 Status: **Stage 1 + Stage 2 complete** (provisioning + runtime per-tenant
 switching, both verified live in Docker).
 
