@@ -176,6 +176,50 @@ class Phase1CoreTest extends TestCase
         $this->assertSame($second->id, (int) session('active_company_id'));
     }
 
+    public function test_creating_a_company_provisions_default_company_admin(): void
+    {
+        $this->actingAs($this->admin)
+            ->post('/companies', [
+                'name' => 'Acme Traders Ltd',
+                'legal_name' => 'Acme Traders Ltd',
+                'country_code' => 'BD',
+                'currency_code' => 'BDT',
+                'accounting_basis' => 'accrual',
+                'status' => 'active',
+            ])
+            ->assertRedirect(route('companies.index'));
+
+        $company = Company::query()->where('name', 'Acme Traders Ltd')->firstOrFail();
+
+        // Provisioned master data must exist for the new tenant.
+        $this->assertDatabaseHas('accounts', ['company_id' => $company->id]);
+        $this->assertDatabaseHas('currencies', ['company_id' => $company->id, 'code' => 'BDT']);
+        $this->assertDatabaseHas('fiscal_years', ['company_id' => $company->id]);
+
+        // Default Company Admin login is auto-created.
+        $admin = User::query()->where('email', 'admin@acme.traders.ltd.local')->firstOrFail();
+        $this->assertFalse((bool) $admin->is_super_admin);
+        $this->assertSame($company->id, $admin->company_id);
+
+        $role = \App\Domain\Rbac\Models\Role::query()
+            ->where('slug', 'company-admin')
+            ->where('company_id', $company->id)
+            ->firstOrFail();
+
+        $this->assertTrue($admin->roles()->where('roles.id', $role->id)->wherePivot('company_id', $company->id)->exists());
+        $this->assertDatabaseHas('user_company_access', [
+            'user_id' => $admin->id,
+            'company_id' => $company->id,
+            'is_default' => true,
+        ]);
+
+        // The provisioned admin can actually log in.
+        $this->assertTrue(\Illuminate\Support\Facades\Auth::validate([
+            'email' => 'admin@acme.traders.ltd.local',
+            'password' => 'password',
+        ]));
+    }
+
     public function test_permission_middleware_blocks_non_super_admin(): void
     {
         // company-admin role has '*' permissions, but non-super-admin cannot reach super-admin-only company pages.

@@ -4,11 +4,18 @@ namespace App\Domain\Company\Http\Controllers;
 
 use App\Domain\Company\Http\Requests\CompanyRequest;
 use App\Domain\Company\Models\Company;
+use App\Domain\Rbac\Models\Role;
+use App\Domain\Rbac\Models\UserCompanyAccess;
+use App\Domain\Rbac\Models\UserRole;
+use App\Models\User;
 use App\Support\Enums\AccountType;
 use App\Support\Enums\CompanyStatus;
+use App\Support\Enums\UserStatus;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -57,11 +64,17 @@ class CompanyController
         // Prime defaults for the new company so later modules work immediately.
         $this->provisionDefaults($company);
 
+        $admin = $this->createCompanyAdmin($company);
+
+        // Dedicated database-per-tenant: create, migrate and seed the
+        // company's own MySQL database (no-op on SQLite/test drivers).
+        app(\App\Domain\Tenant\Services\TenantManager::class)->provision($company);
+
         \App\Domain\Audit\Services\AuditLogger::log('company', 'create', null, $company->id, [], $company->toArray(), $company->id);
 
         return redirect()
             ->route('companies.index')
-            ->with('success', 'Company created successfully.');
+            ->with('success', 'Company created successfully. Default Company Admin login: '.$admin->email.' / password');
     }
 
     public function edit(Request $request, Company $company): Response
@@ -154,6 +167,45 @@ class CompanyController
         (new \Database\Seeders\PayrollSeeder())->run();
         (new \Database\Seeders\RoleSeeder())->run($company->id);
         \App\Domain\Audit\Services\AuditLogger::log('company', 'provision', null, $company->id, [], ['currencies', 'fiscal_years', 'settings', 'chart_of_accounts', 'tax', 'accounting_settings', 'master_data', 'expense_categories', 'asset_categories', 'payroll', 'roles'], $company->id);
+    }
+
+    /**
+     * Create the default Company Admin user for a freshly provisioned tenant so the
+     * buyer can log straight in (all master data has been seeded by provisionDefaults).
+     */
+    protected function createCompanyAdmin(Company $company): User
+    {
+        $email = 'admin@'.strtolower(Str::slug($company->name, '.')).'.local';
+
+        $user = User::query()->where('email', $email)->first();
+
+        if (! $user) {
+            $user = User::query()->create([
+                'name' => $company->name.' Admin',
+                'email' => $email,
+                'password' => Hash::make('password'),
+                'company_id' => $company->id,
+                'status' => UserStatus::Active->value,
+                'is_super_admin' => false,
+            ]);
+        }
+
+        $role = Role::query()->where('slug', 'company-admin')->where('company_id', $company->id)->first();
+
+        if ($role) {
+            UserRole::query()->firstOrCreate([
+                'user_id' => $user->id,
+                'role_id' => $role->id,
+                'company_id' => $company->id,
+            ]);
+        }
+
+        UserCompanyAccess::query()->firstOrCreate(
+            ['user_id' => $user->id, 'company_id' => $company->id],
+            ['branch_id' => null, 'is_default' => true]
+        );
+
+        return $user;
     }
 
     protected function normalizePayload(CompanyRequest $request): array

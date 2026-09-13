@@ -252,6 +252,30 @@ Safe to rename a migration's column BEFORE it has run in MySQL (SQLite runs from
   keep it up; it writes `public/hot` and Laravel's `@vite` picks the dev-server URL automatically.
   Stop it and the app silently falls back to the compiled bundle (stale `public/hot` = blank page, §1.13).
 
+### 1.29 Database-per-tenant copy: circular FKs + MySQL `INSERT IGNORE` swallows FK failures
+- `companies.created_by -> users` and `users.company_id -> companies` form a **circular FK pair**.
+  Copying `companies` into a FRESH tenant DB first (where `users` is empty) violates
+  `companies_created_by_foreign` for UI-created companies (created_by = the acting super admin);
+  seeded/demo companies have `created_by = NULL` so the CLI demo path hides the bug. The web
+  `store()` path 500'd at the very END (RoleSeeder) while every `insertOrIgnore` copy "succeeded"
+  with 0 errors.
+- **Never trust `insertOrIgnore()` to surface a bad copy**: MySQL `INSERT IGNORE` silently SKIPS the
+  offending row on FK failure (`ER_NO_REFERENCED_ROW_2`, code 1452) — no exception, zero rows
+  inserted. A failing `companies` copy therefore DOMINOES: users ignored (`users.company_id` FK ->
+  missing company), then branches/roles/pivots all silently empty, and only `permissions`/global
+  roles (no FKs) land. All `tenant.copy` reads looked perfect while the target stayed empty.
+- Fix in `TenantManager::copyPlatformBoilerplate()`: insert the company row with `created_by`/
+  `updated_by` nulled → copy users → RESTORE the company stamps (the creating user is a super
+  admin, hence always among the copied users) → then branches/roles/pivots (their `created_by`/
+  `manager_user_id` FKs now resolve). ALSO remap copied users: a global super admin's `company_id`
+  points at its HOME company (e.g. 1) which does NOT exist in the tenant → set
+  `company_id = null` for any non-tenant `company_id` (FK fix again). Only then does the API app
+  really have companies=users=permissions=roles.
+- 47 migrations reference `companies`/`users` FKs — tenants are FULL schema mirrors (FKs kept,
+  keys preserved), never a stripped clone. Tenant DB = `accounting_tenant_{company_id}`;
+  connection `tenant_{id}` (params `database` + root `username/password`); platform control-plane
+  stays the existing `accounting_erp` via the `mysql` connection.
+
 ---
 
 ## 2. Engineering conventions (senior baseline)
@@ -1073,6 +1097,32 @@ Safe to rename a migration's column BEFORE it has run in MySQL (SQLite runs from
     approval modal opens centered (`left≥0`, `right≤vw`, `top≥0`, `bottom≤vh`). A `col-span-2`
     first field makes a "fields[0].top > fields[1].bottom" stacked-check a false positive — compare
     a field pair that genuinely shares a row.
+- **Phase 12 (Database-per-tenant — sellable product)**: every company gets its OWN MySQL database
+  `accounting_tenant_{company_id}` (connection `tenant_{id}`), auto-created/migrated/seeded the
+  moment a super admin creates the company. The existing single `accounting_erp` database becomes
+  the **control-plane**: users, companies, RBAC, `user_company_access`, audit + platform seed data.
+  `app/Domain/Tenant/Services/TenantManager.php` centralizes: `enabled()` (only when the default
+  driver is `mysql` — SQLite tests bypass everything), `databaseName()/connectionName()/exists()`,
+  `provision()` (create DB → grant via the root `tenant_admin` connection → migrate → seed),
+  `copyPlatformBoilerplate()` (the FK-ordered copy, §1.29), and `runMasterDataSeeders()`. CLI
+  mirrors `tenant:provision {id}` / `tenant:migrate {id}`. `config/tenancy.php` (`enabled`,
+  `database_prefix`) + env `TENANCY_ENABLED`, `DB_ROOT_USERNAME`, `DB_ROOT_PASSWORD` drive it.
+  - **Provisioning order in `CompanyController::store`**: `create` → `provisionDefaults()` →
+    `createCompanyAdmin()` (admin `admin@<kebab>.local`/`password`, company-admin role, UCA) →
+    `TenantManager::provision($company)` → audit → redirect (flash shows the creds).
+  - **Tenant seeding = platform copy + master seeders**: copy companies/users/branches/permissions/
+    roles/role_permissions/user_roles/user_company_access (FK-ordered §1.29), then re-run the
+    company-scoped seeders (ChartOfAccounts → 100 accounts, Tax, AccountingSetting, Currency,
+    FiscalYear, MasterData, ExpenseCategory, AssetCategory, Payroll, SystemSetting) which iterate
+    `Company::all()`. Result verified live: 72 tables, 2 users, 152 permissions, 16 roles, 100
+    accounts, 2 tax types, 2 fiscal years, 6 currencies, 5 expense categories, 4 asset categories,
+    5 departments, 1 accounting_settings. All seeders are idempotent (`firstOrCreate`) so re-running
+    provision on a seeded DB is a no-op.
+  - **Stage 2 pending**: switch every request to the active company's `tenant_{id}` connection at
+    runtime (mirror of the "active_company context" already used for permissions); super-admin
+    platform screens (Companies, Users, Roles) keep reading the control-plane `mysql` connection.
+    Until then the single-DB `accounting_erp` remains the runtime source and tenant DBs are the
+    write-ahead provisioning target.
 
 - **Aliases in `bootstrap/app.php`**: `'permission' => EnsurePermission::class`; Inertia header
   middleware appended to the `web` group.
