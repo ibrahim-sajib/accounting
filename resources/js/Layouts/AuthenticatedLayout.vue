@@ -60,12 +60,8 @@ const openGroups = ref<Record<string, boolean>>({});
 
 const toggleGroup = (label: string) => {
     const next = !(openGroups.value[label] ?? false);
-    const updated: Record<string, boolean> = {};
-    for (const group of navGroups.value) {
-        updated[group.label] = group.label === label ? next : false;
-        localStorage.setItem(`sidebar-open-${group.label}`, updated[group.label] ? '1' : '0');
-    }
-    openGroups.value = updated;
+    openGroups.value = { ...openGroups.value, [label]: next };
+    localStorage.setItem(`sidebar-open-${label}`, next ? '1' : '0');
 };
 
 function itemVisible(item: { permission?: string | null }): boolean {
