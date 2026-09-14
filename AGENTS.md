@@ -1154,6 +1154,25 @@ Safe to rename a migration's column BEFORE it has run in MySQL (SQLite runs from
     `Str::slug($name)` joins words with **`.`**, so the auto-admin email is
     `admin@buyer.corp.<ts>.local`, not hyphenated.
 
+  - **Gotcha in Stage 2 (RESEED 1049)**: `DB::setDefaultConnection()` ALSO mutates
+    `config('database.default')`, and under **php-fpm that mutation leaks into later requests handled
+    by the SAME worker**. So `TenantManager::enabled()` must be **driver-based**
+    (`connections.<default>.driver === 'mysql'`), NOT name-based (`default === 'mysql'`) — after one
+    request switches to `tenant_{id}`, a name-based check flips false and `SelectTenantDatabase` stops
+    re-switching: the worker is stuck on a tenant connection forever. The leaked mutation ALSO breaks
+    `platformConnection()` when it falls back to `config('database.default')` → `Company::on('tenant_1')`
+    → `SQLSTATE[HY000] [1049] Unknown database 'accounting_tenant_1'`. `SelectTenantDatabase` must now
+    call `$tenant->configure(...)` on EVERY request (even guests → `configure(null)` resets the worker's
+    default back to platform), and `configure()` guards the tenant switch with `$this->exists($company)`.
+  - **`migrate:fresh --seed` only rebuilds the control-plane** — tenant databases are untouched, but the
+    fresh seed wipes `companies.database_name`. Without the resolve-chain repair, the next request looked
+    up the legacy `{prefix}{id}` name (renamed `accounting_tenant_1` no longer exists) → the very same 1049.
+    `TenantManager::databaseName()` resolves: persisted `database_name` → name-based schema that EXISTS and
+    contains the company (`schemaOwnsCompany()` probes `<db>.companies.id`) → legacy schema if it exists →
+    base name-based; `provision()` re-persists `database_name` when the tenant DB is found instead of
+    creating a duplicate. After a platform reseed run `php artisan tenant:provision` to re-attach/rebuild
+    tenants (`tenant:provision {id}`); if tenant data should also be discarded, DROP the tenant schema first.
+
 - **Aliases in `bootstrap/app.php`**: `'permission' => EnsurePermission::class`; Inertia header
   middleware appended to the `web` group.
 - **Vue page patterns**:

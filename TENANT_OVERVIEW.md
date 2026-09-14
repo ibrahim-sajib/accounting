@@ -104,6 +104,17 @@ In Docker: `docker compose exec app php artisan tenant:provision 1`.
 Provisioning is idempotent — safe to re-run. If the tenant DB already exists it
 is re-migrated (`migrate` skips applied migrations) and all seeders `firstOrCreate`.
 
+#### After a platform reseed (`migrate:fresh --seed`)
+
+`migrate:fresh --seed` rebuilds ONLY the control-plane `accounting_erp` — tenant
+databases are untouched, but the fresh seed wipes `companies.database_name`. Do
+either of the following (no app changes needed — resolution is automatic):
+
+- If the old tenant data is fine: just run `php artisan tenant:provision` — it
+  re-attaches the existing tenant (re-persists `database_name`); nothing is rebuilt.
+- If the tenant data should also be reset: `DROP DATABASE <tenant>` first, then
+  `php artisan tenant:provision` rebuilds it from scratch.
+
 Direct MySQL inspection (demo environment):
 
 ```bash

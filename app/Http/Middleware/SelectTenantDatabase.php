@@ -30,7 +30,7 @@ class SelectTenantDatabase
     {
         $tenant = app(TenantManager::class);
 
-        if (! $tenant->enabled() || ! $request->user()) {
+        if (! $tenant->enabled()) {
             return $next($request);
         }
 
@@ -39,7 +39,12 @@ class SelectTenantDatabase
         $isPlatform = collect(self::PLATFORM_PREFIXES)
             ->contains(fn (string $prefix) => str_starts_with($routeName, $prefix));
 
-        $tenant->configure($isPlatform ? null : session('active_company_id'));
+        // Always re-assert the platform default here — even for guests — so a
+        // previous request that switched this FPM worker's default connection
+        // to a tenant database cannot leak that mutation into the next request.
+        $tenant->configure(
+            $request->user() && ! $isPlatform ? session('active_company_id') : null
+        );
 
         return $next($request);
     }
