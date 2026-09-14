@@ -2,7 +2,7 @@
 
 **ফাইলের নাম:** `ACCOUNTING_USER_WORKFLOW.md`
 
-> **টেন্যান্ট-মডেল নোট:** এই ডকুমেন্টের ফ্লো এখন **ডাটাবেস-পার-টেন্যান্ট** মডেলে চলে — প্রতিটা কোম্পানির সব ডেটা তার নিজের **`accounting_tenant_{id}`** ডেটাবেসে থাকে। শুরু থেকে শেষ পর্যন্ত সেই মডেলের সম্পূর্ণ ধাপ-দ্বারা-ধাপ বর্ণনা আছে `TENANT_USER_WORKFLOW.md`-এ (সুপার অ্যাডমিন → কোম্পানি তৈরি → ক্রেতা লগইন → প্রতিদিনের কাজ)। এই ফাইলের মডিউলগুলো (Phase 1–13) সেই টেন্যান্ট ডেটাবেসের **ভেতরেই** কাজ করে — মানে নিচের + ডেটাবেসে। সুপার অ্যাডমিনের platform স্ক্রিন (Companies/Users/Roles) সেগুলো control-plane ডেটাবেসে চলে।
+> **টেন্যান্ট-মডেল নোট:** এই ডকুমেন্টের ফ্লো এখন **ডাটাবেস-পার-টেন্যান্ট** মডেলে চলে — প্রতিটা কোম্পানির সব ডেটা তার নিজের **`accounting_tenant_<কোম্পানির নাম>`** ডেটাবেসে থাকে (যেমন "Demo Business Ltd" → `accounting_tenant_demo_business_ltd`)। রোল মডেল: **System Super Admin = প্রোডাক্ট মালিক (আপনি)**, যিনি প্রতিটি টেন্যান্টে সেই কোম্পানির সুপার অ্যাডমিন হিসেবে কপি হন; কোম্পানি তৈরি হলে অটো-তৈরি হয় **Company Admin** (সব মেনুতে অ্যাক্সেস, ইউজার/রোল বানাতে পারে)। শুরু থেকে শেষ পর্যন্ত সেই মডেলের ধাপ-দ্বারা-ধাপ বর্ণনা আছে `TENANT_USER_WORKFLOW.md`-এ। এই ফাইলের মডিউলগুলো (Phase 1–13) সেই টেন্যান্ট ডেটাবেসের **ভেতরেই** কাজ করে; প্রোডাক্ট মালিকের platform স্ক্রিন (Companies/Users/Roles) control-plane ডেটাবেসে চলে।
 
 > এই ডকুমেন্টটি একটি **প্রোডাক্ট ওয়ার্কফ্লো ব্লুপ্রিন্ট**। এখানে কোনো Laravel কোড, Vue কোড, ডেটাবেজ স্কিমা, API বা ক্লাস/কন্ট্রোলার নেই। এখানে শুধু বর্ণনা করা হয়েছে — ব্যবহারকারী কী দেখেন, কোথায় যান, কোন মেনু খোলেন, কী তথ্য দেন, সাবমিট করার পর কী হয়, স্ট্যাটাস কী হয়, পরবর্তী ধাপ কী, এবং পর্দার আড়ালে হিসাবের উপর কী প্রভাব পড়ে। এই ডকুমেন্ট ডেভেলপার, প্রোডাক্ট ডিজাইনার, QA ইঞ্জিনিয়ার এবং সাধারণ হিসাব-ব্যবহারকারী — সবার জন্য বোধগম্য হওয়ার উদ্দেশ্যে তৈরি।
 
@@ -67,17 +67,26 @@ docker compose exec app php artisan migrate:fresh --seed
 - `--seed` → সাথে সাথে `DatabaseSeeder` চলে; **সব মাস্টার ডেটা স্বয়ংক্রিয়ভাবে ঢুকে যায়**।
 - **নেটিভ (Docker ছাড়া):** `php artisan migrate:fresh --seed`
 
-## ২. লগইন ও সুপার অ্যাডমিন
+## ২. লগইন ও সুপার অ্যাডমিন — রোল মডেল (product owner + company admin)
 
-সুপার অ্যাডমিন **সিডের মাধ্যমে তৈরি হয়** (`CompanySeeder`) — আপনাকে হাতে বানাতে হবে না:
+এই সফটওয়্যারটি **একটি প্রোডাক্ট**, তাই ইউজার-রোল মডেল সাজানো হয়েছে এভাবে:
 
+| রোল / ইউজার | কে | কীভাবে তৈরি হয় | অ্যাক্সেস |
+| --- | --- | --- | --- |
+| **System Super Admin** (প্রোডাক্ট মালিক) | আপনি | `CompanySeeder`-এ সিড (ডিফল্ট লগইন) | পুরো প্ল্যাটফর্ম — সব কোম্পানি দেখেন, কোম্পানি তৈরি/মুছে ফেলেন। প্রতিটি তৈরি কোম্পানির টেন্যান্টে এই অ্যাডমিন **সেই কোম্পানির সুপার অ্যাডমিন হয়ে কপি** হয় (সব মেনু, সব টেবিল) |
+| **Company Super Admin** (টেন্যান্টে) | = System Super Admin | কোম্পানি তৈরি হলে টেন্যান্টে অটো-কপি | ওই কোম্পানির ভেতরে সুপার অ্যাডমিনের সব ক্ষমতা |
+| **Company Admin** | কোম্পানির মুখ্য ব্যবহারকারী | কোম্পানি তৈরি হলে অটো (`admin@<company>.local` / `password`) | `company-admin` রোল = **সব পারমিশন** (`*`) — সব মেনু ব্যবহার করতে পারবেন, ইউজার বানিয়ে রোল দিতে পারবেন, রোল/শাখা বানাতে পারবেন; শুধু platform-স্তরের Companies তালিকা দেখবেন না |
+| **অন্যান্য ইউজার** | কোম্পানির কর্মী (Accountant, Sales Executive, Viewer…) | Company Admin / System Super Admin UI-তে তৈরি করেন | ঠিক রোলের পারমিশন অনুযায়ী — তার বেশি নয় |
+
+**ডিফল্ট System Super Admin (সিড থেকে):**
 - **ইমেইল:** `admin@demobusiness.local`
 - **পাসওয়ার্ড:** `password`
 - সিড যা-ও তৈরি করে: **Demo Business Ltd**, শাখা **Head Office (HQ)**, মুদ্রা **BDT**,
-  ফিসক্যাল ইয়ার + ১২টি খোলা মাসিক পিরিয়ড, **Super Admin** রোল (সব `module.action`-এ `*`)।
+  ফিসক্যাল ইয়ার + ১২টি মাসিক পিরিয়ড, **Super Admin** রোল (সব `module.action`-এ `*`)।
 
 > নতুন কোম্পানি UI থেকে বানালে (`Organization → Companies`) `CompanyController`
-> কোনো সমস্যা ছাড়াই এর নিজস্ব কারেন্সি/FY/COA/ট্যাক্স/সেটিংস/ক্যাটাগরি সিড করে দেয়।
+> নিজস্ব **টেন্যান্ট ডেটাবেস** + কারেন্সি/FY/COA/ট্যাক্স/সেটিংস/ক্যাটাগরি + **Company Admin লগইন**
+> সব অটো-তৈরি/সিড করে দেয়।
 
 ## ৩. কী কী সিড করা থাকে (Master Data = আলাদা করে ঢোকাতে হবে না)
 
@@ -110,24 +119,54 @@ docker compose exec app php artisan migrate:fresh --seed
 
 ## ৫. সম্পূর্ণ টেস্ট ফ্লো (শুরু থেকে শেষ — ধাপ ঠিক মান্যতা)
 
-ফ্রেশ ডেটাবেস থেকে পুরো সফটওয়্যার ঠিকঠাক চলে কিনা, এই ক্রমে টেস্ট করুন:
+ফ্রেশ ডেটাবেস থেকে পুরো সফটওয়্যার ঠিকঠাক চলে কিনা — **রোল মডেল + অ্যাকাউন্টিং ফ্লো দুই-ই**, এই ক্রমে টেস্ট করুন:
+
+**ধাপ A — প্রোডাক্ট মালিক (System Super Admin)**
 
 1. `php artisan migrate:fresh --seed` চালান → `http://localhost:8000/login` দিয়ে
-   `admin@demobusiness.local` / `password` লিখে ঢুকুন। ড্যাশবোর্ডে কোম্পানি + BDT দেখা যাবে — সব KPI `0.00`।
-2. **Verify মাষ্টার ডেটা** (শুধু দেখুন, বানানোর দরকার নেই): COA → ট্যাক্স ও রেট → Accounting Settings → Currencies →
-   Fiscal Years/Periods → Expense Categories → Asset Categories → Payroll departments/designations। প্রতিটিতে সিডার ডেটা আছে।
-3. **হাতে মাস্টার ডেটা বানান:** প্রথমে **Warehouse** (সক্রিয়), তারপর Customer `Alpha Traders`, Supplier `Omega Supplies`,
+   `admin@demobusiness.local` / `password` লিখে ঢুকুন। **Organization → Companies**-এ সব কোম্পানি,
+   Users-এ সব ইউজার দেখা যায় (এটাই platform)। Demo Business-এ ঢুকে ড্যাশবোর্ড + BDT — সব KPI `0.00`।
+2. **Verify মাষ্টার ডেটা** (শুধু দেখুন): COA → ট্যাক্স ও রেট → Accounting Settings → Currencies →
+   Fiscal Years/Periods → Expense Categories → Asset Categories → Payroll ডিপার্টমেন্ট/পদবি।
+
+**ধাপ B — কোম্পানি তৈরি → Company Admin**
+
+3. `Organization → Companies → + New Company` দিয়ে একটি নতুন কোম্পানি তৈরি করুন (উদাহরণ: **Boot Test Ltd**)।
+   সংরক্ষণের সঙ্গে সঙ্গেই: আলাদা **টেন্যান্ট ডেটাবেস** তৈরি (মাইগ্রেট + মাস্টার-ডেটা সিড), টেন্যান্টে
+   **সুপার অ্যাডমিন (আপনি) কপি**, এবং **Company Admin** লগইন অটো-তৈরি —
+   `admin@boot.test.ltd.local` / `password` (কোম্পানি তালিকায় ফ্ল্যাশ মেসেজে দেখায়)।
+4. **Company Admin** দিয়ে লগইন করুন (dropdown থেকে Boot Test Ltd) → **সব মেনু/সাব-মেনু খোলা** দেখুন
+   (Dashboard, Master Data, Sales, Purchase, Inventory, Receivables, Payables, Cash & Bank, Expenses,
+   Fixed Assets, Payroll, Budget, Reporting, Transactions, Governance)। টেন্যান্টে কেবল সিড করা মাস্টার
+   ডেটা আছে — লেনদেন খালি। প্রমাণ: এটাই আলাদা ডেটাবেস।
+
+**ধাপ C — ইউজার + রোল + শাখা (Company Admin)**
+
+5. Company Admin দিয়ে `Organization → Branches → + Create Branch`-এ দ্বিতীয় শাখা তৈরি করুন (যেমন
+   **Boot Outlet**, কোড BO)। **Companies**-এর মতো platform-স্তরের মেনু এখানে নেই (এটি super admin-only)।
+6. `Organization → Users → + New User`-এ দুটি ইউজার বানান: `acct@boot.test.ltd.local` (**Accountant**
+   রোল) এবং `view1@boot.test.ltd.local` (**Viewer** রোল)। Edit পেজে প্রত্যেকের কাছে **কোন শাখায়** অ্যাক্সেস
+   থাকবে বেছে দিন (উদাহরণ: acct → Head Office + Boot Outlet দুটোই, viewer → শুধু Head Office)।
+7. প্রতিটি নতুন ইউজার দিয়ে আলাদা লগইন করে যাচাই করুন: মেনু **রোল অনুযায়ী** —
+   Accountant যেসব মেনু/অ্যাকশন পায় শুধু সেসবই (পোস্ট/এডিট পারবে), Viewer কেবল view পারবে
+   (কোনো Edit/Post বাটন নেই), Company Admin-এর মতো পুরো মেনু **নয়**। acct/viewer **Companies** আর
+   (সুপার অ্যাডমিনের) প্ল্যাটফর্ম Users দেখতে পাবে না / 403 পাবে।
+8. **এক ইউজার = এক কোম্পানি:** একই ইমেইল প্ল্যাটফর্ম জুড়ে **unique** — দ্বিতীয়বার ঢোকালে validation
+   error। ইউজার কেবল নিজের কোম্পানির **একাধিক শাখায়** অ্যাক্সেস পেতে পারে (শাখা সুইচার / শাখা-স্কোপ)।
+
+**ধাপ D — অ্যাকাউন্টিং মডিউল টেস্ট (Demo Business-এ, Super Admin দিয়ে)**
+
+9. মাস্টার ডেটা হাতে বানান: **Warehouse** (সক্রিয়), Customer `Alpha Traders`, Supplier `Omega Supplies`,
    Product `Widget A` (ট্র্যাক-ইনভেন্টরি সহ, খরচ ১০০/বিক্রয় ১৫০)।
-4. **Purchase Bill** → ড্রাফট → Post → স্টক বাড়ে (On-hand 20 @ 100)। **Journals**-এ PUR জার্নাল যাচাই করুন।
-5. **Sales Invoice** → ড্রাফট → Post → স্টক কমে, AR বাড়ে, COGS জার্নাল। **Record Payment** → Paid।
-6. **Supplier Payment** (বহু-বিল) → PMT জার্নাল। **Outstanding** উভয় দিকে `0.00`।
-7. **Expense** (ক্যাশ/ব্যাংক/পেয়েবল) + **Cash & Bank** লেনদেন → ব্যালেন্স মেলান।
-8. **Stock Adjustment / Transfer** (দুটি গুদাম বানানোর পর) → ADJ জার্নাল, TR স্টক মুভ।
-9. **Fixed Asset** → capitalize → **Run Depreciation** → DEP জার্নাল। **Payroll** → run → post → salary payment।
-10. **Budget** → ড্রাফট → Post → **Reports** (GL + Trial Balance) ও **Statements** (P&L, Balance Sheet, Cash Flow) বরাবর থাকা দেখুন।
-11. **Approval Workflow** নিয়ম বানিয়ে একটি নিয়ম-গেটেড পোস্ট টেস্ট করুন → **Notifications**-এ রিকোয়েস্ট → approve → পোস্ট সম্পন্ন।
-12. **Period Closing** → অগ্রিম পিরিয়ড বন্ধ → পোস্ট ব্লক হয়; **Year-End Closing** → RE + ক্যারি-ফরোয়ার্ড OB।
-13. **Audit Log** (+ ডকুমেন্ট অ্যাটাচমেন্ট) পরীক্ষা করে দেখুন প্রতিটি পরিবর্তন লগ হয়েছে।
+10. **Purchase Bill** → ড্রাফট → Post → স্টক বাড়ে (On-hand 20 @ 100)। **Journals**-এ PUR জার্নাল যাচাই।
+11. **Sales Invoice** → ড্রাফট → Post → স্টক কমে, AR বাড়ে, COGS জার্নাল। **Record Payment** → Paid।
+12. **Supplier Payment** (বহু-বিল) → PMT জার্নাল। **Outstanding** উভয় দিকে `0.00`।
+13. **Expense** (ক্যাশ/ব্যাংক/পেয়েবল) + **Cash & Bank** → ব্যালেন্স মেলান। **Stock Adjustment / Transfer**
+    → ADJ/TR। **Fixed Asset** → capitalize → **Run Depreciation** → DEP। **Payroll** → run → post → payment।
+14. **Budget** → ড্রাফট → Post → **Reports** (GL + Trial Balance) ও **Statements** (P&L/Balance Sheet/Cash Flow)।
+15. **Approval Workflow** নিয়ম বানিয়ে গেটেড পোস্ট → **Notifications**-এ রিকোয়েস্ট → approve → পোস্ট সম্পন্ন।
+16. **Period Closing** → অগ্রিম পিরিয়ড বন্ধ → পোস্ট ব্লক হয়; **Year-End Closing** → RE + ক্যারি-ফরোয়ার্ড OB।
+17. **Audit Log** (+ ডকুমেন্ট অ্যাটাচমেন্ট) — প্রতিটি পরিবর্তন লগ হয়েছে দেখুন।
 
 > প্রতিটি ধাপের বিস্তারিত হাতে-কলমে নির্দেশনা নিচের **"হাতে-কলমে ডেটা এন্ট্রি টেস্ট গাইড"** অধ্যায়ে আছে।
 
@@ -140,39 +179,63 @@ docker compose exec app php artisan migrate:fresh --seed
 ## ইউজার জার্নি
 
 ```
-Login → Company Setup → Create Company → Configure Company Information
-      → Create Branch → Create Users → Assign Roles
-      → Configure System Settings → Ready for Accounting Setup
+System Super Admin (প্রোডাক্ট মালিক) Login
+  → Organization → Companies → + New Company
+      → টেন্যান্ট ডেটাবেস + কোম্পানির সুপার অ্যাডমিন (মালিক) + Company Admin অটো-তৈরি
+  → Company Admin Login → সব মেনু testing-ready
+      → Branches → শাখা তৈরি → Users → ইউজার তৈরি + রোল + শাখা অ্যাক্সেস
+  → নতুন ইউজার Login → রোল অনুযায়ী মেনু
 ```
 
 ## বিস্তারিত ওয়ার্কফ্লো
 
-একজন নতুন গ্রাহক প্রথমবার সিস্টেমে প্রবেশ করলে তিনি একটি **Welcome / Onboarding** স্ক্রিন দেখেন, যেখানে একটিই বাটন থাকে — **"Create Your Company"**।
+প্রোডাক্টটি **মাল্টি-টেন্যান্ট**: কোম্পানি তৈরি হয় প্রোডাক্ট মালিক (System Super Admin) দিয়ে।
 
-1. ব্যবহারকারী **Create Company** ক্লিক করেন → একটি ফর্ম খোলে যেখানে তিনি দেন: কোম্পানির নাম, লিগ্যাল নাম, লোগো (আপলোড), দেশ, ঠিকানা, যোগাযোগের তথ্য, বেস কারেন্সি, ট্যাক্স/ভ্যাট রেজিস্ট্রেশন নম্বর, এবং অ্যাকাউন্টিং বেসিস (Accrual/Cash)।
-2. **Save** করার পর সিস্টেম কোম্পানি তৈরি করে এবং ব্যবহারকারীকে সরাসরি **Company Profile** পেজে নিয়ে যায়, যেখানে একটি চেকলিস্ট দেখানো হয়: "আপনার অ্যাকাউন্টিং সেটআপ সম্পূর্ণ করতে নিচের ধাপগুলো অনুসরণ করুন" — Branch তৈরি, User যোগ করা, Fiscal Year সেট করা ইত্যাদি।
-3. ব্যবহারকারী **Branches → + Create Branch** এ যান। ফর্মে দেন: শাখার কোড, নাম, ঠিকানা, যোগাযোগ, শাখা ম্যানেজার (ড্রপডাউন থেকে ইউজার নির্বাচন — তবে এই পর্যায়ে ইউজার না থাকলে খালি রাখা যায়)।
-4. এরপর **Administration → Users → + Invite User** এ গিয়ে ইমেইল দিয়ে ইউজার আমন্ত্রণ জানানো হয়। প্রতিটি ইউজারের জন্য কোন কোম্পানি ও কোন শাখায় অ্যাক্সেস থাকবে তা নির্বাচন করা হয়।
-5. **Roles & Permissions** ট্যাবে গিয়ে প্রতিটি ইউজারকে একটি বা একাধিক রোল দেওয়া হয় (Super Admin, Company Admin, Accountant, Sales Executive, Purchase Executive, Inventory Manager, HR/Payroll Manager, Viewer)। প্রতিটি রোলের সাথে মডিউল-ভিত্তিক পারমিশন (View/Create/Edit/Delete/Approve/Post) সংযুক্ত থাকে — এগুলো একটি ম্যাট্রিক্স-স্টাইল UI-তে চেকবক্স আকারে দেখানো হয়।
-6. সবশেষে **System Settings** এ গিয়ে ভাষা (English/Bangla), তারিখ ফরম্যাট, সংখ্যা ফরম্যাট, ভাউচার নাম্বারিং প্যাটার্ন, ইমেইল/নোটিফিকেশন সেটিংস কনফিগার করা হয়।
+১. মালিক `Organization → Companies → + New Company`-এ কোম্পানি তৈরি করেন: নাম, লিগ্যাল নাম, লোগো
+   (আপলোড), দেশ, ঠিকানা, যোগাযোগ, বেস কারেন্সি, ট্যাক্স/ভ্যাট রেজিস্ট্রেশন নম্বর, অ্যাকাউন্টিং বেসিস
+   (Accrual/Cash)।
+২. **Save**-এর সঙ্গে সঙ্গেই সিস্টেম: (ক) কোম্পানির জন্য **আলাদা টেন্যান্ট ডেটাবেস** তৈরি করে সেখানে
+   মাইগ্রেট + মাস্টার-ডেটা সিড করে; (খ) মালিককে সেই কোম্পানির **সুপার অ্যাডমিন** হিসেবে টেন্যান্টে কপি করে;
+   (গ) **Company Admin** লগইন তৈরি করে (`admin@<company>.local` / `password`) — কোম্পানি তালিকায় ফ্ল্যাশ
+   মেসেজে দেখানো হয়।
+৩. **Company Admin** দিয়ে লগইন করলে **সব মেনু খোলা** থাকে (company-admin রোলে সব পারমিশন `*`) — ফলে
+   কোম্পানির সব মডিউল নিজে টেস্ট করা যায়। এখানেই চলবে কোম্পানির দৈনন্দিন ব্যবস্থাপনা।
+৪. `Organization → Branches → + Create Branch`: শাখার কোড, নাম, ঠিকানা, যোগাযোগ, শাখা ম্যানেজার (ড্রপডাউন
+   থেকে ইউজার — না থাকলে খালি রাখা যায়)।
+৫. `Organization → Users → + New User`: নাম/ইমেইল/ফোন/পাসওয়ার্ড + **রোল** (Accountant, Sales Executive,
+   Viewer…) + Edit পেজে **কোন কোন শাখায়** অ্যাক্সেস থাকবে। একজন ইউজার **একটি কোম্পানির** হয়ে থাকে এবং
+   ওই কোম্পানির ভেতরে **একাধিক শাখায়** অ্যাক্সেস পেতে পারে।
+৬. নতুন ইউজার লগইন করলে মেনু/অ্যাকশন ঠিক **রোলের পারমিশন অনুযায়ী** আসে — তার বেশি নয় (মেনু
+   ফিল্টার + রুট-লেভেল `permission:` মিডলওয়্যার দুই দিক থেকেই গেট করা)।
+৭. `Organization → Roles & Permissions`-এ Company Admin নতুন রোল + কাস্টম পারমিশন-সেটও বানাতে
+   পারেন — প্রি-বিল্ট রোল (Company Admin, Accountant, Viewer…) সিডে আছে।
 
 ## স্ক্রিন / নেভিগেশন
 
-- `Administration → Company Profile`
-- `Administration → Branches`
-- `Administration → Users`
-- `Administration → Roles & Permissions`
-- `Administration → Settings`
+- `Organization → Companies` *(শুধু System Super Admin-এর জন্য — `superAdminOnly`)*
+- `Organization → Branches`
+- `Organization → Users`
+- `Organization → Roles & Permissions`
 
 ## অ্যাকশন
 
-Create, Edit, Deactivate (Company/Branch/User), Invite User, Assign Role, Revoke Access, Save Settings।
+Create, Edit, Deactivate (Company/Branch/User), Create User, Assign Role, Assign Branch Access, Revoke Access।
 
 ## বিজনেস রুল
 
-- একটি কোম্পানি ছাড়া কোনো Branch, User বা পরবর্তী কোনো ডেটা তৈরি করা যায় না।
-- একজন ইউজারের একাধিক কোম্পানি/শাখায় অ্যাক্সেস থাকতে পারে, কিন্তু একসময়ে একটিই "সক্রিয় কোম্পানি/শাখা" প্রেক্ষাপটে কাজ করবেন (উপরের নেভিগেশন বারে কোম্পানি/শাখা সুইচার থাকে)।
-- Super Admin ছাড়া কেউ System Settings-এর সংবেদনশীল অংশ (যেমন Voucher Numbering) পরিবর্তন করতে পারবেন না।
+- একটি কোম্পানি ছাড়া কোনো Branch, User বা পরবর্তী কোনো ডেটা তৈরি করা যায় না; কোম্পানি তৈরিতেই
+  টেন্যান্ট + Company Admin অটো-তৈরি হয়।
+- **একটি ইউজার = একটি কোম্পানি।** প্রতিটি ইউজারের একটি হোম কোম্পানি (`company_id`) থাকে; ইমেইল
+  সারা প্ল্যাটফর্মে **unique** — তাই একই ইউজার কখনো দুটি কোম্পানিতে ডুপ্লিকেট হয় না।
+- ওই এক কোম্পানির ভেতরেই ইউজার **একাধিক শাখায়** (branch) অ্যাক্সেস পেতে পারে — শাখা-স্কোপড
+  অ্যাক্সেস `user_company_access.branch_id` / `user_roles.branch_id`-তে থাকে; সক্রিয় শাখা
+  সুইচারের মাধ্যমে প্রেক্ষাপট বদল হয়।
+- **Company Admin** = কোম্পানির পূর্ণ অ্যাক্সেস (সব পারমিশন `*`): সব মেনু, ইউজার/রোল/শাখা
+  ব্যবস্থাপনা; তবে platform-স্তরের **Companies** তালিকা ও সেটিংস শুধু System Super Admin-এর —
+  Company Admin সেগুলো দেখতে পায় না (sidebar-এও আসে না)।
+- System Super Admin প্রতিটি টেন্যান্টেই নিজের **সুপার-অ্যাডমিন ক্ষমতা** পায় (টেন্যান্ট-কপি);
+  permission মিডলওয়্যার তার জন্য bypass।
+- রোল/পারমিশন **কোম্পানি-স্কোপড**: এক কোম্পানিতে দেওয়া রোল অন্য কোম্পানিতে কোনো ক্ষমতা দেয় না।
 
 ## অ্যাকাউন্টিং ইমপ্যাক্ট
 
