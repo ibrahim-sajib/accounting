@@ -45,10 +45,13 @@ class ExpenseCategorySeeder extends Seeder
                     continue;
                 }
 
-                ExpenseCategory::query()->firstOrCreate(
+                $category = ExpenseCategory::withTrashed()->firstOrCreate(
                     ['company_id' => $company->id, 'name' => $name],
                     ['expense_account_id' => $accountId, 'is_active' => true]
                 );
+                if ($category->trashed()) {
+                    $category->restore();
+                }
             }
         }
     }

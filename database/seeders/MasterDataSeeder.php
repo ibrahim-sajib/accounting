@@ -17,10 +17,13 @@ class MasterDataSeeder extends Seeder
     {
         foreach (Company::all() as $company) {
             foreach (['Goods', 'Services', 'Raw Materials'] as $category) {
-                ProductCategory::query()->firstOrCreate(
+                $pc = ProductCategory::withTrashed()->firstOrCreate(
                     ['company_id' => $company->id, 'name' => $category],
                     ['created_by' => null, 'updated_by' => null]
                 );
+                if ($pc->trashed()) {
+                    $pc->restore();
+                }
             }
 
             foreach ([
@@ -30,10 +33,13 @@ class MasterDataSeeder extends Seeder
                 ['name' => 'Box', 'symbol' => 'bx'],
                 ['name' => 'Hour', 'symbol' => 'hr'],
             ] as $unit) {
-                Unit::query()->firstOrCreate(
+                $u = Unit::withTrashed()->firstOrCreate(
                     ['company_id' => $company->id, 'name' => $unit['name']],
                     $unit + ['created_by' => null, 'updated_by' => null]
                 );
+                if ($u->trashed()) {
+                    $u->restore();
+                }
             }
         }
     }

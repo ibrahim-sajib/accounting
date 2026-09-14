@@ -34,17 +34,23 @@ class PayrollSeeder extends Seeder
     {
         foreach (Company::all() as $company) {
             foreach ($this->departments as $name) {
-                Department::query()->firstOrCreate(
+                $department = Department::withTrashed()->firstOrCreate(
                     ['company_id' => $company->id, 'name' => $name],
                     ['is_active' => true]
                 );
+                if ($department->trashed()) {
+                    $department->restore();
+                }
             }
 
             foreach ($this->designations as $name) {
-                Designation::query()->firstOrCreate(
+                $designation = Designation::withTrashed()->firstOrCreate(
                     ['company_id' => $company->id, 'name' => $name],
                     ['is_active' => true]
                 );
+                if ($designation->trashed()) {
+                    $designation->restore();
+                }
             }
         }
     }

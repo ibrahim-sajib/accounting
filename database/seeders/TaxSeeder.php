@@ -40,12 +40,15 @@ class TaxSeeder extends Seeder
 
             DB::transaction(function () use ($company, $inputVat, $outputVat, $whtPayable) {
                 foreach ($this->taxTypes as $typeName => $config) {
-                    $taxType = TaxType::query()->firstOrCreate(
+                    $taxType = TaxType::withTrashed()->firstOrCreate(
                         ['company_id' => $company->id, 'name' => $typeName]
                     );
+                    if ($taxType->trashed()) {
+                        $taxType->restore();
+                    }
 
                     foreach ($config['rates'] as $rate) {
-                        TaxRate::query()->firstOrCreate(
+                        $taxRate = TaxRate::withTrashed()->firstOrCreate(
                             [
                                 'company_id' => $company->id,
                                 'tax_type_id' => $taxType->id,
@@ -59,6 +62,9 @@ class TaxSeeder extends Seeder
                                 'output_account_id' => $rate['output'] === '2121' ? $outputVat : ($rate['output'] === '2131' ? $whtPayable : null),
                             ]
                         );
+                        if ($taxRate->trashed()) {
+                            $taxRate->restore();
+                        }
                     }
                 }
             });

@@ -43,7 +43,7 @@ class AssetCategorySeeder extends Seeder
                     continue;
                 }
 
-                AssetCategory::query()->firstOrCreate(
+                $category = AssetCategory::withTrashed()->firstOrCreate(
                     ['company_id' => $company->id, 'name' => $name],
                     [
                         'asset_account_id' => $assetAccountId,
@@ -54,6 +54,9 @@ class AssetCategorySeeder extends Seeder
                         'is_active' => true,
                     ]
                 );
+                if ($category->trashed()) {
+                    $category->restore();
+                }
             }
         }
     }

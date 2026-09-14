@@ -76,11 +76,24 @@ class User extends Authenticatable
         return $this->hasMany(UserRole::class);
     }
 
-    public function permissions()
+    public function permissions(?int $companyId = null)
     {
-        return $this->belongsToMany(Permission::class, 'user_roles', 'user_id', 'role_id')
+        // Permission slugs the user holds through their assigned roles.
+        // RBAC lives on the control-plane; tenants only mirror it. Read from
+        // there even when the request's default connection is a tenant DB.
+        $platform = app(\App\Domain\Tenant\Services\TenantManager::class)->platformConnection();
+
+        $query = Permission::on($platform)
+            ->distinct()
             ->join('role_permissions', 'role_permissions.permission_id', '=', 'permissions.id')
-            ->join('roles', 'roles.id', '=', 'role_permissions.role_id');
+            ->join('user_roles', 'user_roles.role_id', '=', 'role_permissions.role_id')
+            ->where('user_roles.user_id', $this->id);
+
+        if ($companyId) {
+            $query->where('user_roles.company_id', $companyId);
+        }
+
+        return $query;
     }
 
     public function companyAccess()

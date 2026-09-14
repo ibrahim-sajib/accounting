@@ -283,6 +283,39 @@ Safe to rename a migration's column BEFORE it has run in MySQL (SQLite runs from
   `superAdminOnly: true` (filtered in `itemVisible`) so non-super-admins never see a menu that
   would 403 for them. New platform permission modules need no RoleSeeder change for company-admin.
 
+### 1.30 Mis-built belongsToMany on a pivot that isn't the link table (RBAC `permissions()`)
+- `$user->permissions()` was written as
+  `belongsToMany(Permission::class, 'user_roles', 'user_id', 'role_id')->join('role_permissions'...)`.
+  A belongsToMany treats the 4th arg (`role_id`) as the FK into `permissions.id`, so the query
+  returned only permission rows whose **id happens to equal one of the user's role ids**
+  (role ids 1..33 overlap the permission id space) — garbage slugs. Result: a freshly created
+  Company Admin (152 role_permissions on the control-plane) got exactly 2 slugs —
+  `['settings.update','period.create']` (his role ids 19/27) — so `auth.permissions`
+  (`HandleInertiaRequests::share()`) hid almost every sidebar item. Server-side gates were
+  unaffected (`EnsurePermission` → `hasPermission()` uses a correct `roles()->wherePivot(...)`
+  path), which is why every PHP test stayed green.
+- Rule: a "permissions of user" query is a straight join over `permissions → role_permissions →
+  user_roles`; do NOT model the three-table path as a single belongsToMany on `user_roles`
+  (that pivot has **two** FKs — `user_id` AND `company_id` — neither points at permissions).
+  `User::permissions(?int $companyId)` now returns a `Permission` query builder on the
+  **platform** connection (`TenantManager::platformConnection()` — RBAC lives on the control-plane;
+  at `HandleInertiaRequests` time the default connection is already the tenant DB) with the
+  `user_roles.company_id` scope applied when a company context exists (mirrors `hasPermission`).
+  `HandleInertiaRequests` passes `session('active_company_id')`.
+
+### 1.31 SoftDeletes + DB unique key = "invisible row" insertion collision (seeders)
+- `firstOrCreate` on a soft-deletable model whose table carries a **plain unique index** (e.g.
+  `accounts.(company_id, code)`) returns the *visible* row — but if that row was soft-deleted,
+  the global scope hides it, `firstOrCreate` sees nothing, and the subsequent INSERT collides with
+  the trashed row: `SQLSTATE[23000] 1062 Duplicate entry '1-4121'` — a hard 500 (MySQL-only, like
+  §1.22: SQLite has no such unique enforcement). Real-world trigger: an account (or category/unit/
+  dept) gets soft-deleted once, then ANY later company creation re-runs `provisionDefaults()`'
+  seeders over ALL companies (`Company::all()`) and the deleted company's row blocks seeding.
+- Fix: `Model::withTrashed()->firstOrCreate(...)` and immediately `if ($model->trashed()) $model->restore();`
+  (applied in ChartOfAccounts, Tax, ExpenseCategory, AssetCategory, Payroll, MasterData seeders).
+  `updateOrCreate` seeders are naturally immune. Audit rule: any seeder `firstOrCreate`'ing a
+  SoftDeletes model must use the withTrashed+restore pattern.
+
 ---
 
 ## 2. Engineering conventions (senior baseline)

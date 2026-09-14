@@ -51,7 +51,7 @@ class HandleInertiaRequests extends Middleware
                     'status' => $user->status,
                 ] : null,
                 'permissions' => $user
-                    ? $user->permissions()->distinct()->pluck('permissions.slug')
+                    ? $user->permissions($companyId)->pluck('permissions.slug')
                     : [],
             ],
             'current_company' => $company ? [

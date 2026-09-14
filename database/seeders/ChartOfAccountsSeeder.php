@@ -197,7 +197,12 @@ class ChartOfAccountsSeeder extends Seeder
             ? AccountType::from($type)->normalBalance()
             : 'debit';
 
-        $account = Account::query()->firstOrCreate(
+        // Accounts use SoftDeletes but the DB unique key (company_id, code) is
+        // NOT soft-delete aware: once a row is soft-deleted, plain firstOrCreate
+        // sees nothing, then the INSERT collides with the trashed row (1062 —
+        // §AGENTS 1.11/1.16 style "silent in SQLite, 500 in MySQL"). Look up
+        // WITH trashed rows and restore any soft-deleted one.
+        $account = Account::withTrashed()->firstOrCreate(
             ['company_id' => $company->id, 'code' => $node['code']],
             [
                 'name' => $node['name'],
@@ -210,6 +215,10 @@ class ChartOfAccountsSeeder extends Seeder
                 'is_postable' => empty($node['children']),
             ]
         );
+
+        if ($account->trashed()) {
+            $account->restore();
+        }
 
         foreach ($node['children'] ?? [] as $child) {
             $this->seedNode($company, $child, $account->id, $type, $level + 1);
