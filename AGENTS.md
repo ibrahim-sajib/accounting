@@ -316,6 +316,28 @@ Safe to rename a migration's column BEFORE it has run in MySQL (SQLite runs from
   `updateOrCreate` seeders are naturally immune. Audit rule: any seeder `firstOrCreate`'ing a
   SoftDeletes model must use the withTrashed+restore pattern.
 
+### 1.32 Middleware priority: `SubstituteBindings` runs BEFORE web-appended middleware (tenant show-route 404)
+- The default `web` group ends with `SubstituteBindings`, and `SortedMiddleware` runs every
+  priority-listed middleware before non-listed ones. `SetActiveCompanyContext` + `SelectTenantDatabase`
+  were originally `append`ed to the `web` group, i.e. AFTER the binder → route-model binding
+  (`SalesInvoice $invoice`, `PurchaseBill $bill`, …) resolved against the CONTROL-PLANE connection
+  (companies/users, no tenant tables) → `ModelNotFoundException` → plain Laravel 404 on EVERY
+  tenant-bound show/edit route at the exact moment a fresh company went live.
+  "Dashboard/login/create work but the save redirect lands on `Not Found`" is the signature. Diagnostics
+  are deceptive: inside ONE live request `find()`/tenant connection all resolve — but the 404 aborts the
+  pipeline BEFORE the tenant selector ever runs (which is also why middleware debug writes never fire).
+  PHP/Inertia tests stay green (SQLite disables tenancy: `enabled()` is driver-gated).
+- Fix (`bootstrap/app.php`):
+  ```php
+  $middleware->prependToPriorityList(\Illuminate\Routing\Middleware\SubstituteBindings::class, \App\Http\Middleware\SelectTenantDatabase::class);
+  $middleware->prependToPriorityList(\App\Http\Middleware\SelectTenantDatabase::class, \App\Http\Middleware\SetActiveCompanyContext::class);
+  ```
+  → SetActiveCompanyContext → SelectTenantDatabase → SubstituteBindings (SetActiveCompanyContext can read
+  the session because `StartSession` still precedes the priority list). Verify live: `GET /sales/invoices/{id}` 200.
+- Guardrail: any future per-request DB-switching middleware must provably sit before the binder. Regression
+  coverage: `tests/Feature/SalesPurchaseShowRegressionTest.php` (store → redirect → show renders 200) +
+  a headless-nav pass over an id-bearing tenant route. See also §1.30's sibling trap (priority vs. append).
+
 ---
 
 ## 2. Engineering conventions (senior baseline)
@@ -1226,7 +1248,8 @@ Safe to rename a migration's column BEFORE it has run in MySQL (SQLite runs from
 ## 3. Verification checklist (mandatory before "done")
 
 1. `npm run build` (runs `vue-tsc` type-check + `vite build`) — must pass clean.
-2. `php artisan test` — whole suite green (SQLite in-memory; Docker can stay up or down).
+2. `npm test` (vitest) — frontend unit tests (Resources/js `*.spec.ts`s) must pass.
+3. `php artisan test` — whole suite green (SQLite in-memory; Docker can stay up or down).
 3. Headless-Chrome SPA navigation pass against the running app
    (`http://localhost:8000`, demo login `admin@demobusiness.local` / `password`):
    log in → click every sidebar link → assert correct heading + URL + **zero** console/network errors.

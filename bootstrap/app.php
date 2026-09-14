@@ -18,6 +18,22 @@ return Application::configure(basePath: dirname(__DIR__))
             \Illuminate\Http\Middleware\AddLinkHeadersForPreloadedAssets::class,
         ]);
 
+        // The default "web" group runs SubstituteBindings after StartSession.
+        // Route-model binding (`SalesInvoice $invoice`, etc.) therefore queries
+        // the DEFAULT connection BEFORE SelectTenantDatabase has switched to the
+        // active company's tenant database — so every bound tenant model fell
+        // back to the control-plane connection and 404'd. Lift both tenant
+        // middleware into the priority list ahead of SubstituteBindings so the
+        // tenant connection is selected before route-model binding resolves.
+        $middleware->prependToPriorityList(
+            \Illuminate\Routing\Middleware\SubstituteBindings::class,
+            \App\Http\Middleware\SelectTenantDatabase::class
+        );
+        $middleware->prependToPriorityList(
+            \App\Http\Middleware\SelectTenantDatabase::class,
+            \App\Http\Middleware\SetActiveCompanyContext::class
+        );
+
         $middleware->alias([
             'permission' => \App\Http\Middleware\EnsurePermission::class,
         ]);
