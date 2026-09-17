@@ -40,3 +40,62 @@ All migration, seeder, Docker, frontend and test commands are documented in **[C
 ## Architecture
 
 See **[../accounting-erp-architecture.md](../accounting-erp-architecture.md)** for the module map, data model and accounting rules.
+
+
+
+ACCOUNTING PROJECT — MODULE LIST
+
+PHASE 1 — FOUNDATION
+01. Company
+02. Branch
+03. User & Role
+33. System Settings
+05. Fiscal Year & Period
+06. Currency
+
+PHASE 2 — ACCOUNTING SETUP
+07. Tax/VAT
+08. Chart of Accounts
+04. Accounting Configuration
+
+PHASE 3 — MASTER DATA
+09. Customer
+10. Supplier
+11. Product/Service
+12. Warehouse
+
+PHASE 4 — CORE ACCOUNTING
+20. General Journal
+    - Ledger (Derived)
+    - Opening Balances
+
+PHASE 5 — SALES & PURCHASE
+14. Sales
+15. Purchase
+16. Accounts Receivable
+17. Accounts Payable
+
+PHASE 6 — INVENTORY & CASH
+13. Inventory
+18. Cash & Bank
+19. Expense
+
+PHASE 7 — ADVANCED MODULES
+21. Fixed Assets
+22. Payroll
+23. Budget
+
+PHASE 8 — REPORTING
+24. Accounting Reports
+25. Financial Statements
+30. Dashboard
+
+PHASE 9 — GOVERNANCE & SUPPORTING
+27. Approval Workflow
+26. Audit Trail
+28. Notifications
+29. Documents/Attachments
+
+PHASE 10 — PERIOD & YEAR-END CLOSING
+31. Period Closing
+32. Year End Closing
